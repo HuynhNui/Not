@@ -1,3 +1,4 @@
+//UnitMovement.cs
 using UnityEngine;
 
 namespace _Project.Scripts.Gameplay.Units
@@ -7,8 +8,8 @@ namespace _Project.Scripts.Gameplay.Units
     /// </summary>
     public class UnitMovement : MonoBehaviour
     {
-        [SerializeField] private float moveSpeed = 5f;
-        [SerializeField] private Rigidbody2D cachedRigidbody;
+        [SerializeField] protected float moveSpeed = 5f;
+        [SerializeField] protected Rigidbody2D cachedRigidbody;
 
         public virtual void Init()
         {

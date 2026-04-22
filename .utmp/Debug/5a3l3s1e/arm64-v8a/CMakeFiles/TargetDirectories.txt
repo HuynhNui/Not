@@ -1,0 +1,8 @@
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/GameActivity/CMakeFiles/game.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+C:/Users/Artermis/My project/.utmp/Debug/5a3l3s1e/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir

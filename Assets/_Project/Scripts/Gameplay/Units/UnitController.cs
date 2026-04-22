@@ -1,3 +1,4 @@
+//UnitController.cs
 using _Project.Scripts.Data.ScriptableObjects.UnitData;
 using _Project.Scripts.Gameplay.Combat;
 using UnityEngine;
@@ -9,9 +10,9 @@ namespace _Project.Scripts.Gameplay.Units
     /// </summary>
     public class UnitController : MonoBehaviour
     {
-        [SerializeField] private UnitData unitData;
-        [SerializeField] private UnitMovement unitMovement;
-        [SerializeField] private WeaponController weaponController;
+        [SerializeField] protected UnitData unitData;
+        [SerializeField] protected UnitMovement unitMovement;
+        [SerializeField] protected WeaponController weaponController;
 
         public virtual void Init()
         {
