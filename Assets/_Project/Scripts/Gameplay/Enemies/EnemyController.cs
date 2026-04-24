@@ -7,7 +7,7 @@ namespace _Project.Scripts.Gameplay.Enemies
     /// <summary>
     /// Defines a pooled enemy unit that can spawn, move toward the player, and receive damage.
     /// </summary>
-    public sealed class EnemyController : MonoBehaviour, IPoolable
+    public sealed class EnemyController : MonoBehaviour, IPoolable, IDamageable
     {
         [SerializeField] private UnitData unitData;
         [SerializeField] private float currentHealth = 1f;
@@ -31,6 +31,7 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         public void TakeDamage(float damageAmount)
         {
+            currentHealth = Mathf.Max(0f, currentHealth - Mathf.Max(0f, damageAmount));
         }
     }
 }

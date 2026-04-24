@@ -1,56 +1,104 @@
-//playerController.cs
-using _Project.Scripts.Gameplay.Combat;
-using _Project.Scripts.Gameplay.Units;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace _Project.Scripts.Gameplay.Player
 {
     /// <summary>
-    /// Serves as the player composition root and coordinates movement, combat, and damage entry points.
+    /// Coordinates the player squad.
+    /// Input and movement stay on dedicated components, while firing is triggered here for the whole squad.
     /// </summary>
-    public sealed class PlayerController : UnitController
+    public sealed class PlayerController : MonoBehaviour
     {
         [SerializeField] private PlayerMovement playerMovement;
-        [SerializeField] private WeaponController playerWeapon;
-        [SerializeField] private Collider2D hitboxCollider;
-        [SerializeField] private float currentHealth = 1f;
+        [SerializeField] private MainPlayerUnit mainPlayerUnit;
+        [SerializeField] private List<FollowerUnit> followers = new List<FollowerUnit>();
+        [SerializeField] private bool autoFire = true;
 
-        public override void Init()
+        public MainPlayerUnit MainPlayerUnit => mainPlayerUnit;
+        public IReadOnlyList<FollowerUnit> Followers => followers;
+
+        private void Awake()
         {
             if (playerMovement != null)
             {
                 playerMovement.Init();
             }
 
-            if (playerWeapon != null)
+            if (mainPlayerUnit != null)
             {
-                playerWeapon.Init();
+                mainPlayerUnit.Initialize();
+            }
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                if (followers[index] == null)
+                {
+                    continue;
+                }
+
+                followers[index].Initialize();
             }
         }
 
-        private void Awake()
+        private void Update()
         {
-            Init();
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-        }
-
-        public override void Fire()
-        {
-            if (playerWeapon == null)
+            if (!autoFire)
             {
                 return;
             }
 
-            playerWeapon.Fire();
+            ShootSquad();
         }
 
-        public override void TakeDamage(float damageAmount)
+        public void SetMainPlayerUnit(MainPlayerUnit unit)
         {
-            currentHealth -= damageAmount;
+            mainPlayerUnit = unit;
+
+            if (mainPlayerUnit != null)
+            {
+                mainPlayerUnit.Initialize();
+            }
+        }
+
+        public void AddFollower(FollowerUnit follower)
+        {
+            if (follower == null || followers.Contains(follower))
+            {
+                return;
+            }
+
+            followers.Add(follower);
+            follower.Initialize();
+        }
+
+        public void RemoveFollower(FollowerUnit follower)
+        {
+            if (follower == null)
+            {
+                return;
+            }
+
+            followers.Remove(follower);
+        }
+
+        public void ShootSquad()
+        {
+            if (mainPlayerUnit != null && !mainPlayerUnit.IsDead)
+            {
+                mainPlayerUnit.Shoot();
+            }
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                FollowerUnit follower = followers[index];
+
+                if (follower == null)
+                {
+                    continue;
+                }
+
+                follower.Shoot();
+            }
         }
     }
 }
