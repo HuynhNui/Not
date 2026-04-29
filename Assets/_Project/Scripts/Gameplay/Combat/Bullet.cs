@@ -1,4 +1,5 @@
 using _Project.Scripts.Interfaces;
+using _Project.Scripts.Systems.PoolSystem;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,11 +14,14 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private float lifetime = 2f;
         [SerializeField] private float damage = 1f;
         [SerializeField] private bool destroyOnHitByDefault = true;
+        [SerializeField] private bool requireDamageableHit = true;
 
         private readonly List<IBulletModifier> _modifiers = new List<IBulletModifier>();
         private readonly List<BulletModifierConfig> _modifierConfigs = new List<BulletModifierConfig>();
 
         private BulletSpawner _ownerSpawner;
+        private PoolSystem _poolSystem;
+        private Transform _ownerRoot;
         private float _remainingLifetime;
         private bool _isActive;
         private bool _preserveAfterHit;
@@ -69,12 +73,25 @@ namespace _Project.Scripts.Gameplay.Combat
         public void Despawn()
         {
             _isActive = false;
+
+            if (_poolSystem != null)
+            {
+                _poolSystem.Release(this);
+                return;
+            }
+
             Destroy(gameObject);
+        }
+
+        public void SetPoolSystem(PoolSystem poolSystem)
+        {
+            _poolSystem = poolSystem;
         }
 
         public void Configure(BulletSpawner ownerSpawner, IReadOnlyList<BulletModifierConfig> modifierConfigs)
         {
             _ownerSpawner = ownerSpawner;
+            _ownerRoot = ownerSpawner != null ? ownerSpawner.transform.root : null;
             _modifiers.Clear();
             _modifierConfigs.Clear();
 
@@ -123,26 +140,36 @@ namespace _Project.Scripts.Gameplay.Combat
             _ownerSpawner.SpawnChildBullet(transform.position, direction, childDamage, speed, _modifierConfigs, excludedModifier);
         }
 
-        private void OnTriggerEnter(Collider other)
+        private void OnTriggerEnter2D(Collider2D other)
         {
             HandleHit(other);
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void OnCollisionEnter2D(Collision2D collision)
         {
             HandleHit(collision.collider);
         }
 
-        private void HandleHit(Collider target)
+        private void HandleHit(Collider2D target)
         {
             if (!_isActive || target == null)
             {
                 return;
             }
 
-            _preserveAfterHit = false;
+            if (_ownerRoot != null && target.transform.root == _ownerRoot)
+            {
+                return;
+            }
 
-            IDamageable damageable = target.GetComponent<IDamageable>();
+            IDamageable damageable = FindDamageableTarget(target);
+
+            if (damageable == null && requireDamageableHit)
+            {
+                return;
+            }
+
+            _preserveAfterHit = false;
             damageable?.TakeDamage(damage);
 
             for (int index = 0; index < _modifiers.Count; index++)
@@ -154,6 +181,18 @@ namespace _Project.Scripts.Gameplay.Combat
             {
                 Despawn();
             }
+        }
+
+        private static IDamageable FindDamageableTarget(Collider2D target)
+        {
+            IDamageable damageable = target.GetComponent<IDamageable>();
+
+            if (damageable != null)
+            {
+                return damageable;
+            }
+
+            return target.GetComponentInParent<IDamageable>();
         }
     }
 }

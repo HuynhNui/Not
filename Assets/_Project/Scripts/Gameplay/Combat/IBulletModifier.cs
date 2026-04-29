@@ -9,6 +9,6 @@ namespace _Project.Scripts.Gameplay.Combat
     {
         void OnInit(Bullet bullet);
         void OnUpdate(Bullet bullet);
-        void OnHit(Bullet bullet, Collider target);
+        void OnHit(Bullet bullet, Collider2D target);
     }
 }

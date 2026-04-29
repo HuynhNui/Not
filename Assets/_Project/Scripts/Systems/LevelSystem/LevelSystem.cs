@@ -10,6 +10,8 @@ namespace _Project.Scripts.Systems.LevelSystem
         [SerializeField] private Transform levelRoot;
         [SerializeField] private float runDistance = 100f;
 
+        public float RunDistance => runDistance;
+
         public void Init()
         {
         }

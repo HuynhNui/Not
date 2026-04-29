@@ -20,7 +20,7 @@ namespace _Project.Scripts.Gameplay.Combat
         {
         }
 
-        public void OnHit(Bullet bullet, UnityEngine.Collider target)
+        public void OnHit(Bullet bullet, UnityEngine.Collider2D target)
         {
             if (_remainingPierces <= 0)
             {

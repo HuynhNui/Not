@@ -24,13 +24,13 @@ namespace _Project.Scripts.Gameplay.Combat
 
         public void OnUpdate(Bullet bullet)
         {
-            Collider[] targets = Physics.OverlapSphere(bullet.Position, _searchRadius, _targetLayers);
+            Collider2D[] targets = Physics2D.OverlapCircleAll(bullet.Position, _searchRadius, _targetLayers);
             Transform closestTarget = null;
             float closestSqrDistance = float.MaxValue;
 
             for (int index = 0; index < targets.Length; index++)
             {
-                Collider target = targets[index];
+                Collider2D target = targets[index];
                 float sqrDistance = (target.transform.position - bullet.Position).sqrMagnitude;
 
                 if (sqrDistance >= closestSqrDistance)
@@ -57,7 +57,7 @@ namespace _Project.Scripts.Gameplay.Combat
             bullet.SetDirection(nextDirection);
         }
 
-        public void OnHit(Bullet bullet, Collider target)
+        public void OnHit(Bullet bullet, Collider2D target)
         {
         }
     }

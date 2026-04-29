@@ -1,4 +1,5 @@
 using _Project.Scripts.Core.StateMachine;
+using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.CombatSystem;
 using _Project.Scripts.Systems.EnemySpawnerSystem;
 using _Project.Scripts.Systems.GateSystem;
@@ -19,13 +20,60 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private GateSystem gateSystem;
         [SerializeField] private UISystem uiSystem;
         [SerializeField] private LevelSystem levelSystem;
+        [SerializeField] private PlayerController playerController;
+        [SerializeField] private MainPlayerUnit mainPlayerUnit;
+
+        private bool _isGameOver;
 
         public void Init()
         {
+            uiSystem?.Init();
+
+            if (playerController == null)
+            {
+                playerController = FindAnyObjectByType<PlayerController>();
+            }
+
+            if (mainPlayerUnit == null)
+            {
+                mainPlayerUnit = FindAnyObjectByType<MainPlayerUnit>();
+            }
+
+            if (mainPlayerUnit != null)
+            {
+                mainPlayerUnit.Died -= HandlePlayerDied;
+                mainPlayerUnit.Died += HandlePlayerDied;
+            }
+
+            Time.timeScale = 1f;
+            _isGameOver = false;
         }
 
-        private void Update()
+        private void Awake()
         {
+            Init();
+        }
+
+        private void OnDestroy()
+        {
+            if (mainPlayerUnit != null)
+            {
+                mainPlayerUnit.Died -= HandlePlayerDied;
+            }
+        }
+
+        private void HandlePlayerDied(MainPlayerUnit deadPlayer)
+        {
+            if (_isGameOver)
+            {
+                return;
+            }
+
+            _isGameOver = true;
+
+            playerController?.SetControlsEnabled(false);
+            enemySpawnerSystem?.SetSpawningEnabled(false);
+            uiSystem?.ShowGameOver();
         }
     }
 }

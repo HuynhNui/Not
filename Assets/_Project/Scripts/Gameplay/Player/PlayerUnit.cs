@@ -1,3 +1,4 @@
+using _Project.Scripts.Data.ScriptableObjects.PlayerConfigs;
 using _Project.Scripts.Gameplay.Combat;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace _Project.Scripts.Gameplay.Player
     /// </summary>
     public class PlayerUnit : MonoBehaviour
     {
+        [SerializeField] private PlayerUnitConfig unitConfig;
         [SerializeField] private float damage = 1f;
         [SerializeField] private float fireRate = 4f;
         [SerializeField] private BulletSpawner bulletSpawner;
@@ -26,6 +28,8 @@ namespace _Project.Scripts.Gameplay.Player
 
         public virtual void Initialize()
         {
+            ApplyUnitConfig();
+
             if (IsInitialized)
             {
                 SyncSpawnerStats();
@@ -102,6 +106,22 @@ namespace _Project.Scripts.Gameplay.Player
             }
 
             bulletSpawner.Initialize(damage, fireRate);
+
+            if (unitConfig != null)
+            {
+                bulletSpawner.SetBulletSpeed(unitConfig.BulletSpeed);
+            }
+        }
+
+        private void ApplyUnitConfig()
+        {
+            if (unitConfig == null)
+            {
+                return;
+            }
+
+            damage = Mathf.Max(0f, unitConfig.Damage);
+            fireRate = Mathf.Max(0f, unitConfig.FireRate);
         }
     }
 }

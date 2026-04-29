@@ -28,7 +28,7 @@ namespace _Project.Scripts.Gameplay.Combat
         {
         }
 
-        public void OnHit(Bullet bullet, Collider target)
+        public void OnHit(Bullet bullet, Collider2D target)
         {
             if (_splitCount <= 0)
             {

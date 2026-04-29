@@ -1,3 +1,4 @@
+using _Project.Scripts.Systems.PoolSystem;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private float fireRate = 4f;
         [SerializeField] private float damage = 1f;
         [SerializeField] private float bulletSpeed = 12f;
+        [SerializeField] private bool forceVerticalDirection = true;
+        [SerializeField] private PoolSystem poolSystem;
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
 
         private readonly List<BulletModifierConfig> _runtimeModifierConfigs = new List<BulletModifierConfig>();
@@ -26,6 +29,7 @@ namespace _Project.Scripts.Gameplay.Combat
 
         public void Initialize(float initialDamage, float initialFireRate)
         {
+            poolSystem ??= FindAnyObjectByType<PoolSystem>();
             damage = Mathf.Max(0f, initialDamage);
             fireRate = Mathf.Max(0f, initialFireRate);
         }
@@ -78,7 +82,11 @@ namespace _Project.Scripts.Gameplay.Combat
             }
 
             Transform spawnPoint = firePoint != null ? firePoint : transform;
-            SpawnBullet(spawnPoint.position, spawnPoint.rotation, damage, bulletSpeed, BuildModifierConfigBuffer());
+            Quaternion rotation = forceVerticalDirection
+                ? Quaternion.LookRotation(Vector3.forward, Vector3.up)
+                : spawnPoint.rotation;
+
+            SpawnBullet(spawnPoint.position, rotation, damage, bulletSpeed, BuildModifierConfigBuffer());
             _nextShotTime = Time.time + GetShotInterval();
         }
 
@@ -121,7 +129,16 @@ namespace _Project.Scripts.Gameplay.Combat
                 return null;
             }
 
-            Bullet spawnedBullet = Instantiate(bulletPrefab, position, rotation);
+            Bullet spawnedBullet = poolSystem != null
+                ? poolSystem.Spawn(bulletPrefab, position, rotation)
+                : Instantiate(bulletPrefab, position, rotation);
+
+            if (spawnedBullet == null)
+            {
+                return null;
+            }
+
+            spawnedBullet.SetPoolSystem(poolSystem);
             spawnedBullet.Init(bulletDamage, projectileSpeed);
             spawnedBullet.Configure(this, modifierConfigs);
             spawnedBullet.Spawn();

@@ -13,6 +13,12 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private int projectileCount = 1;
         [SerializeField] private float baseDamage = 1f;
 
+        public Transform FirePoint => firePoint;
+        public Bullet BulletPrefab => bulletPrefab;
+        public float FireInterval => fireInterval;
+        public int ProjectileCount => projectileCount;
+        public float BaseDamage => baseDamage;
+
         public void Init()
         {
         }

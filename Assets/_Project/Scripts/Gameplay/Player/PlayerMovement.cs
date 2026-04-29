@@ -1,6 +1,10 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
 using _Project.Scripts.Gameplay.Units;
+using InputTouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
+using InputTouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 namespace _Project.Scripts.Gameplay.Player
 {
@@ -8,6 +12,8 @@ namespace _Project.Scripts.Gameplay.Player
     {
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private float horizontalClamp = 3.5f;
+        [SerializeField] private bool useCameraBounds = true;
+        [SerializeField] private float edgePadding = 0.35f;
         [SerializeField] private bool ignoreTouchesOverUi = true;
 
         private bool _hasActivePointer;
@@ -15,6 +21,7 @@ namespace _Project.Scripts.Gameplay.Player
 
         private float _targetX;
         private float _dragOffset;
+        private bool _inputEnabled = true;
 
         public override void Init()
         {
@@ -29,10 +36,36 @@ namespace _Project.Scripts.Gameplay.Player
             Init();
         }
 
+        private void OnEnable()
+        {
+            EnhancedTouchSupport.Enable();
+        }
+
+        private void OnDisable()
+        {
+            EnhancedTouchSupport.Disable();
+        }
+
         protected override void Update()
         {
+            if (!_inputEnabled)
+            {
+                return;
+            }
+
             ReadInput();
             Move();
+        }
+
+        public void SetInputEnabled(bool isEnabled)
+        {
+            _inputEnabled = isEnabled;
+
+            if (!isEnabled)
+            {
+                _hasActivePointer = false;
+                _activeFingerId = -1;
+            }
         }
 
         // ===================== INPUT =====================
@@ -49,47 +82,42 @@ namespace _Project.Scripts.Gameplay.Player
 
         private bool TryReadTouchInput()
         {
-            if (Input.touchCount <= 0)
+            if (InputTouch.activeTouches.Count <= 0)
             {
                 _hasActivePointer = false;
                 _activeFingerId = -1;
                 return false;
             }
 
-            for (int i = 0; i < Input.touchCount; i++)
+            foreach (InputTouch touch in InputTouch.activeTouches)
             {
-                Touch touch = Input.GetTouch(i);
-
-                // START TOUCH
                 if (!_hasActivePointer)
                 {
-                    if (touch.phase != TouchPhase.Began)
+                    if (touch.phase != InputTouchPhase.Began)
                         continue;
 
                     if (ignoreTouchesOverUi && EventSystem.current != null &&
-                        EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                        EventSystem.current.IsPointerOverGameObject(touch.touchId))
                         continue;
 
                     _hasActivePointer = true;
-                    _activeFingerId = touch.fingerId;
+                    _activeFingerId = touch.touchId;
 
-                    float startWorldX = ScreenToWorldX(touch.position);
+                    float startWorldX = ScreenToWorldX(touch.screenPosition);
                     _dragOffset = transform.position.x - startWorldX;
                 }
 
-                if (touch.fingerId != _activeFingerId)
+                if (touch.touchId != _activeFingerId)
                     continue;
 
-                // END TOUCH
-                if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                if (touch.phase == InputTouchPhase.Ended || touch.phase == InputTouchPhase.Canceled)
                 {
                     _hasActivePointer = false;
                     _activeFingerId = -1;
                     return true;
                 }
 
-                // DRAG
-                float currentWorldX = ScreenToWorldX(touch.position);
+                float currentWorldX = ScreenToWorldX(touch.screenPosition);
                 _targetX = currentWorldX + _dragOffset;
 
                 return true;
@@ -100,7 +128,11 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void ReadMouseInput()
         {
-            if (Input.GetMouseButtonDown(0))
+            Mouse mouse = Mouse.current;
+            if (mouse == null)
+                return;
+
+            if (mouse.leftButton.wasPressedThisFrame)
             {
                 if (ignoreTouchesOverUi && EventSystem.current != null &&
                     EventSystem.current.IsPointerOverGameObject())
@@ -108,17 +140,17 @@ namespace _Project.Scripts.Gameplay.Player
 
                 _hasActivePointer = true;
 
-                float startWorldX = ScreenToWorldX(Input.mousePosition);
+                float startWorldX = ScreenToWorldX(mouse.position.ReadValue());
                 _dragOffset = transform.position.x - startWorldX;
             }
 
-            if (Input.GetMouseButton(0) && _hasActivePointer)
+            if (mouse.leftButton.isPressed && _hasActivePointer)
             {
-                float currentWorldX = ScreenToWorldX(Input.mousePosition);
+                float currentWorldX = ScreenToWorldX(mouse.position.ReadValue());
                 _targetX = currentWorldX + _dragOffset;
             }
 
-            if (Input.GetMouseButtonUp(0))
+            if (mouse.leftButton.wasReleasedThisFrame)
             {
                 _hasActivePointer = false;
             }
@@ -142,13 +174,35 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void Move()
         {
-            float clampedX = Mathf.Clamp(_targetX, -horizontalClamp, horizontalClamp);
+            float clampedX = Mathf.Clamp(_targetX, GetMinX(), GetMaxX());
 
             transform.position = new Vector3(
                 clampedX,
                 transform.position.y,
                 transform.position.z
             );
+        }
+
+        private float GetMinX()
+        {
+            if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
+            {
+                return -horizontalClamp;
+            }
+
+            float halfWidth = gameplayCamera.orthographicSize * gameplayCamera.aspect;
+            return gameplayCamera.transform.position.x - halfWidth + edgePadding;
+        }
+
+        private float GetMaxX()
+        {
+            if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
+            {
+                return horizontalClamp;
+            }
+
+            float halfWidth = gameplayCamera.orthographicSize * gameplayCamera.aspect;
+            return gameplayCamera.transform.position.x + halfWidth - edgePadding;
         }
     }
 }

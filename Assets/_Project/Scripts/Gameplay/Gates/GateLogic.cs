@@ -12,6 +12,8 @@ namespace _Project.Scripts.Gameplay.Gates
         [SerializeField] private GateConfig gateConfig;
         [SerializeField] private bool consumeAfterUse = true;
 
+        public bool ConsumeAfterUse => consumeAfterUse;
+
         public void Init()
         {
         }

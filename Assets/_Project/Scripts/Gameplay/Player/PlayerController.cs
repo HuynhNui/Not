@@ -13,6 +13,7 @@ namespace _Project.Scripts.Gameplay.Player
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
         [SerializeField] private List<FollowerUnit> followers = new List<FollowerUnit>();
         [SerializeField] private bool autoFire = true;
+        private bool _controlsEnabled = true;
 
         public MainPlayerUnit MainPlayerUnit => mainPlayerUnit;
         public IReadOnlyList<FollowerUnit> Followers => followers;
@@ -42,7 +43,7 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void Update()
         {
-            if (!autoFire)
+            if (!_controlsEnabled || !autoFire)
             {
                 return;
             }
@@ -83,6 +84,11 @@ namespace _Project.Scripts.Gameplay.Player
 
         public void ShootSquad()
         {
+            if (!_controlsEnabled)
+            {
+                return;
+            }
+
             if (mainPlayerUnit != null && !mainPlayerUnit.IsDead)
             {
                 mainPlayerUnit.Shoot();
@@ -98,6 +104,16 @@ namespace _Project.Scripts.Gameplay.Player
                 }
 
                 follower.Shoot();
+            }
+        }
+
+        public void SetControlsEnabled(bool isEnabled)
+        {
+            _controlsEnabled = isEnabled;
+
+            if (playerMovement != null)
+            {
+                playerMovement.SetInputEnabled(isEnabled);
             }
         }
     }
