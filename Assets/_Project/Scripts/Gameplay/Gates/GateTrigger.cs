@@ -1,4 +1,5 @@
 using UnityEngine;
+using _Project.Scripts.Gameplay.Player;
 
 namespace _Project.Scripts.Gameplay.Gates
 {
@@ -12,6 +13,25 @@ namespace _Project.Scripts.Gameplay.Gates
 
         public void Init()
         {
+            if (triggerCollider == null)
+            {
+                triggerCollider = GetComponent<Collider2D>();
+            }
+
+            if (triggerCollider != null)
+            {
+                triggerCollider.isTrigger = true;
+            }
+
+            if (gateLogic == null)
+            {
+                gateLogic = GetComponent<GateLogic>();
+            }
+        }
+
+        private void Awake()
+        {
+            Init();
         }
 
         private void Update()
@@ -20,6 +40,19 @@ namespace _Project.Scripts.Gameplay.Gates
 
         private void OnTriggerEnter2D(Collider2D other)
         {
+            if (gateLogic == null || other == null)
+            {
+                return;
+            }
+
+            MainPlayerUnit hitPlayer = other.GetComponent<MainPlayerUnit>();
+
+            if (hitPlayer == null)
+            {
+                return;
+            }
+
+            gateLogic.HandlePlayerTriggered(hitPlayer);
         }
     }
 }

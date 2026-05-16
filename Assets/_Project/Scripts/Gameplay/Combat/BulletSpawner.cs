@@ -15,6 +15,8 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private float fireRate = 4f;
         [SerializeField] private float damage = 1f;
         [SerializeField] private float bulletSpeed = 12f;
+        [SerializeField] private int projectileCount = 1;
+        [SerializeField] private float burstSpread = 0.35f;
         [SerializeField] private bool forceVerticalDirection = true;
         [SerializeField] private PoolSystem poolSystem;
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
@@ -26,6 +28,7 @@ namespace _Project.Scripts.Gameplay.Combat
         public float FireRate => fireRate;
         public float Damage => damage;
         public float BulletSpeed => bulletSpeed;
+        public int ProjectileCount => projectileCount;
 
         public void Initialize(float initialDamage, float initialFireRate)
         {
@@ -47,6 +50,11 @@ namespace _Project.Scripts.Gameplay.Combat
         public void SetBulletSpeed(float value)
         {
             bulletSpeed = Mathf.Max(0f, value);
+        }
+
+        public void SetProjectileCount(int value)
+        {
+            projectileCount = Mathf.Max(1, value);
         }
 
         public void AddModifier(BulletModifierConfig modifierConfig)
@@ -86,7 +94,15 @@ namespace _Project.Scripts.Gameplay.Combat
                 ? Quaternion.LookRotation(Vector3.forward, Vector3.up)
                 : spawnPoint.rotation;
 
-            SpawnBullet(spawnPoint.position, rotation, damage, bulletSpeed, BuildModifierConfigBuffer());
+            int shots = Mathf.Max(1, projectileCount);
+            float startOffset = -(shots - 1) * 0.5f * burstSpread;
+
+            for (int shotIndex = 0; shotIndex < shots; shotIndex++)
+            {
+                Vector3 shotPosition = spawnPoint.position + Vector3.right * (startOffset + shotIndex * burstSpread);
+                SpawnBullet(shotPosition, rotation, damage, bulletSpeed, BuildModifierConfigBuffer());
+            }
+
             _nextShotTime = Time.time + GetShotInterval();
         }
 

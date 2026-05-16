@@ -65,6 +65,26 @@ namespace _Project.Scripts.Gameplay.Player
             RefreshHealthBar();
         }
 
+        public void SetMaxHp(float value, bool healByDelta = false)
+        {
+            float previousMax = maxHp;
+            maxHp = Mathf.Max(1f, value);
+
+            if (healByDelta)
+            {
+                _currentHp += maxHp - previousMax;
+            }
+
+            _currentHp = Mathf.Clamp(_currentHp, 0f, maxHp);
+
+            if (_currentHp <= 0f && maxHp > 0f)
+            {
+                _currentHp = maxHp;
+            }
+
+            RefreshHealthBar();
+        }
+
         public void Die()
         {
             if (_isDead)

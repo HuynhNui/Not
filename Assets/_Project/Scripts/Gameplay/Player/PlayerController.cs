@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
+using _Project.Scripts.Gameplay.Gates;
 using UnityEngine;
 
 namespace _Project.Scripts.Gameplay.Player
@@ -115,6 +117,16 @@ namespace _Project.Scripts.Gameplay.Player
             {
                 playerMovement.SetInputEnabled(isEnabled);
             }
+        }
+
+        public void ApplyGateEffect(GateConfig config)
+        {
+            if (config == null || mainPlayerUnit == null)
+            {
+                return;
+            }
+
+            GateEffectApplier.Apply(config, mainPlayerUnit, this);
         }
     }
 }

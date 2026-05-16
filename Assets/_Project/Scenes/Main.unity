@@ -280,6 +280,8 @@ MonoBehaviour:
   fireRate: 4
   damage: 0
   bulletSpeed: 12
+  projectileCount: 1
+  burstSpread: 0.35
   forceVerticalDirection: 1
   poolSystem: {fileID: 2100000003}
   defaultModifierConfigs: []
@@ -293,7 +295,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.11, y: -3.27, z: 0}
-  m_LocalScale: {x: 7.263688, y: 6.785357, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 474146237}
@@ -526,9 +528,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Gameplay.Player.PlayerMovement
   moveSpeed: 5
   cachedRigidbody: {fileID: 0}
-  gameplayCamera: {fileID: 0}
+  gameplayCamera: {fileID: 519420031}
+  movementBoundsCollider: {fileID: 289232679}
   horizontalClamp: 3.5
   useCameraBounds: 1
+  useColliderHalfWidth: 1
   edgePadding: 0.35
   ignoreTouchesOverUi: 1
 --- !u!1 &519420028
@@ -1212,22 +1216,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &1128062107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1128062102}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 773b9fab050ac4f40895afc9d3ba31df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.UISystem.UISystem
-  hudRoot: {fileID: 205555462}
-  gameOverPanel: {fileID: 890592162}
-  scoreLabel: {fileID: 0}
-  playAgainButton: {fileID: 890592183}
 --- !u!114 &1128062104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1284,7 +1272,7 @@ RectTransform:
   m_GameObject: {fileID: 1128062102}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 205555463}
@@ -1296,6 +1284,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1128062107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1128062102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 773b9fab050ac4f40895afc9d3ba31df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.UISystem.UISystem
+  hudRoot: {fileID: 205555462}
+  gameOverPanel: {fileID: 890592162}
+  scoreLabel: {fileID: 0}
+  playAgainButton: {fileID: 890592183}
 --- !u!1 &1731515871
 GameObject:
   m_ObjectHideFlags: 0
@@ -1513,6 +1517,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2200000002}
   - component: {fileID: 2200000003}
+  - component: {fileID: 2200000004}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1550,11 +1555,41 @@ MonoBehaviour:
   gameStateMachine: {fileID: 0}
   combatSystem: {fileID: 0}
   enemySpawnerSystem: {fileID: 1731515873}
-  gateSystem: {fileID: 0}
+  gateSystem: {fileID: 2200000004}
   uiSystem: {fileID: 1128062107}
   levelSystem: {fileID: 0}
   playerController: {fileID: 479990533}
   mainPlayerUnit: {fileID: 289232676}
+--- !u!114 &2200000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2200000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3561a89d0e5a1304fa52594829007716, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.GateSystem.GateSystem
+  gatePrefab: {fileID: 656434872190376722, guid: afd5054dc2a64914faf938e084243748, type: 3}
+  spawnIntervalSeconds: 12
+  spawnAboveCameraOffset: 1.25
+  useViewportLanes: 1
+  viewportLaneMin: 0.12
+  viewportLaneMax: 0.88
+  gateHalfWidth: 0.75
+  laneSpacing: 2.2
+  gateCount: 3
+  availableGateConfigs:
+  - {fileID: 11400000, guid: 9ac366587069b1c48895e867014e7e07, type: 2}
+  - {fileID: 11400000, guid: fa47743830ed8284b949dea78cfd2f6e, type: 2}
+  - {fileID: 11400000, guid: 2a8a73ca99288c7499e8bee322d66078, type: 2}
+  playerController: {fileID: 479990533}
+  mainPlayerUnit: {fileID: 289232676}
+  gameplayCamera: {fileID: 519420031}
+  poolSystem: {fileID: 2100000003}
+  activeGates: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

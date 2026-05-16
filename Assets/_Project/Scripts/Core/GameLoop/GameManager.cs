@@ -28,6 +28,7 @@ namespace _Project.Scripts.Core.GameLoop
         public void Init()
         {
             uiSystem?.Init();
+            gateSystem?.Init();
 
             if (playerController == null)
             {

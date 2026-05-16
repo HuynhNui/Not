@@ -11,8 +11,10 @@ namespace _Project.Scripts.Gameplay.Player
     public sealed class PlayerMovement : UnitMovement
     {
         [SerializeField] private Camera gameplayCamera;
+        [SerializeField] private Collider2D movementBoundsCollider;
         [SerializeField] private float horizontalClamp = 3.5f;
         [SerializeField] private bool useCameraBounds = true;
+        [SerializeField] private bool useColliderHalfWidth = true;
         [SerializeField] private float edgePadding = 0.35f;
         [SerializeField] private bool ignoreTouchesOverUi = true;
 
@@ -26,6 +28,7 @@ namespace _Project.Scripts.Gameplay.Player
         public override void Init()
         {
             gameplayCamera ??= Camera.main;
+            movementBoundsCollider ??= GetComponentInChildren<Collider2D>();
             _targetX = transform.position.x;
             _hasActivePointer = false;
             _activeFingerId = -1;
@@ -174,7 +177,17 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void Move()
         {
-            float clampedX = Mathf.Clamp(_targetX, GetMinX(), GetMaxX());
+            float minX = GetMinX();
+            float maxX = GetMaxX();
+
+            if (minX > maxX)
+            {
+                float centerX = (minX + maxX) * 0.5f;
+                minX = centerX;
+                maxX = centerX;
+            }
+
+            float clampedX = Mathf.Clamp(_targetX, minX, maxX);
 
             transform.position = new Vector3(
                 clampedX,
@@ -185,24 +198,48 @@ namespace _Project.Scripts.Gameplay.Player
 
         private float GetMinX()
         {
+            float playerHalfWidth = GetPlayerHalfWidth();
+
             if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
             {
-                return -horizontalClamp;
+                return -horizontalClamp + playerHalfWidth;
             }
 
             float halfWidth = gameplayCamera.orthographicSize * gameplayCamera.aspect;
-            return gameplayCamera.transform.position.x - halfWidth + edgePadding;
+            return gameplayCamera.transform.position.x - halfWidth + edgePadding + playerHalfWidth;
         }
 
         private float GetMaxX()
         {
+            float playerHalfWidth = GetPlayerHalfWidth();
+
             if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
             {
-                return horizontalClamp;
+                return horizontalClamp - playerHalfWidth;
             }
 
             float halfWidth = gameplayCamera.orthographicSize * gameplayCamera.aspect;
-            return gameplayCamera.transform.position.x + halfWidth - edgePadding;
+            return gameplayCamera.transform.position.x + halfWidth - edgePadding - playerHalfWidth;
+        }
+
+        private float GetPlayerHalfWidth()
+        {
+            if (!useColliderHalfWidth)
+            {
+                return 0f;
+            }
+
+            if (movementBoundsCollider == null)
+            {
+                movementBoundsCollider = GetComponentInChildren<Collider2D>();
+            }
+
+            if (movementBoundsCollider == null)
+            {
+                return 0f;
+            }
+
+            return movementBoundsCollider.bounds.extents.x;
         }
     }
 }
