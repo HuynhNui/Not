@@ -11,6 +11,8 @@ namespace _Project.Scripts.Gameplay.Gates
     /// </summary>
     public static class GateEffectApplier
     {
+        private const int MaxProjectileCount = 50;
+
         public static void Apply(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
         {
             if (config == null || mainUnit == null)
@@ -30,7 +32,7 @@ namespace _Project.Scripts.Gameplay.Gates
                     ApplyMaxHp(config, mainUnit);
                     break;
                 case GateStatTarget.ProjectileCount:
-                    ApplyProjectileCount(config, mainUnit);
+                    ApplyWeaponEffect(config, mainUnit);
                     break;
             }
         }
@@ -55,6 +57,16 @@ namespace _Project.Scripts.Gameplay.Gates
             mainUnit.SetMaxHp(newMaxHp, healByDelta: config.OperationType == GateOperationType.Add);
         }
 
+        private static void ApplyWeaponEffect(GateConfig config, MainPlayerUnit mainUnit)
+        {
+            switch (config.StatTarget)
+            {
+                case GateStatTarget.ProjectileCount:
+                    ApplyProjectileCount(config, mainUnit);
+                    break;
+            }
+        }
+
         private static void ApplyProjectileCount(GateConfig config, MainPlayerUnit mainUnit)
         {
             BulletSpawner spawner = mainUnit.BulletSpawner;
@@ -65,7 +77,7 @@ namespace _Project.Scripts.Gameplay.Gates
 
             int current = spawner.ProjectileCount;
             int next = Mathf.RoundToInt(ApplyOperation(current, config.OperationType, config.Amount));
-            spawner.SetProjectileCount(next);
+            spawner.SetProjectileCount(Mathf.Clamp(next, 1, MaxProjectileCount));
         }
 
         private static void SyncFollowersFromMain(

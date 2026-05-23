@@ -8,6 +8,8 @@
 [Uu]ser[Ss]ettings/
 [Mm]emoryCaptures/
 [Rr]ecordings/
+.utmp/
+Assets/_Recovery/
 
 # Unity generated files
 sysinfo.txt

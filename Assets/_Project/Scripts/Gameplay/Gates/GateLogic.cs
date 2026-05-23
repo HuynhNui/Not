@@ -31,6 +31,8 @@ namespace _Project.Scripts.Gameplay.Gates
         private MainPlayerUnit _playerUnit;
         private PlayerController _playerController;
         private Rigidbody2D _rigidbody;
+        private Vector3 _initialLocalScale;
+        private bool _hasInitialLocalScale;
 
         public bool ConsumeAfterUse => consumeAfterUse;
         public GateConfig GateConfig => gateConfig;
@@ -42,8 +44,11 @@ namespace _Project.Scripts.Gameplay.Gates
             PlayerController playerController,
             Camera gameplayCamera,
             RuntimePoolSystem runtimePoolSystem,
-            float lockedLaneWorldX)
+            float lockedLaneWorldX,
+            float targetWorldWidth,
+            float targetWorldHeight)
         {
+            CacheInitialScale();
             gateConfig = config;
             _gateSystem = gateSystem;
             _playerUnit = playerUnit;
@@ -60,6 +65,8 @@ namespace _Project.Scripts.Gameplay.Gates
                 doorView = GetComponent<DoorView>();
             }
 
+            ApplyResponsiveScale(targetWorldWidth, targetWorldHeight);
+            doorView?.ConfigureWorldBounds(GetCurrentWorldWidth(), GetCurrentWorldHeight());
             doorView?.Bind(gateConfig);
             ApplyLanePosition();
         }
@@ -135,6 +142,62 @@ namespace _Project.Scripts.Gameplay.Gates
             Vector3 position = transform.position;
             position.x = _lockedLaneWorldX;
             transform.position = position;
+        }
+
+        private void CacheInitialScale()
+        {
+            if (_hasInitialLocalScale)
+            {
+                return;
+            }
+
+            _initialLocalScale = transform.localScale;
+            _hasInitialLocalScale = true;
+        }
+
+        private void ApplyResponsiveScale(float targetWorldWidth, float targetWorldHeight)
+        {
+            transform.localScale = _initialLocalScale;
+
+            Vector2 localSize = GetLocalVisualSize();
+            if (localSize.x <= Mathf.Epsilon || localSize.y <= Mathf.Epsilon)
+            {
+                return;
+            }
+
+            float widthScale = Mathf.Max(0.1f, targetWorldWidth) / localSize.x;
+            float heightScale = Mathf.Max(0.1f, targetWorldHeight) / localSize.y;
+            float uniformScale = Mathf.Min(widthScale, heightScale);
+            transform.localScale = new Vector3(uniformScale, uniformScale, _initialLocalScale.z);
+        }
+
+        private Vector2 GetLocalVisualSize()
+        {
+            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+            if (renderer != null)
+            {
+                return renderer.size;
+            }
+
+            BoxCollider2D collider = GetComponent<BoxCollider2D>();
+            if (collider != null)
+            {
+                return collider.size;
+            }
+
+            return Vector2.one;
+        }
+
+        private float GetCurrentWorldWidth()
+        {
+            Vector2 localSize = GetLocalVisualSize();
+            return localSize.x * Mathf.Abs(transform.localScale.x);
+        }
+
+        private float GetCurrentWorldHeight()
+        {
+            Vector2 localSize = GetLocalVisualSize();
+            return localSize.y * Mathf.Abs(transform.localScale.y);
         }
 
         private void MoveStraightDown()

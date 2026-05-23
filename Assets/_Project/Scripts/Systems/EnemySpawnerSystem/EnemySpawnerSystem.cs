@@ -1,7 +1,9 @@
+using System;
 using _Project.Scripts.Data.ScriptableObjects.SpawnConfigs;
 using _Project.Scripts.Gameplay.Enemies;
 using _Project.Scripts.Gameplay.Player;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using RuntimePoolSystem = _Project.Scripts.Systems.PoolSystem.PoolSystem;
 
 namespace _Project.Scripts.Systems.EnemySpawnerSystem
@@ -26,6 +28,8 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         private float _elapsedTime;
         private float _nextSpawnTime;
         private bool _spawningEnabled = true;
+
+        public event Action<EnemyController> EnemyKilled;
 
         public void Init()
         {
@@ -81,6 +85,8 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             enemyInstance.SetPoolSystem(poolSystem);
             enemyInstance.Init(playerUnit.transform, playerUnit, gameplayCamera);
+            enemyInstance.Killed -= HandleEnemyKilled;
+            enemyInstance.Killed += HandleEnemyKilled;
             enemyInstance.Spawn();
         }
 
@@ -97,6 +103,16 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             float difficultyMultiplier = Mathf.Max(0.01f, activeDifficultyCurve.Evaluate(_elapsedTime));
             float scaledInterval = activeBaseInterval / difficultyMultiplier;
             return Mathf.Max(activeMinimumInterval, scaledInterval);
+        }
+
+        private void HandleEnemyKilled(EnemyController enemy)
+        {
+            if (enemy != null)
+            {
+                enemy.Killed -= HandleEnemyKilled;
+            }
+
+            EnemyKilled?.Invoke(enemy);
         }
 
         private Vector3 GetSpawnPosition()

@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Gates;
 using _Project.Scripts.Gameplay.Player;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using RuntimePoolSystem = _Project.Scripts.Systems.PoolSystem.PoolSystem;
 
 namespace _Project.Scripts.Systems.GateSystem
@@ -22,9 +24,25 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField] private float gateHalfWidth = 0.75f;
         [SerializeField] private float laneSpacing = 2.2f;
         [SerializeField] private int gateCount = 3;
+        [SerializeField] private float laneGapWorld = 0.08f;
+        [SerializeField] private float gateHeightToWidth = 1.35f;
+        [SerializeField, Range(0.05f, 0.3f)] private float maxGateHeightViewport = 0.18f;
+        [SerializeField] private float minGateWorldWidth = 0.55f;
 
         [Header("Configs (pick 3 each spawn)")]
         [SerializeField] private List<GateConfig> availableGateConfigs = new List<GateConfig>();
+
+        [Header("Controlled random offers")]
+        [SerializeField] private bool generateOffersAtRuntime = true;
+        [SerializeField, Range(0f, 1f)] private float minimumBuffGateRatio = 0.34f;
+        [SerializeField] private int maxProjectileCount = 50;
+        [SerializeField] private List<GateOfferRule> offerRules = new List<GateOfferRule>
+        {
+            new GateOfferRule(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false),
+            new GateOfferRule(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false),
+            new GateOfferRule(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false),
+            new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, 50f, true)
+        };
 
         [Header("Runtime references")]
         [SerializeField] private PlayerController playerController;
@@ -37,6 +55,10 @@ namespace _Project.Scripts.Systems.GateSystem
         private float _nextSpawnTime;
         private bool _isGateSetActive;
         private bool _choiceLocked;
+        private readonly List<GateConfig> _spawnConfigBuffer = new List<GateConfig>();
+        private readonly List<GateOfferCandidate> _candidateBuffer = new List<GateOfferCandidate>();
+        private readonly List<GateOfferCandidate> _buffCandidateBuffer = new List<GateOfferCandidate>();
+        private readonly List<GateOfferCandidate> _neutralCandidateBuffer = new List<GateOfferCandidate>();
 
         private void Awake()
         {
@@ -47,6 +69,7 @@ namespace _Project.Scripts.Systems.GateSystem
         {
             ResolveGameplayCamera();
             poolSystem ??= FindAnyObjectByType<RuntimePoolSystem>();
+            EnsureDefaultOfferRules();
 
             if (playerController == null)
             {
@@ -89,7 +112,7 @@ namespace _Project.Scripts.Systems.GateSystem
                 return;
             }
 
-            if (availableGateConfigs == null || availableGateConfigs.Count <= 0)
+            if (!generateOffersAtRuntime && (availableGateConfigs == null || availableGateConfigs.Count <= 0))
             {
                 return;
             }
@@ -102,12 +125,24 @@ namespace _Project.Scripts.Systems.GateSystem
 
             float spawnY = GetSpawnWorldY();
             int count = Mathf.Max(1, gateCount);
+            BuildSpawnConfigs(count);
+
+            if (generateOffersAtRuntime && _spawnConfigBuffer.Count <= 0)
+            {
+                _isGateSetActive = false;
+                return;
+            }
 
             for (int index = 0; index < count; index++)
             {
                 GateConfig config = PickGateConfig(index);
-                float laneWorldX = GetLaneWorldX(index, count);
-                Vector3 spawnPosition = new Vector3(laneWorldX, spawnY, 0f);
+                if (config == null)
+                {
+                    continue;
+                }
+
+                GateLaneLayout laneLayout = GetGateLaneLayout(index, count);
+                Vector3 spawnPosition = new Vector3(laneLayout.CenterX, spawnY, 0f);
 
                 GateLogic instance = poolSystem != null
                     ? poolSystem.Spawn(gatePrefab, spawnPosition, Quaternion.identity)
@@ -125,7 +160,9 @@ namespace _Project.Scripts.Systems.GateSystem
                     playerController,
                     gameplayCamera,
                     poolSystem,
-                    laneWorldX);
+                    laneLayout.CenterX,
+                    laneLayout.GateWidth,
+                    laneLayout.GateHeight);
                 instance.Spawn();
                 activeGates.Add(instance);
             }
@@ -172,6 +209,13 @@ namespace _Project.Scripts.Systems.GateSystem
 
         private GateConfig PickGateConfig(int indexHint)
         {
+            if (_spawnConfigBuffer.Count > 0)
+            {
+                return indexHint >= 0 && indexHint < _spawnConfigBuffer.Count
+                    ? _spawnConfigBuffer[indexHint]
+                    : null;
+            }
+
             if (availableGateConfigs == null || availableGateConfigs.Count <= 0)
             {
                 return null;
@@ -212,6 +256,225 @@ namespace _Project.Scripts.Systems.GateSystem
             return availableGateConfigs[Random.Range(0, availableGateConfigs.Count)];
         }
 
+        private void BuildSpawnConfigs(int count)
+        {
+            _spawnConfigBuffer.Clear();
+
+            if (!generateOffersAtRuntime)
+            {
+                return;
+            }
+
+            EnsureDefaultOfferRules();
+            BuildCandidateBuffers();
+
+            int minimumBuffCount = Mathf.Clamp(
+                Mathf.CeilToInt(count * minimumBuffGateRatio),
+                0,
+                count);
+
+            for (int index = 0; index < minimumBuffCount; index++)
+            {
+                if (!TryTakeRandomCandidate(_buffCandidateBuffer, out GateOfferCandidate candidate))
+                {
+                    break;
+                }
+
+                _spawnConfigBuffer.Add(CreateRuntimeConfig(candidate));
+                RemoveMatchingCandidate(_neutralCandidateBuffer, candidate);
+            }
+
+            while (_spawnConfigBuffer.Count < count)
+            {
+                if (!TryTakeRandomCandidate(_neutralCandidateBuffer, out GateOfferCandidate candidate))
+                {
+                    break;
+                }
+
+                _spawnConfigBuffer.Add(CreateRuntimeConfig(candidate));
+                RemoveMatchingCandidate(_buffCandidateBuffer, candidate);
+            }
+
+            while (_spawnConfigBuffer.Count < count && availableGateConfigs != null && availableGateConfigs.Count > 0)
+            {
+                GateConfig fallback = availableGateConfigs[Random.Range(0, availableGateConfigs.Count)];
+                if (fallback != null)
+                {
+                    _spawnConfigBuffer.Add(fallback);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        private void BuildCandidateBuffers()
+        {
+            _candidateBuffer.Clear();
+            _buffCandidateBuffer.Clear();
+            _neutralCandidateBuffer.Clear();
+
+            for (int ruleIndex = 0; ruleIndex < offerRules.Count; ruleIndex++)
+            {
+                GateOfferRule rule = offerRules[ruleIndex];
+                if (rule == null || !rule.Enabled)
+                {
+                    continue;
+                }
+
+                AddCandidateIfAllowed(rule, GateOperationType.Add);
+                AddCandidateIfAllowed(rule, GateOperationType.Subtract);
+                AddCandidateIfAllowed(rule, GateOperationType.Multiply);
+                AddCandidateIfAllowed(rule, GateOperationType.Divide);
+            }
+        }
+
+        private void EnsureDefaultOfferRules()
+        {
+            maxProjectileCount = Mathf.Max(1, maxProjectileCount);
+
+            if (offerRules == null)
+            {
+                offerRules = new List<GateOfferRule>();
+            }
+
+            if (offerRules.Count > 0)
+            {
+                return;
+            }
+
+            offerRules.Add(new GateOfferRule(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false));
+            offerRules.Add(new GateOfferRule(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false));
+            offerRules.Add(new GateOfferRule(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false));
+            offerRules.Add(new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, maxProjectileCount, true));
+        }
+
+        private void AddCandidateIfAllowed(GateOfferRule rule, GateOperationType operationType)
+        {
+            float currentValue = GetCurrentStatValue(rule.StatTarget);
+            float amount = rule.GetAmount(operationType);
+            float minValue = rule.GetMinValue(maxProjectileCount);
+            float maxValue = rule.GetMaxValue(maxProjectileCount);
+
+            if (amount <= 0f || !IsCandidateAllowed(currentValue, operationType, amount, minValue, maxValue, rule.WholeNumber))
+            {
+                return;
+            }
+
+            GateOfferCandidate candidate = new GateOfferCandidate(rule.StatTarget, operationType, amount);
+            _candidateBuffer.Add(candidate);
+
+            if (candidate.IsBuff)
+            {
+                _buffCandidateBuffer.Add(candidate);
+            }
+
+            _neutralCandidateBuffer.Add(candidate);
+        }
+
+        private bool IsCandidateAllowed(
+            float currentValue,
+            GateOperationType operationType,
+            float amount,
+            float minValue,
+            float maxValue,
+            bool wholeNumber)
+        {
+            float safeCurrent = wholeNumber ? Mathf.Round(currentValue) : currentValue;
+
+            if ((operationType == GateOperationType.Subtract || operationType == GateOperationType.Divide)
+                && safeCurrent <= minValue + Mathf.Epsilon)
+            {
+                return false;
+            }
+
+            if ((operationType == GateOperationType.Add || operationType == GateOperationType.Multiply)
+                && safeCurrent >= maxValue - Mathf.Epsilon)
+            {
+                return false;
+            }
+
+            float result = ApplyOperationPreview(safeCurrent, operationType, amount);
+            if (wholeNumber)
+            {
+                result = Mathf.Round(result);
+            }
+
+            if (result < minValue || result > maxValue)
+            {
+                return false;
+            }
+
+            return !Mathf.Approximately(result, safeCurrent);
+        }
+
+        private float GetCurrentStatValue(GateStatTarget statTarget)
+        {
+            if (mainPlayerUnit == null)
+            {
+                return 0f;
+            }
+
+            return statTarget switch
+            {
+                GateStatTarget.Damage => mainPlayerUnit.Damage,
+                GateStatTarget.FireRate => mainPlayerUnit.FireRate,
+                GateStatTarget.MaxHp => mainPlayerUnit.MaxHp,
+                GateStatTarget.ProjectileCount => mainPlayerUnit.BulletSpawner != null
+                    ? mainPlayerUnit.BulletSpawner.ProjectileCount
+                    : 1f,
+                _ => 0f
+            };
+        }
+
+        private static float ApplyOperationPreview(float baseValue, GateOperationType operationType, float amount)
+        {
+            float safeAmount = Mathf.Abs(amount);
+
+            return operationType switch
+            {
+                GateOperationType.Add => baseValue + safeAmount,
+                GateOperationType.Subtract => baseValue - safeAmount,
+                GateOperationType.Multiply => baseValue * Mathf.Max(0f, safeAmount),
+                GateOperationType.Divide => safeAmount <= 0f ? baseValue : baseValue / safeAmount,
+                _ => baseValue
+            };
+        }
+
+        private static bool TryTakeRandomCandidate(List<GateOfferCandidate> source, out GateOfferCandidate candidate)
+        {
+            candidate = default;
+
+            if (source == null || source.Count <= 0)
+            {
+                return false;
+            }
+
+            int index = Random.Range(0, source.Count);
+            candidate = source[index];
+            source.RemoveAt(index);
+            return true;
+        }
+
+        private static void RemoveMatchingCandidate(List<GateOfferCandidate> source, GateOfferCandidate candidate)
+        {
+            for (int index = source.Count - 1; index >= 0; index--)
+            {
+                if (source[index].Matches(candidate))
+                {
+                    source.RemoveAt(index);
+                }
+            }
+        }
+
+        private static GateConfig CreateRuntimeConfig(GateOfferCandidate candidate)
+        {
+            GateConfig config = ScriptableObject.CreateInstance<GateConfig>();
+            config.ConfigureRuntime(candidate.StatTarget, candidate.OperationType, candidate.Amount);
+            return config;
+        }
+
         private void ResolveGameplayCamera()
         {
             if (gameplayCamera != null)
@@ -238,30 +501,34 @@ namespace _Project.Scripts.Systems.GateSystem
             return mainPlayerUnit != null ? mainPlayerUnit.transform.position.y + 6f : transform.position.y + 6f;
         }
 
-        private float GetLaneWorldX(int laneIndex, int totalLanes)
+        private GateLaneLayout GetGateLaneLayout(int laneIndex, int totalLanes)
         {
-            if (useViewportLanes && TryGetViewportLaneX(laneIndex, totalLanes, out float viewportLaneWorldX))
+            if (useViewportLanes && TryGetViewportLaneLayout(laneIndex, totalLanes, out GateLaneLayout viewportLayout))
             {
-                return viewportLaneWorldX;
+                return viewportLayout;
             }
 
             float centerX = gameplayCamera != null
                 ? gameplayCamera.transform.position.x
                 : 0f;
 
-            return centerX + GetLaneOffsetX(laneIndex, totalLanes);
+            float width = Mathf.Max(minGateWorldWidth, gateHalfWidth * 2f);
+            return new GateLaneLayout(
+                centerX + GetLaneOffsetX(laneIndex, totalLanes),
+                width,
+                width * Mathf.Max(0.5f, gateHeightToWidth));
         }
 
-        private bool TryGetViewportLaneX(int laneIndex, int totalLanes, out float worldX)
+        private bool TryGetViewportLaneLayout(int laneIndex, int totalLanes, out GateLaneLayout layout)
         {
-            worldX = 0f;
+            layout = default;
 
             if (gameplayCamera == null || !gameplayCamera.orthographic)
             {
                 return false;
             }
 
-            float halfGate = GetGateHalfWidth();
+            totalLanes = Mathf.Max(1, totalLanes);
             float zDistance = GetViewportZDistance();
 
             Vector3 worldMin = gameplayCamera.ViewportToWorldPoint(
@@ -269,35 +536,20 @@ namespace _Project.Scripts.Systems.GateSystem
             Vector3 worldMax = gameplayCamera.ViewportToWorldPoint(
                 new Vector3(viewportLaneMax, 0.5f, zDistance));
 
-            float leftCenter = worldMin.x + halfGate;
-            float rightCenter = worldMax.x - halfGate;
+            float left = Mathf.Min(worldMin.x, worldMax.x);
+            float right = Mathf.Max(worldMin.x, worldMax.x);
+            float availableWidth = Mathf.Max(0.1f, right - left);
+            float gap = totalLanes <= 1
+                ? 0f
+                : Mathf.Clamp(laneGapWorld, 0f, availableWidth * 0.12f);
+            float laneWidth = Mathf.Max(0.1f, (availableWidth - gap * (totalLanes - 1)) / totalLanes);
+            float gateWidth = Mathf.Max(0.1f, laneWidth);
+            float maxHeight = gameplayCamera.orthographicSize * 2f * Mathf.Clamp(maxGateHeightViewport, 0.05f, 0.3f);
+            float gateHeight = Mathf.Min(gateWidth * Mathf.Max(0.5f, gateHeightToWidth), maxHeight);
+            float centerX = left + laneWidth * 0.5f + laneIndex * (laneWidth + gap);
 
-            if (totalLanes <= 1)
-            {
-                worldX = (leftCenter + rightCenter) * 0.5f;
-                return true;
-            }
-
-            float laneT = laneIndex / (totalLanes - 1f);
-            worldX = Mathf.Lerp(leftCenter, rightCenter, laneT);
+            layout = new GateLaneLayout(centerX, gateWidth, gateHeight);
             return true;
-        }
-
-        private float GetGateHalfWidth()
-        {
-            if (gatePrefab == null)
-            {
-                return Mathf.Max(0f, gateHalfWidth);
-            }
-
-            BoxCollider2D gateCollider = gatePrefab.GetComponent<BoxCollider2D>();
-            if (gateCollider == null)
-            {
-                return Mathf.Max(0f, gateHalfWidth);
-            }
-
-            float prefabScaleX = Mathf.Abs(gatePrefab.transform.localScale.x);
-            return Mathf.Max(gateHalfWidth, gateCollider.size.x * 0.5f * prefabScaleX);
         }
 
         private float GetViewportZDistance()
@@ -336,6 +588,107 @@ namespace _Project.Scripts.Systems.GateSystem
 
             activeGates.Clear();
             _isGateSetActive = false;
+        }
+    }
+
+    [Serializable]
+    public sealed class GateOfferRule
+    {
+        [SerializeField] private GateStatTarget statTarget;
+        [SerializeField] private bool enabled = true;
+        [SerializeField] private float addAmount = 1f;
+        [SerializeField] private float subtractAmount = 1f;
+        [SerializeField] private float multiplyAmount = 2f;
+        [SerializeField] private float divideAmount = 2f;
+        [SerializeField] private float minValue;
+        [SerializeField] private float maxValue = 999f;
+        [SerializeField] private bool wholeNumber;
+
+        public GateOfferRule(
+            GateStatTarget statTarget,
+            float addAmount,
+            float subtractAmount,
+            float multiplyAmount,
+            float divideAmount,
+            float minValue,
+            float maxValue,
+            bool wholeNumber)
+        {
+            this.statTarget = statTarget;
+            this.addAmount = addAmount;
+            this.subtractAmount = subtractAmount;
+            this.multiplyAmount = multiplyAmount;
+            this.divideAmount = divideAmount;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+            this.wholeNumber = wholeNumber;
+        }
+
+        public GateStatTarget StatTarget => statTarget;
+        public bool Enabled => enabled;
+        public bool WholeNumber => wholeNumber;
+
+        public float GetAmount(GateOperationType operationType)
+        {
+            return operationType switch
+            {
+                GateOperationType.Add => addAmount,
+                GateOperationType.Subtract => subtractAmount,
+                GateOperationType.Multiply => multiplyAmount,
+                GateOperationType.Divide => divideAmount,
+                _ => 0f
+            };
+        }
+
+        public float GetMinValue(int maxProjectileCount)
+        {
+            return statTarget == GateStatTarget.ProjectileCount
+                ? Mathf.Max(1f, minValue)
+                : minValue;
+        }
+
+        public float GetMaxValue(int maxProjectileCount)
+        {
+            return statTarget == GateStatTarget.ProjectileCount
+                ? Mathf.Max(1f, maxProjectileCount)
+                : maxValue;
+        }
+    }
+
+    internal readonly struct GateOfferCandidate
+    {
+        public readonly GateStatTarget StatTarget;
+        public readonly GateOperationType OperationType;
+        public readonly float Amount;
+
+        public GateOfferCandidate(GateStatTarget statTarget, GateOperationType operationType, float amount)
+        {
+            StatTarget = statTarget;
+            OperationType = operationType;
+            Amount = amount;
+        }
+
+        public bool IsBuff => OperationType == GateOperationType.Add || OperationType == GateOperationType.Multiply;
+
+        public bool Matches(GateOfferCandidate other)
+        {
+            return StatTarget == other.StatTarget
+                && OperationType == other.OperationType
+                && Mathf.Approximately(Amount, other.Amount);
+        }
+    }
+
+    internal readonly struct GateLaneLayout
+    {
+        public readonly float CenterX;
+        public readonly float GateWidth;
+        public readonly float GateHeight;
+
+        public GateLaneLayout(float centerX, float gateWidth, float gateHeight)
+        {
+            CenterX = centerX;
+            GateWidth = gateWidth;
+            GateHeight = gateHeight;
         }
     }
 }

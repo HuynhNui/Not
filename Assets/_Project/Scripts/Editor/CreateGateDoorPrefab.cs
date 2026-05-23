@@ -3,7 +3,6 @@ using _Project.Scripts.Gameplay.Gates;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace _Project.Scripts.EditorTools
 {
@@ -38,52 +37,39 @@ namespace _Project.Scripts.EditorTools
             door.AddComponent<GateLogic>();
             door.AddComponent<GateTrigger>();
 
-            TextMeshProUGUI label = CreateWorldSpaceLabel(door.transform);
+            TextMeshPro label = CreateWorldSpaceLabel(door.transform);
             SerializedObject doorViewSo = new SerializedObject(doorView);
             doorViewSo.FindProperty("frameRenderer").objectReferenceValue = frame;
-            doorViewSo.FindProperty("labelText").objectReferenceValue = label;
+            doorViewSo.FindProperty("worldLabelText").objectReferenceValue = label;
             doorViewSo.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(door, PrefabPath);
             Object.DestroyImmediate(door);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"Created gate door prefab (World Space Canvas + TMP) at {PrefabPath}");
+            Debug.Log($"Created gate door prefab (World Space TMP) at {PrefabPath}");
         }
 
-        private static TextMeshProUGUI CreateWorldSpaceLabel(Transform doorRoot)
+        private static TextMeshPro CreateWorldSpaceLabel(Transform doorRoot)
         {
-            GameObject canvasObject = new GameObject("LabelCanvas");
-            canvasObject.transform.SetParent(doorRoot, false);
-            canvasObject.transform.localPosition = Vector3.zero;
-            canvasObject.transform.localRotation = Quaternion.identity;
+            GameObject textObject = new GameObject("GateLabelTMP");
+            textObject.transform.SetParent(doorRoot, false);
+            textObject.transform.localPosition = new Vector3(0f, 0f, -0.1f);
+            textObject.transform.localRotation = Quaternion.identity;
+            textObject.transform.localScale = Vector3.one;
 
-            Canvas canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-
-            RectTransform canvasRect = canvasObject.GetComponent<RectTransform>();
-            canvasRect.sizeDelta = new Vector2(160f, 64f);
-            canvasRect.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-
-            GameObject textObject = new GameObject("Label");
-            textObject.transform.SetParent(canvasObject.transform, false);
-
-            RectTransform textRect = textObject.AddComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
-            textRect.localScale = Vector3.one;
-
-            TextMeshProUGUI tmp = textObject.AddComponent<TextMeshProUGUI>();
+            TextMeshPro tmp = textObject.AddComponent<TextMeshPro>();
             tmp.font = LoadDefaultTmpFont();
             tmp.text = "+1 DMG";
-            tmp.fontSize = 36f;
+            tmp.enableAutoSizing = true;
+            tmp.fontSizeMin = 8f;
+            tmp.fontSizeMax = 28f;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
-            tmp.enableWordWrapping = false;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
             tmp.overflowMode = TextOverflowModes.Overflow;
+            tmp.rectTransform.sizeDelta = new Vector2(1.48f, 2.12f);
 
             return tmp;
         }

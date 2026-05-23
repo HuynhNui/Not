@@ -1,3 +1,4 @@
+using System;
 using _Project.Scripts.Data.ScriptableObjects.UnitData;
 using _Project.Scripts.Interfaces;
 using _Project.Scripts.Gameplay.Player;
@@ -33,7 +34,10 @@ namespace _Project.Scripts.Gameplay.Enemies
         private bool _isActive;
         private WorldHealthBarView _healthBarInstance;
 
+        public event Action<EnemyController> Killed;
+
         public int ScoreValue => scoreValue;
+        public int CoinReward => scoreValue;
 
         public void Init(Transform target, MainPlayerUnit playerUnit, Camera gameplayCamera = null)
         {
@@ -95,6 +99,7 @@ namespace _Project.Scripts.Gameplay.Enemies
 
             if (currentHealth <= 0f)
             {
+                Killed?.Invoke(this);
                 Despawn();
             }
         }
