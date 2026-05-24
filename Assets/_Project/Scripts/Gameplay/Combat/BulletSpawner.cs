@@ -30,6 +30,33 @@ namespace _Project.Scripts.Gameplay.Combat
         public float BulletSpeed => bulletSpeed;
         public int ProjectileCount => projectileCount;
 
+        public void ConfigureFromTemplate(BulletSpawner template)
+        {
+            if (template == null)
+            {
+                return;
+            }
+
+            bulletPrefab = template.bulletPrefab;
+            fireRate = template.fireRate;
+            damage = template.damage;
+            bulletSpeed = template.bulletSpeed;
+            projectileCount = template.projectileCount;
+            burstSpread = template.burstSpread;
+            forceVerticalDirection = template.forceVerticalDirection;
+            poolSystem = template.poolSystem != null ? template.poolSystem : FindAnyObjectByType<PoolSystem>();
+
+            defaultModifierConfigs.Clear();
+            defaultModifierConfigs.AddRange(template.defaultModifierConfigs);
+            _runtimeModifierConfigs.Clear();
+            _runtimeModifierConfigs.AddRange(template._runtimeModifierConfigs);
+        }
+
+        public void SetFirePoint(Transform value)
+        {
+            firePoint = value;
+        }
+
         public void Initialize(float initialDamage, float initialFireRate)
         {
             poolSystem ??= FindAnyObjectByType<PoolSystem>();

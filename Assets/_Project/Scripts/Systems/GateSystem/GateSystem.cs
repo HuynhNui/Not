@@ -36,12 +36,14 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField] private bool generateOffersAtRuntime = true;
         [SerializeField, Range(0f, 1f)] private float minimumBuffGateRatio = 0.34f;
         [SerializeField] private int maxProjectileCount = 50;
+        [SerializeField] private int maxPlayerCount = 50;
         [SerializeField] private List<GateOfferRule> offerRules = new List<GateOfferRule>
         {
             new GateOfferRule(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false),
             new GateOfferRule(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false),
             new GateOfferRule(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false),
-            new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, 50f, true)
+            new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, 50f, true),
+            new GateOfferRule(GateStatTarget.PlayerCount, 1f, 1f, 2f, 2f, 1f, 50f, true)
         };
 
         [Header("Runtime references")]
@@ -333,29 +335,56 @@ namespace _Project.Scripts.Systems.GateSystem
         private void EnsureDefaultOfferRules()
         {
             maxProjectileCount = Mathf.Max(1, maxProjectileCount);
+            maxPlayerCount = Mathf.Max(1, maxPlayerCount);
 
             if (offerRules == null)
             {
                 offerRules = new List<GateOfferRule>();
             }
 
-            if (offerRules.Count > 0)
+            AddDefaultOfferRuleIfMissing(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, maxProjectileCount, true);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.PlayerCount, 1f, 1f, 2f, 2f, 1f, maxPlayerCount, true);
+        }
+
+        private void AddDefaultOfferRuleIfMissing(
+            GateStatTarget statTarget,
+            float addAmount,
+            float subtractAmount,
+            float multiplyAmount,
+            float divideAmount,
+            float minValue,
+            float maxValue,
+            bool wholeNumber)
+        {
+            for (int index = 0; index < offerRules.Count; index++)
             {
-                return;
+                GateOfferRule rule = offerRules[index];
+                if (rule != null && rule.StatTarget == statTarget)
+                {
+                    return;
+                }
             }
 
-            offerRules.Add(new GateOfferRule(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false));
-            offerRules.Add(new GateOfferRule(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false));
-            offerRules.Add(new GateOfferRule(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false));
-            offerRules.Add(new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, maxProjectileCount, true));
+            offerRules.Add(new GateOfferRule(
+                statTarget,
+                addAmount,
+                subtractAmount,
+                multiplyAmount,
+                divideAmount,
+                minValue,
+                maxValue,
+                wholeNumber));
         }
 
         private void AddCandidateIfAllowed(GateOfferRule rule, GateOperationType operationType)
         {
             float currentValue = GetCurrentStatValue(rule.StatTarget);
             float amount = rule.GetAmount(operationType);
-            float minValue = rule.GetMinValue(maxProjectileCount);
-            float maxValue = rule.GetMaxValue(maxProjectileCount);
+            float minValue = rule.GetMinValue(maxProjectileCount, maxPlayerCount);
+            float maxValue = rule.GetMaxValue(maxProjectileCount, maxPlayerCount);
 
             if (amount <= 0f || !IsCandidateAllowed(currentValue, operationType, amount, minValue, maxValue, rule.WholeNumber))
             {
@@ -423,6 +452,9 @@ namespace _Project.Scripts.Systems.GateSystem
                 GateStatTarget.MaxHp => mainPlayerUnit.MaxHp,
                 GateStatTarget.ProjectileCount => mainPlayerUnit.BulletSpawner != null
                     ? mainPlayerUnit.BulletSpawner.ProjectileCount
+                    : 1f,
+                GateStatTarget.PlayerCount => playerController != null
+                    ? playerController.CurrentSquadCount
                     : 1f,
                 _ => 0f
             };
@@ -640,18 +672,24 @@ namespace _Project.Scripts.Systems.GateSystem
             };
         }
 
-        public float GetMinValue(int maxProjectileCount)
+        public float GetMinValue(int maxProjectileCount, int maxPlayerCount)
         {
-            return statTarget == GateStatTarget.ProjectileCount
-                ? Mathf.Max(1f, minValue)
-                : minValue;
+            return statTarget switch
+            {
+                GateStatTarget.ProjectileCount => Mathf.Max(1f, minValue),
+                GateStatTarget.PlayerCount => Mathf.Max(1f, minValue),
+                _ => minValue
+            };
         }
 
-        public float GetMaxValue(int maxProjectileCount)
+        public float GetMaxValue(int maxProjectileCount, int maxPlayerCount)
         {
-            return statTarget == GateStatTarget.ProjectileCount
-                ? Mathf.Max(1f, maxProjectileCount)
-                : maxValue;
+            return statTarget switch
+            {
+                GateStatTarget.ProjectileCount => Mathf.Max(1f, maxProjectileCount),
+                GateStatTarget.PlayerCount => Mathf.Max(1f, maxPlayerCount),
+                _ => maxValue
+            };
         }
     }
 

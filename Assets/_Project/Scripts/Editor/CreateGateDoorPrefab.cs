@@ -62,13 +62,13 @@ namespace _Project.Scripts.EditorTools
             tmp.font = LoadDefaultTmpFont();
             tmp.text = "+1 DMG";
             tmp.enableAutoSizing = true;
-            tmp.fontSizeMin = 8f;
-            tmp.fontSizeMax = 28f;
+            tmp.fontSizeMin = 0.08f;
+            tmp.fontSizeMax = 3.36f;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
-            tmp.overflowMode = TextOverflowModes.Overflow;
+            tmp.overflowMode = TextOverflowModes.Ellipsis;
             tmp.rectTransform.sizeDelta = new Vector2(1.48f, 2.12f);
 
             return tmp;

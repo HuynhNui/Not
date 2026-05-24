@@ -12,6 +12,7 @@ namespace _Project.Scripts.Gameplay.Gates
     public static class GateEffectApplier
     {
         private const int MaxProjectileCount = 50;
+        private const int MaxPlayerCount = 50;
 
         public static void Apply(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
         {
@@ -32,7 +33,10 @@ namespace _Project.Scripts.Gameplay.Gates
                     ApplyMaxHp(config, mainUnit);
                     break;
                 case GateStatTarget.ProjectileCount:
-                    ApplyWeaponEffect(config, mainUnit);
+                    ApplyWeaponEffect(config, mainUnit, squad);
+                    break;
+                case GateStatTarget.PlayerCount:
+                    ApplyPlayerCount(config, squad);
                     break;
             }
         }
@@ -57,17 +61,17 @@ namespace _Project.Scripts.Gameplay.Gates
             mainUnit.SetMaxHp(newMaxHp, healByDelta: config.OperationType == GateOperationType.Add);
         }
 
-        private static void ApplyWeaponEffect(GateConfig config, MainPlayerUnit mainUnit)
+        private static void ApplyWeaponEffect(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
         {
             switch (config.StatTarget)
             {
                 case GateStatTarget.ProjectileCount:
-                    ApplyProjectileCount(config, mainUnit);
+                    ApplyProjectileCount(config, mainUnit, squad);
                     break;
             }
         }
 
-        private static void ApplyProjectileCount(GateConfig config, MainPlayerUnit mainUnit)
+        private static void ApplyProjectileCount(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
         {
             BulletSpawner spawner = mainUnit.BulletSpawner;
             if (spawner == null)
@@ -77,7 +81,21 @@ namespace _Project.Scripts.Gameplay.Gates
 
             int current = spawner.ProjectileCount;
             int next = Mathf.RoundToInt(ApplyOperation(current, config.OperationType, config.Amount));
-            spawner.SetProjectileCount(Mathf.Clamp(next, 1, MaxProjectileCount));
+            int clampedNext = Mathf.Clamp(next, 1, MaxProjectileCount);
+            spawner.SetProjectileCount(clampedNext);
+            SyncFollowersProjectileCount(squad, clampedNext);
+        }
+
+        private static void ApplyPlayerCount(GateConfig config, PlayerController squad)
+        {
+            if (squad == null)
+            {
+                return;
+            }
+
+            int current = Mathf.Max(1, squad.CurrentSquadCount);
+            int next = Mathf.RoundToInt(ApplyOperation(current, config.OperationType, config.Amount));
+            squad.SetSquadCount(Mathf.Clamp(next, 1, MaxPlayerCount));
         }
 
         private static void SyncFollowersFromMain(
@@ -109,6 +127,26 @@ namespace _Project.Scripts.Gameplay.Gates
                 {
                     follower.SetFireRate(mainUnit.FireRate);
                 }
+            }
+        }
+
+        private static void SyncFollowersProjectileCount(PlayerController squad, int projectileCount)
+        {
+            if (squad == null)
+            {
+                return;
+            }
+
+            IReadOnlyList<FollowerUnit> followers = squad.Followers;
+            for (int index = 0; index < followers.Count; index++)
+            {
+                FollowerUnit follower = followers[index];
+                if (follower == null || follower.BulletSpawner == null)
+                {
+                    continue;
+                }
+
+                follower.BulletSpawner.SetProjectileCount(projectileCount);
             }
         }
 

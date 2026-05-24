@@ -37,6 +37,11 @@ namespace _Project.Scripts.Gameplay.Player
             followTarget = target;
         }
 
+        public void SetFollowOffset(Vector3 offset)
+        {
+            followOffset = offset;
+        }
+
         public override void SetDamage(float value)
         {
             _baseDamage = Mathf.Max(0f, value);

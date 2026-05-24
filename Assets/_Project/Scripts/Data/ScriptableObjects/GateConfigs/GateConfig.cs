@@ -81,6 +81,7 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
                 GateStatTarget.FireRate => "FIRE",
                 GateStatTarget.MaxHp => "HP",
                 GateStatTarget.ProjectileCount => "BULLET",
+                GateStatTarget.PlayerCount => "PLAYER",
                 _ => statTarget.ToString()
             };
         }
@@ -98,7 +99,8 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
         Damage,
         FireRate,
         MaxHp,
-        ProjectileCount
+        ProjectileCount,
+        PlayerCount
     }
 
     public enum GateOperationType

@@ -260,7 +260,7 @@ MonoBehaviour:
   bulletSpawner: {fileID: 289232677}
   mainUnitConfig: {fileID: 11400000, guid: 1d1f2f71f63d45f5ac08284fb7a9e705, type: 2}
   maxHp: 10
-  healthBarPrefab: {fileID: 4963090574104541620, guid: 844abb47034cfac45a5734a775546aaf, type: 3}
+  healthBarPrefab: {fileID: 4963090574104541620, guid: d0c48a50c21b41c7a3bd442f014c851e, type: 3}
   healthBarAnchor: {fileID: 0}
   healthBarOffset: {x: 0, y: 0.1, z: 0}
 --- !u!114 &289232677
@@ -496,7 +496,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Gameplay.Player.PlayerController
   playerMovement: {fileID: 479990535}
   mainPlayerUnit: {fileID: 289232676}
+  followerPrefab: {fileID: 0}
   followers: []
+  maxSquadCount: 50
+  followerSpacing: 0.34
+  followerColumns: 5
   autoFire: 1
 --- !u!4 &479990534
 Transform:
@@ -1592,6 +1596,7 @@ MonoBehaviour:
   generateOffersAtRuntime: 1
   minimumBuffGateRatio: 0.34
   maxProjectileCount: 50
+  maxPlayerCount: 50
   offerRules:
   - statTarget: 0
     enabled: 1

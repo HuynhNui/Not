@@ -19,8 +19,8 @@ namespace _Project.Scripts.Gameplay.Gates
         [SerializeField] private Color negativeColor = new Color(0.95f, 0.3f, 0.25f, 0.95f);
         [SerializeField] private Color neutralColor = new Color(0.35f, 0.65f, 1f, 0.95f);
         [SerializeField] private bool useCompactLabel = true;
-        [SerializeField] private float minFontSize = 8f;
-        [SerializeField] private float maxFontSize = 28f;
+        [SerializeField] private float minFontSize = 0.08f;
+        [SerializeField] private float maxFontSize = 3.36f;
         [SerializeField] private Vector2 worldLabelPadding = new Vector2(0.06f, 0.14f);
         [SerializeField] private float worldLabelZOffset = -0.1f;
         [SerializeField] private int labelSortingOrderOffset = 5;
@@ -69,10 +69,10 @@ namespace _Project.Scripts.Gameplay.Gates
                 worldLabelText.fontStyle = FontStyles.Bold;
                 worldLabelText.alignment = TextAlignmentOptions.Center;
                 worldLabelText.enableAutoSizing = true;
-                worldLabelText.fontSizeMin = Mathf.Max(1f, minFontSize);
+                worldLabelText.fontSizeMin = Mathf.Max(0.01f, minFontSize);
                 worldLabelText.fontSizeMax = Mathf.Max(worldLabelText.fontSizeMin, maxFontSize);
                 worldLabelText.textWrappingMode = TextWrappingModes.NoWrap;
-                worldLabelText.overflowMode = TextOverflowModes.Overflow;
+                worldLabelText.overflowMode = TextOverflowModes.Ellipsis;
                 ApplyWorldLabelBounds();
                 ApplyWorldLabelSorting();
                 worldLabelText.ForceMeshUpdate();
@@ -99,7 +99,9 @@ namespace _Project.Scripts.Gameplay.Gates
             {
                 if (worldLabelText.GetComponent<TextMesh>() == null)
                 {
+                    ApplyWorldLabelDefaults();
                     ApplyWorldLabelSorting();
+                    ApplyWorldLabelBounds();
                     return;
                 }
 
@@ -114,7 +116,9 @@ namespace _Project.Scripts.Gameplay.Gates
 
             if (worldLabelText != null)
             {
+                ApplyWorldLabelDefaults();
                 ApplyWorldLabelSorting();
+                ApplyWorldLabelBounds();
                 return;
             }
 
@@ -126,8 +130,32 @@ namespace _Project.Scripts.Gameplay.Gates
             labelObjectTransform.localScale = Vector3.one;
 
             worldLabelText = labelObject.AddComponent<TextMeshPro>();
+            ApplyWorldLabelDefaults();
             ApplyWorldLabelSorting();
             ApplyWorldLabelBounds();
+        }
+
+        private void ApplyWorldLabelDefaults()
+        {
+            if (worldLabelText == null)
+            {
+                return;
+            }
+
+            if (worldLabelText.font == null && TMP_Settings.defaultFontAsset != null)
+            {
+                worldLabelText.font = TMP_Settings.defaultFontAsset;
+            }
+
+            worldLabelText.text = string.IsNullOrEmpty(worldLabelText.text) ? "+1 DMG" : worldLabelText.text;
+            worldLabelText.color = Color.white;
+            worldLabelText.fontStyle = FontStyles.Bold;
+            worldLabelText.alignment = TextAlignmentOptions.Center;
+            worldLabelText.enableAutoSizing = true;
+            worldLabelText.fontSizeMin = Mathf.Max(0.01f, minFontSize);
+            worldLabelText.fontSizeMax = Mathf.Max(worldLabelText.fontSizeMin, maxFontSize);
+            worldLabelText.textWrappingMode = TextWrappingModes.NoWrap;
+            worldLabelText.overflowMode = TextOverflowModes.Ellipsis;
         }
 
         private void DisableLegacyLabel()
