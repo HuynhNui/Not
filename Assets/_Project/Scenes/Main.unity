@@ -1350,6 +1350,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.EnemySpawnerSystem.EnemySpawnerSystem
   spawnConfig: {fileID: 11400000, guid: 6c8377780cc043c29cb5737f36aca8c6, type: 2}
   enemyPrefab: {fileID: 790338621279653551, guid: 1d7066d363c1cd74e8d9e0abe1ca46d8, type: 3}
+  spawnEntries:
+  - prefab: {fileID: 790338621279653551, guid: 1d7066d363c1cd74e8d9e0abe1ca46d8, type: 3}
+    spawnWeight: 4
+    unlockAfterSeconds: 0
+  - prefab: {fileID: 790338621279653551, guid: 2e932b97659c413f8c7deed8487281ab, type: 3}
+    spawnWeight: 1
+    unlockAfterSeconds: 0
   spawnPoints: []
   difficultyCurve:
     serializedVersion: 2
@@ -1511,6 +1518,12 @@ MonoBehaviour:
   - poolId: Enemy
     prefab: {fileID: 7108934321361900162, guid: 1d7066d363c1cd74e8d9e0abe1ca46d8, type: 3}
     initialSize: 16
+  - poolId: Vomfy
+    prefab: {fileID: 7108934321361900162, guid: 2e932b97659c413f8c7deed8487281ab, type: 3}
+    initialSize: 8
+  - poolId: VomfyRainbowBeamProjectile
+    prefab: {fileID: 6287597917186159759, guid: 9b1f1e79e4dd4c1e852df4c21e985817, type: 3}
+    initialSize: 24
 --- !u!1 &2200000001
 GameObject:
   m_ObjectHideFlags: 0

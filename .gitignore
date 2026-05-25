@@ -1,3 +1,6 @@
+# Unity project source of truth:
+# Keep Assets/, Packages/, ProjectSettings/ and all *.meta files in git.
+
 # Unity generated folders
 [Ll]ibrary/
 [Tt]emp/
@@ -6,24 +9,23 @@
 [Bb]uilds/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
-[Mm]emoryCaptures/
+[Mm]emory[Cc]aptures/
 [Rr]ecordings/
 .utmp/
 Assets/_Recovery/
-
-# Unity generated files
 sysinfo.txt
 
 # Addressables generated content
 Assets/AddressableAssetsData/*/*.bin*
 
-# Visual Studio / Rider / VS Code
+# IDE / editor files generated per developer
 .vs/
 .vscode/
 .idea/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -35,13 +37,51 @@ Assets/AddressableAssetsData/*/*.bin*
 *.mdb
 *.opendb
 *.VC.db
+*.sln.iml
 
-# Unity cache files
-*.apk
-*.aab
-*.unitypackage
-
-# OS generated files
+# OS files
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100/
+.Trashes/
+ehthumbs.db
 Thumbs.db
 Desktop.ini
+
+# Build outputs and exported packages
+*.apk
+*.aab
+*.app
+*.exe
+*.x86
+*.x86_64
+*.ipa
+*.unitypackage
+
+# Xcode / Apple generated project files
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserdata/
+*.xcuserstate
+
+# Gradle / Android Studio
+.gradle/
+build/
+
+# Node / package managers, if tooling is added later
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local caches
+[Ll]ibrary[Cc]ache/
+.cache/
+
+# Local environment files
+.env
+.env.*
+!.env.example

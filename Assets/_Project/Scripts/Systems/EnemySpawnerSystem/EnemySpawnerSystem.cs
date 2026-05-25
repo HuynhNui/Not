@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using _Project.Scripts.Data.ScriptableObjects.SpawnConfigs;
 using _Project.Scripts.Gameplay.Enemies;
 using _Project.Scripts.Gameplay.Player;
@@ -15,6 +16,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
     {
         [SerializeField] private EnemySpawnConfig spawnConfig;
         [SerializeField] private EnemyController enemyPrefab;
+        [SerializeField] private List<EnemySpawnEntry> spawnEntries = new List<EnemySpawnEntry>();
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private AnimationCurve difficultyCurve = AnimationCurve.Linear(0f, 1f, 60f, 2f);
         [SerializeField] private MainPlayerUnit playerUnit;
@@ -52,7 +54,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
         private void Update()
         {
-            if (!_spawningEnabled || enemyPrefab == null || playerUnit == null || playerUnit.IsDead)
+            if (!_spawningEnabled || playerUnit == null || playerUnit.IsDead || !HasSpawnableEnemy())
             {
                 return;
             }
@@ -68,15 +70,22 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
         public void Spawn()
         {
-            if (!_spawningEnabled || enemyPrefab == null || playerUnit == null)
+            if (!_spawningEnabled || playerUnit == null)
+            {
+                return;
+            }
+
+            EnemyController selectedPrefab = SelectEnemyPrefab();
+
+            if (selectedPrefab == null)
             {
                 return;
             }
 
             Vector3 spawnPosition = GetSpawnPosition();
             EnemyController enemyInstance = poolSystem != null
-                ? poolSystem.Spawn(enemyPrefab, spawnPosition, Quaternion.identity)
-                : Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+                ? poolSystem.Spawn(selectedPrefab, spawnPosition, Quaternion.identity)
+                : Instantiate(selectedPrefab, spawnPosition, Quaternion.identity);
 
             if (enemyInstance == null)
             {
@@ -103,6 +112,80 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             float difficultyMultiplier = Mathf.Max(0.01f, activeDifficultyCurve.Evaluate(_elapsedTime));
             float scaledInterval = activeBaseInterval / difficultyMultiplier;
             return Mathf.Max(activeMinimumInterval, scaledInterval);
+        }
+
+        private bool HasSpawnableEnemy()
+        {
+            if (enemyPrefab != null)
+            {
+                return true;
+            }
+
+            if (spawnEntries == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < spawnEntries.Count; index++)
+            {
+                EnemySpawnEntry entry = spawnEntries[index];
+
+                if (entry != null && entry.Prefab != null && entry.GetWeight() > 0f && _elapsedTime >= entry.UnlockAfterSeconds)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private EnemyController SelectEnemyPrefab()
+        {
+            if (spawnEntries == null || spawnEntries.Count == 0)
+            {
+                return enemyPrefab;
+            }
+
+            float totalWeight = 0f;
+
+            for (int index = 0; index < spawnEntries.Count; index++)
+            {
+                EnemySpawnEntry entry = spawnEntries[index];
+
+                if (entry == null || entry.Prefab == null || _elapsedTime < entry.UnlockAfterSeconds)
+                {
+                    continue;
+                }
+
+                totalWeight += entry.GetWeight();
+            }
+
+            if (totalWeight <= 0f)
+            {
+                return enemyPrefab;
+            }
+
+            float roll = Random.Range(0f, totalWeight);
+            float accumulatedWeight = 0f;
+
+            for (int index = 0; index < spawnEntries.Count; index++)
+            {
+                EnemySpawnEntry entry = spawnEntries[index];
+
+                if (entry == null || entry.Prefab == null || _elapsedTime < entry.UnlockAfterSeconds)
+                {
+                    continue;
+                }
+
+                accumulatedWeight += entry.GetWeight();
+
+                if (roll <= accumulatedWeight)
+                {
+                    return entry.Prefab;
+                }
+            }
+
+            return enemyPrefab;
         }
 
         private void HandleEnemyKilled(EnemyController enemy)
@@ -152,6 +235,22 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         private float GetHorizontalSpawnPadding()
         {
             return spawnConfig != null ? spawnConfig.HorizontalSpawnPadding : horizontalSpawnPadding;
+        }
+    }
+
+    [Serializable]
+    public sealed class EnemySpawnEntry
+    {
+        [SerializeField] private EnemyController prefab;
+        [SerializeField] private float spawnWeight = 1f;
+        [SerializeField] private float unlockAfterSeconds;
+
+        public EnemyController Prefab => prefab;
+        public float UnlockAfterSeconds => Mathf.Max(0f, unlockAfterSeconds);
+
+        public float GetWeight()
+        {
+            return Mathf.Max(0f, spawnWeight);
         }
     }
 }
