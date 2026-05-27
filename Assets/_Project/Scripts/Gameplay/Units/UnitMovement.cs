@@ -11,6 +11,8 @@ namespace _Project.Scripts.Gameplay.Units
         [SerializeField] protected float moveSpeed = 5f;
         [SerializeField] protected Rigidbody2D cachedRigidbody;
 
+        public float MoveSpeed => moveSpeed;
+
         public virtual void Init()
         {
         }
@@ -25,6 +27,11 @@ namespace _Project.Scripts.Gameplay.Units
 
         public virtual void Despawn()
         {
+        }
+
+        public virtual void SetMoveSpeed(float value)
+        {
+            moveSpeed = Mathf.Max(0f, value);
         }
     }
 }

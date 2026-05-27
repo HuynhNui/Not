@@ -23,6 +23,7 @@ namespace _Project.Scripts.Gameplay.Player
         private bool _controlsEnabled = true;
 
         public MainPlayerUnit MainPlayerUnit => mainPlayerUnit;
+        public PlayerMovement PlayerMovement => playerMovement;
         public IReadOnlyList<FollowerUnit> Followers => followers;
         public int CurrentSquadCount => mainPlayerUnit == null ? 0 : 1 + GetActiveFollowerCount();
         public int MaxSquadCount => Mathf.Max(1, maxSquadCount);

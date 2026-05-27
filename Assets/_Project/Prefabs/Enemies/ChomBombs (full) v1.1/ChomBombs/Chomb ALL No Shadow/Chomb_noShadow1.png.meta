@@ -1,0 +1,2119 @@
+fileFormatVersion: 2
+guid: e1b5cdb52695a8c4caaa9cac7cf5d084
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3962436793054539116
+    second: Chomb_noShadow1_0
+  - first:
+      213: -7539159432233504475
+    second: Chomb_noShadow1_1
+  - first:
+      213: 4193646515934638267
+    second: Chomb_noShadow1_2
+  - first:
+      213: 2731595982311016197
+    second: Chomb_noShadow1_3
+  - first:
+      213: -6360080980412465757
+    second: Chomb_noShadow1_4
+  - first:
+      213: 283747758471003663
+    second: Chomb_noShadow1_5
+  - first:
+      213: 8139834417491072504
+    second: Chomb_noShadow1_6
+  - first:
+      213: 3501588001485732233
+    second: Chomb_noShadow1_7
+  - first:
+      213: -1026042162808108600
+    second: Chomb_noShadow1_8
+  - first:
+      213: -8672878760954291141
+    second: Chomb_noShadow1_9
+  - first:
+      213: -7342907546201663209
+    second: Chomb_noShadow1_10
+  - first:
+      213: 4471399771055963588
+    second: Chomb_noShadow1_11
+  - first:
+      213: -6024244927311434687
+    second: Chomb_noShadow1_12
+  - first:
+      213: 6675108733825749491
+    second: Chomb_noShadow1_13
+  - first:
+      213: 1210751094793003745
+    second: Chomb_noShadow1_14
+  - first:
+      213: -230797905156409951
+    second: Chomb_noShadow1_15
+  - first:
+      213: 4042503322295707441
+    second: Chomb_noShadow1_16
+  - first:
+      213: 2658887344641354191
+    second: Chomb_noShadow1_17
+  - first:
+      213: -7828488377274839787
+    second: Chomb_noShadow1_18
+  - first:
+      213: -3904858115817249095
+    second: Chomb_noShadow1_19
+  - first:
+      213: -5839207362330785490
+    second: Chomb_noShadow1_20
+  - first:
+      213: -764856729597925222
+    second: Chomb_noShadow1_21
+  - first:
+      213: -879030469474693501
+    second: Chomb_noShadow1_22
+  - first:
+      213: 703334346882306572
+    second: Chomb_noShadow1_23
+  - first:
+      213: -8671341427489982710
+    second: Chomb_noShadow1_24
+  - first:
+      213: -1926053022375526035
+    second: Chomb_noShadow1_25
+  - first:
+      213: -8374134146438996632
+    second: Chomb_noShadow1_26
+  - first:
+      213: -4121250871190578458
+    second: Chomb_noShadow1_27
+  - first:
+      213: -115923113951374271
+    second: Chomb_noShadow1_28
+  - first:
+      213: 8934773833089699868
+    second: Chomb_noShadow1_29
+  - first:
+      213: 5800548261955030147
+    second: Chomb_noShadow1_30
+  - first:
+      213: -3883287898231426996
+    second: Chomb_noShadow1_31
+  - first:
+      213: -8676699792091069716
+    second: Chomb_noShadow1_32
+  - first:
+      213: 6011873242390369288
+    second: Chomb_noShadow1_33
+  - first:
+      213: -434412766304711575
+    second: Chomb_noShadow1_34
+  - first:
+      213: -5145039267561786318
+    second: Chomb_noShadow1_35
+  - first:
+      213: -3990332862303348080
+    second: Chomb_noShadow1_36
+  - first:
+      213: 8639949654881221527
+    second: Chomb_noShadow1_37
+  - first:
+      213: 798180426760876159
+    second: Chomb_noShadow1_38
+  - first:
+      213: -2489408578941495763
+    second: Chomb_noShadow1_39
+  - first:
+      213: 6475917912190465828
+    second: Chomb_noShadow1_40
+  - first:
+      213: -1226831093586811739
+    second: Chomb_noShadow1_41
+  - first:
+      213: 7289441411367626595
+    second: Chomb_noShadow1_42
+  - first:
+      213: 882692080317980255
+    second: Chomb_noShadow1_43
+  - first:
+      213: -4874010434601141624
+    second: Chomb_noShadow1_44
+  - first:
+      213: -3361923318443363668
+    second: Chomb_noShadow1_45
+  - first:
+      213: 1817091165367840728
+    second: Chomb_noShadow1_46
+  - first:
+      213: 1178613977258809354
+    second: Chomb_noShadow1_47
+  - first:
+      213: 8606921454611675991
+    second: Chomb_noShadow1_48
+  - first:
+      213: 2438241294081175672
+    second: Chomb_noShadow1_49
+  - first:
+      213: 6276233476770465665
+    second: Chomb_noShadow1_50
+  - first:
+      213: -162938084298642007
+    second: Chomb_noShadow1_51
+  - first:
+      213: 5738021054310514065
+    second: Chomb_noShadow1_52
+  - first:
+      213: 3459409774264159044
+    second: Chomb_noShadow1_53
+  - first:
+      213: -4917508187245743629
+    second: Chomb_noShadow1_54
+  - first:
+      213: -2862878874414787034
+    second: Chomb_noShadow1_55
+  - first:
+      213: 3104690407317882918
+    second: Chomb_noShadow1_56
+  - first:
+      213: -7290910155701320496
+    second: Chomb_noShadow1_57
+  - first:
+      213: 1346553436803512181
+    second: Chomb_noShadow1_58
+  - first:
+      213: -424246813771353937
+    second: Chomb_noShadow1_59
+  - first:
+      213: -8198430020545362307
+    second: Chomb_noShadow1_60
+  - first:
+      213: 4322655935221619423
+    second: Chomb_noShadow1_61
+  - first:
+      213: -5878403314625397744
+    second: Chomb_noShadow1_62
+  - first:
+      213: 7783643457375368988
+    second: Chomb_noShadow1_63
+  - first:
+      213: -3540672046164472933
+    second: Chomb_noShadow1_64
+  - first:
+      213: 2308245602853518910
+    second: Chomb_noShadow1_65
+  - first:
+      213: -9095984521260557232
+    second: Chomb_noShadow1_66
+  - first:
+      213: -5460176905047444437
+    second: Chomb_noShadow1_67
+  - first:
+      213: -8938261683258536613
+    second: Chomb_noShadow1_68
+  - first:
+      213: -2083290812705161532
+    second: Chomb_noShadow1_69
+  - first:
+      213: 2361208663725636442
+    second: Chomb_noShadow1_70
+  - first:
+      213: 9053673492832335294
+    second: Chomb_noShadow1_71
+  - first:
+      213: -1842188507333608702
+    second: Chomb_noShadow1_72
+  - first:
+      213: 1975479084313472432
+    second: Chomb_noShadow1_73
+  - first:
+      213: 3784781981525638201
+    second: Chomb_noShadow1_74
+  - first:
+      213: -3041306685976805358
+    second: Chomb_noShadow1_75
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Chomb_noShadow1_0
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 480
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6d24f6f4476df630800000000000000
+      internalID: 3962436793054539116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_1
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 480
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 521bfa8c0768f5790800000000000000
+      internalID: -7539159432233504475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_2
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 480
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb0b6df8943d23a30800000000000000
+      internalID: 4193646515934638267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_3
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 480
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5074883c21498e520800000000000000
+      internalID: 2731595982311016197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_4
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 448
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3adfbc3ab047cb7a0800000000000000
+      internalID: -6360080980412465757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_5
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 448
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0e3a7d351310f300800000000000000
+      internalID: 283747758471003663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_6
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 448
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f5dd09a64086f070800000000000000
+      internalID: 8139834417491072504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_7
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 448
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 989b3523cb3289030800000000000000
+      internalID: 3501588001485732233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_8
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 416
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c9cf31d614c2c1f0800000000000000
+      internalID: -1026042162808108600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_9
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 416
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3c1a41c7beb3a780800000000000000
+      internalID: -8672878760954291141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_10
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 416
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7195d1abd70c81a90800000000000000
+      internalID: -7342907546201663209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_11
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 416
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4cdbd8ab66a9d0e30800000000000000
+      internalID: 4471399771055963588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_12
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 384
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14c27ab0825956ca0800000000000000
+      internalID: -6024244927311434687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_13
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 384
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f19ac4f600c2ac50800000000000000
+      internalID: 6675108733825749491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_14
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 386
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e26d84b4b37dc010800000000000000
+      internalID: 1210751094793003745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_15
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 384
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a57f30378a0cccf0800000000000000
+      internalID: -230797905156409951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_16
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 384
+        width: 20
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 137a5c08a5bd91830800000000000000
+      internalID: 4042503322295707441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_17
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 386
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc9212bd3f346e420800000000000000
+      internalID: 2658887344641354191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_18
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 352
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51d42484c4f9b5390800000000000000
+      internalID: -7828488377274839787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_19
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 352
+        width: 20
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b669648b382fc9c0800000000000000
+      internalID: -3904858115817249095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_20
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 355
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e298d6667d7f6fea0800000000000000
+      internalID: -5839207362330785490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_21
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 352
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a98af385bdea265f0800000000000000
+      internalID: -764856729597925222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_22
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 352
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38e4730027e0dc3f0800000000000000
+      internalID: -879030469474693501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_23
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 355
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c025040bcdeb2c900800000000000000
+      internalID: 703334346882306572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_24
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 320
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a07b4581ae439a780800000000000000
+      internalID: -8671341427489982710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_25
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 320
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d614db61bf84545e0800000000000000
+      internalID: -1926053022375526035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_26
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 323
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86dd804ac5919cb80800000000000000
+      internalID: -8374134146438996632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_27
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 320
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ea9a600b206ec6c0800000000000000
+      internalID: -4121250871190578458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_28
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 320
+        width: 22
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 144dba3ca88246ef0800000000000000
+      internalID: -115923113951374271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_29
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 323
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1054c57671befb70800000000000000
+      internalID: 8934773833089699868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_30
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 293
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38cc65069efaf7050800000000000000
+      internalID: 5800548261955030147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_31
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 301
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c40b7592b3acb1ac0800000000000000
+      internalID: -3883287898231426996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_32
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 294
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce2c4bd928b269780800000000000000
+      internalID: -8676699792091069716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_33
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 303
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8049a579cd67e6350800000000000000
+      internalID: 6011873242390369288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_34
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 288
+        width: 30
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96c438204e7a8f9f0800000000000000
+      internalID: -434412766304711575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_35
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 288
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2343b85bb062998b0800000000000000
+      internalID: -5145039267561786318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_36
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 261
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09a57d6476d7f98c0800000000000000
+      internalID: -3990332862303348080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_37
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 271
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79b34784f6447e770800000000000000
+      internalID: 8639949654881221527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_38
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 260
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7070c38ed4b31b00800000000000000
+      internalID: 798180426760876159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_39
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 267
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d26d16f3618d37dd0800000000000000
+      internalID: -2489408578941495763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_40
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 256
+        width: 30
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 427b3beb7051fd950800000000000000
+      internalID: 6475917912190465828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_41
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 256
+        width: 19
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a4aa53de9b69fee0800000000000000
+      internalID: -1226831093586811739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_42
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 229
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 367e69fa75c492560800000000000000
+      internalID: 7289441411367626595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_43
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 239
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5e576535c3ff3c00800000000000000
+      internalID: 882692080317980255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_44
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 228
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88a3d0655590c5cb0800000000000000
+      internalID: -4874010434601141624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_45
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 224
+        width: 30
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca2b41add8c0851d0800000000000000
+      internalID: -3361923318443363668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_46
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 224
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8df204c99ca973910800000000000000
+      internalID: 1817091165367840728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_47
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 192
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0852d1fa274b5010800000000000000
+      internalID: 1178613977258809354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_48
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 192
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75b31d7267de17770800000000000000
+      internalID: 8606921454611675991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_49
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 192
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 870b562e98f56d120800000000000000
+      internalID: 2438241294081175672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_50
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 192
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 187815e1819a91750800000000000000
+      internalID: 6276233476770465665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_51
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 192
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ad2ff4fca02dbdf0800000000000000
+      internalID: -162938084298642007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_52
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 192
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19df3ef5fbb81af40800000000000000
+      internalID: 5738021054310514065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_53
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 192
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44b87876cda420030800000000000000
+      internalID: 3459409774264159044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_54
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 160
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f174279b5081cbb0800000000000000
+      internalID: -4917508187245743629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_55
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 160
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6265987f4d20548d0800000000000000
+      internalID: -2862878874414787034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_56
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 160
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 628ceb1e973161b20800000000000000
+      internalID: 3104690407317882918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_57
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 160
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d48220a7db71da90800000000000000
+      internalID: -7290910155701320496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_58
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 160
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57731c7673befa210800000000000000
+      internalID: 1346553436803512181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_59
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 160
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa0311845c5cc1af0800000000000000
+      internalID: -424246813771353937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_60
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 160
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d76ce7d5553593e80800000000000000
+      internalID: -8198430020545362307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_61
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 128
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fda5e11bba82dfb30800000000000000
+      internalID: 4322655935221619423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_62
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 128
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01c36499457bb6ea0800000000000000
+      internalID: -5878403314625397744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_63
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 128
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c17f6272c7e050c60800000000000000
+      internalID: 7783643457375368988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_64
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 128
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9b063688810ddec0800000000000000
+      internalID: -3540672046164472933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_65
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 128
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3ef07c6529880020800000000000000
+      internalID: 2308245602853518910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_66
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 101
+        width: 26
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05c10df354294c180800000000000000
+      internalID: -9095984521260557232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_67
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 128
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b24fadbb80e8934b0800000000000000
+      internalID: -5460176905047444437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_68
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 96
+        width: 31
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5dc3e32b5ae4f380800000000000000
+      internalID: -8938261683258536613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_69
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 97
+        width: 30
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4cebfd82b0aa613e0800000000000000
+      internalID: -2083290812705161532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_70
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 96
+        width: 34
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5bf0f9f4c2b4c020800000000000000
+      internalID: 2361208663725636442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_71
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 95
+        width: 31
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb534a4c21c15ad70800000000000000
+      internalID: 9053673492832335294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_72
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 107
+        width: 15
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20bb21b105b3f66e0800000000000000
+      internalID: -1842188507333608702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_73
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 103
+        width: 24
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bde7b9b2cf4a6b10800000000000000
+      internalID: 1975479084313472432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_74
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 111
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93c7229d82f368430800000000000000
+      internalID: 3784781981525638201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chomb_noShadow1_75
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 97
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2100551ceab1bc5d0800000000000000
+      internalID: -3041306685976805358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Chomb_noShadow1_0: 3962436793054539116
+      Chomb_noShadow1_1: -7539159432233504475
+      Chomb_noShadow1_10: -7342907546201663209
+      Chomb_noShadow1_11: 4471399771055963588
+      Chomb_noShadow1_12: -6024244927311434687
+      Chomb_noShadow1_13: 6675108733825749491
+      Chomb_noShadow1_14: 1210751094793003745
+      Chomb_noShadow1_15: -230797905156409951
+      Chomb_noShadow1_16: 4042503322295707441
+      Chomb_noShadow1_17: 2658887344641354191
+      Chomb_noShadow1_18: -7828488377274839787
+      Chomb_noShadow1_19: -3904858115817249095
+      Chomb_noShadow1_2: 4193646515934638267
+      Chomb_noShadow1_20: -5839207362330785490
+      Chomb_noShadow1_21: -764856729597925222
+      Chomb_noShadow1_22: -879030469474693501
+      Chomb_noShadow1_23: 703334346882306572
+      Chomb_noShadow1_24: -8671341427489982710
+      Chomb_noShadow1_25: -1926053022375526035
+      Chomb_noShadow1_26: -8374134146438996632
+      Chomb_noShadow1_27: -4121250871190578458
+      Chomb_noShadow1_28: -115923113951374271
+      Chomb_noShadow1_29: 8934773833089699868
+      Chomb_noShadow1_3: 2731595982311016197
+      Chomb_noShadow1_30: 5800548261955030147
+      Chomb_noShadow1_31: -3883287898231426996
+      Chomb_noShadow1_32: -8676699792091069716
+      Chomb_noShadow1_33: 6011873242390369288
+      Chomb_noShadow1_34: -434412766304711575
+      Chomb_noShadow1_35: -5145039267561786318
+      Chomb_noShadow1_36: -3990332862303348080
+      Chomb_noShadow1_37: 8639949654881221527
+      Chomb_noShadow1_38: 798180426760876159
+      Chomb_noShadow1_39: -2489408578941495763
+      Chomb_noShadow1_4: -6360080980412465757
+      Chomb_noShadow1_40: 6475917912190465828
+      Chomb_noShadow1_41: -1226831093586811739
+      Chomb_noShadow1_42: 7289441411367626595
+      Chomb_noShadow1_43: 882692080317980255
+      Chomb_noShadow1_44: -4874010434601141624
+      Chomb_noShadow1_45: -3361923318443363668
+      Chomb_noShadow1_46: 1817091165367840728
+      Chomb_noShadow1_47: 1178613977258809354
+      Chomb_noShadow1_48: 8606921454611675991
+      Chomb_noShadow1_49: 2438241294081175672
+      Chomb_noShadow1_5: 283747758471003663
+      Chomb_noShadow1_50: 6276233476770465665
+      Chomb_noShadow1_51: -162938084298642007
+      Chomb_noShadow1_52: 5738021054310514065
+      Chomb_noShadow1_53: 3459409774264159044
+      Chomb_noShadow1_54: -4917508187245743629
+      Chomb_noShadow1_55: -2862878874414787034
+      Chomb_noShadow1_56: 3104690407317882918
+      Chomb_noShadow1_57: -7290910155701320496
+      Chomb_noShadow1_58: 1346553436803512181
+      Chomb_noShadow1_59: -424246813771353937
+      Chomb_noShadow1_6: 8139834417491072504
+      Chomb_noShadow1_60: -8198430020545362307
+      Chomb_noShadow1_61: 4322655935221619423
+      Chomb_noShadow1_62: -5878403314625397744
+      Chomb_noShadow1_63: 7783643457375368988
+      Chomb_noShadow1_64: -3540672046164472933
+      Chomb_noShadow1_65: 2308245602853518910
+      Chomb_noShadow1_66: -9095984521260557232
+      Chomb_noShadow1_67: -5460176905047444437
+      Chomb_noShadow1_68: -8938261683258536613
+      Chomb_noShadow1_69: -2083290812705161532
+      Chomb_noShadow1_7: 3501588001485732233
+      Chomb_noShadow1_70: 2361208663725636442
+      Chomb_noShadow1_71: 9053673492832335294
+      Chomb_noShadow1_72: -1842188507333608702
+      Chomb_noShadow1_73: 1975479084313472432
+      Chomb_noShadow1_74: 3784781981525638201
+      Chomb_noShadow1_75: -3041306685976805358
+      Chomb_noShadow1_8: -1026042162808108600
+      Chomb_noShadow1_9: -8672878760954291141
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

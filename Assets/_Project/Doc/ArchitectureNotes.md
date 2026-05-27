@@ -16,9 +16,14 @@
 
 ## UI Rules
 
-- Game-over UI is `GameCanvas/GameOverPanel`.
-- `UISystem` is responsible for showing and hiding HUD and game-over views.
+- Runtime UI must be prefab/scene-driven. Do not create `Canvas`, panels, buttons, text, layout objects, or fonts from gameplay/runtime code.
+- UI screens live under `GameCanvas/UIRoot/SafeAreaRoot` as scene objects or prefab instances: `MainMenuPanel`, `GameplayHUDPanel`, `UpgradePanel`, `SettingsPanel`, `PausePanel`, and `GameOverPanel`.
+- `UISystem` is a controller only. It owns serialized references, panel switching, TMP text updates, settings values, and button event wiring.
+- `UISystem` must not contain auto-build helpers such as `BuildMainMenu`, `CreateText`, `CreateButton`, `EnsureEditorUi`, `EnsureResponsiveUi`, or `Resources.GetBuiltinResource("Arial.ttf")`.
+- Use `TextMeshProUGUI` for screen-space UI text. Legacy `UnityEngine.UI.Text` should be replaced in prefabs/scenes, not supported by new runtime UI code.
+- On scene start, `MainMenuPanel` is the only primary menu panel shown. `GameplayHUDPanel`, `UpgradePanel`, `SettingsPanel`, `PausePanel`, and `GameOverPanel` are shown only through explicit UI/game-state events.
 - UI button callbacks should be wired by UI/system scripts, not by gameplay units.
+- If a UI reference is missing, scripts should log a clear warning naming the missing field/object instead of creating a replacement object.
 
 ## Data Rules
 

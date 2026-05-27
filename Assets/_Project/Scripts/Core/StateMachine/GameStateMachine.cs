@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 namespace _Project.Scripts.Core.StateMachine
 {
@@ -10,6 +11,7 @@ namespace _Project.Scripts.Core.StateMachine
         [SerializeField] private GameState currentState = GameState.Bootstrap;
 
         public GameState CurrentState => currentState;
+        public event Action<GameState, GameState> StateChanged;
 
         public void Init()
         {
@@ -21,12 +23,21 @@ namespace _Project.Scripts.Core.StateMachine
 
         public void SetState(GameState nextState)
         {
+            if (currentState == nextState)
+            {
+                return;
+            }
+
+            GameState previousState = currentState;
+            currentState = nextState;
+            StateChanged?.Invoke(previousState, currentState);
         }
     }
 
     public enum GameState
     {
         Bootstrap,
+        MainMenu,
         Playing,
         Paused,
         GameOver

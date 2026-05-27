@@ -12,7 +12,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         private const string BestSurvivalTimeKey = "RunStats.BestSurvivalTime";
         private const string BestKillCountKey = "RunStats.BestKillCount";
         private const string BestCoinsEarnedKey = "RunStats.BestCoinsEarned";
-        private const string WalletCoinsKey = "RunStats.WalletCoins";
+        public const string WalletCoinsPrefsKey = "RunStats.WalletCoins";
 
         private RuntimeEnemySpawnerSystem _enemySpawnerSystem;
         private bool _isTracking;
@@ -23,7 +23,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         public float SurvivalTime => _survivalTime;
         public int EnemyKills => _enemyKills;
         public int CoinsEarned => _coinsEarned;
-        public int WalletCoins => PlayerPrefs.GetInt(WalletCoinsKey, 0);
+        public int WalletCoins => PlayerPrefs.GetInt(WalletCoinsPrefsKey, 0);
         public float BestSurvivalTime => PlayerPrefs.GetFloat(BestSurvivalTimeKey, 0f);
         public int BestKillCount => PlayerPrefs.GetInt(BestKillCountKey, 0);
         public int BestCoinsEarned => PlayerPrefs.GetInt(BestCoinsEarnedKey, 0);
@@ -93,6 +93,21 @@ namespace _Project.Scripts.Systems.RunStatsSystem
                 BestCoinsEarned);
         }
 
+        public bool TrySpendWalletCoins(int amount)
+        {
+            int safeAmount = Mathf.Max(0, amount);
+            int walletCoins = WalletCoins;
+
+            if (walletCoins < safeAmount)
+            {
+                return false;
+            }
+
+            PlayerPrefs.SetInt(WalletCoinsPrefsKey, walletCoins - safeAmount);
+            PlayerPrefs.Save();
+            return true;
+        }
+
         private void HandleEnemyKilled(EnemyController enemy)
         {
             if (!_isTracking || enemy == null)
@@ -121,7 +136,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
                 PlayerPrefs.SetInt(BestCoinsEarnedKey, _coinsEarned);
             }
 
-            PlayerPrefs.SetInt(WalletCoinsKey, WalletCoins + _coinsEarned);
+            PlayerPrefs.SetInt(WalletCoinsPrefsKey, WalletCoins + _coinsEarned);
             PlayerPrefs.Save();
         }
     }
