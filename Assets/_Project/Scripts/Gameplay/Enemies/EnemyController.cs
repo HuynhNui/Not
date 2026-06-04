@@ -37,25 +37,43 @@ namespace _Project.Scripts.Gameplay.Enemies
         private Camera _gameplayCamera;
         private PoolSystem _poolSystem;
         private bool _isActive;
+        private bool _movementEnabled = true;
+        private bool _canReceiveDamage = true;
         private bool _hasArrivedAtHoldPosition;
         private WorldHealthBarView _healthBarInstance;
+        private bool _hasRuntimeStats;
+        private float _runtimeMaxHealth;
+        private float _runtimeMoveSpeed;
+        private float _runtimeContactDamage;
+        private int _runtimeScoreValue;
+        private int _runtimeCoinReward;
+        private bool _runtimeDestroyOnPlayerHit;
 
         public event Action<EnemyController> Killed;
         public event Action<EnemyController> Spawned;
         public event Action<EnemyController> Despawned;
+        public event Action<EnemyController, float, float> Damaged;
 
-        public int ScoreValue => scoreValue;
-        public int CoinReward => coinReward > 0 ? coinReward : scoreValue;
+        public int ScoreValue => _hasRuntimeStats ? _runtimeScoreValue : scoreValue;
+        public int CoinReward => GetCoinReward();
         public bool IsActive => _isActive;
         public bool HasArrivedAtHoldPosition => _hasArrivedAtHoldPosition;
+        public float CurrentHealth => currentHealth;
+        public Transform Target => _target;
+        public MainPlayerUnit PlayerUnit => _playerUnit;
+        public Camera GameplayCamera => _gameplayCamera;
+        public PoolSystem PoolSystem => _poolSystem;
 
         public void Init(Transform target, MainPlayerUnit playerUnit, Camera gameplayCamera = null)
         {
             _target = target;
             _playerUnit = playerUnit;
             _gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
+            ClearRuntimeStats();
             currentHealth = GetMaxHealth();
             _isActive = true;
+            _movementEnabled = true;
+            _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             EnsureHealthBar();
             RefreshHealthBar();
@@ -68,7 +86,11 @@ namespace _Project.Scripts.Gameplay.Enemies
                 return;
             }
 
-            MoveByMode();
+            if (_movementEnabled)
+            {
+                MoveByMode();
+            }
+
             DespawnIfOutOfBounds();
         }
 
@@ -76,6 +98,8 @@ namespace _Project.Scripts.Gameplay.Enemies
         {
             currentHealth = GetMaxHealth();
             _isActive = true;
+            _movementEnabled = true;
+            _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             EnsureHealthBar();
             RefreshHealthBar();
@@ -101,15 +125,57 @@ namespace _Project.Scripts.Gameplay.Enemies
             _poolSystem = poolSystem;
         }
 
+        public EnemyRuntimeStats CreateBaseRuntimeStats()
+        {
+            return new EnemyRuntimeStats(
+                GetBaseMaxHealth(),
+                GetBaseMoveSpeed(),
+                GetBaseContactDamage(),
+                scoreValue,
+                coinReward > 0 ? coinReward : scoreValue,
+                destroyOnPlayerHit);
+        }
+
+        public void ApplyRuntimeStats(EnemyRuntimeStats stats)
+        {
+            _hasRuntimeStats = true;
+            _runtimeMaxHealth = stats.MaxHealth;
+            _runtimeMoveSpeed = stats.MoveSpeed;
+            _runtimeContactDamage = stats.ContactDamage;
+            _runtimeScoreValue = stats.ScoreValue;
+            _runtimeCoinReward = stats.CoinReward;
+            _runtimeDestroyOnPlayerHit = stats.DestroyOnPlayerHit;
+            currentHealth = GetMaxHealth();
+            RefreshHealthBar();
+        }
+
+        public void SetMovementEnabled(bool isEnabled)
+        {
+            _movementEnabled = isEnabled;
+        }
+
+        public void SetDamageReceivingEnabled(bool isEnabled)
+        {
+            _canReceiveDamage = isEnabled;
+        }
+
         public void TakeDamage(float damageAmount)
         {
-            if (!_isActive)
+            if (!_isActive || !_canReceiveDamage)
             {
                 return;
             }
 
-            currentHealth = Mathf.Max(0f, currentHealth - Mathf.Max(0f, damageAmount));
+            float appliedDamage = Mathf.Max(0f, damageAmount);
+
+            if (appliedDamage <= 0f)
+            {
+                return;
+            }
+
+            currentHealth = Mathf.Max(0f, currentHealth - appliedDamage);
             RefreshHealthBar();
+            Damaged?.Invoke(this, appliedDamage, currentHealth);
 
             if (currentHealth <= 0f)
             {
@@ -219,11 +285,11 @@ namespace _Project.Scripts.Gameplay.Enemies
                 return;
             }
 
-            MainPlayerUnit hitPlayer = other.GetComponent<MainPlayerUnit>();
+            PlayerUnit hitPlayer = other.GetComponent<PlayerUnit>();
 
-            if (hitPlayer == null && _playerUnit != null && other.transform == _playerUnit.transform)
+            if (hitPlayer == null)
             {
-                hitPlayer = _playerUnit;
+                hitPlayer = other.GetComponentInParent<PlayerUnit>();
             }
 
             if (hitPlayer == null || hitPlayer.IsDead)
@@ -233,7 +299,7 @@ namespace _Project.Scripts.Gameplay.Enemies
 
             hitPlayer.TakeDamage(GetContactDamage());
 
-            if (destroyOnPlayerHit)
+            if (GetDestroyOnPlayerHit())
             {
                 Despawn();
             }
@@ -241,17 +307,58 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         private float GetMoveSpeed()
         {
-            return unitData != null ? unitData.MoveSpeed : fallbackMoveSpeed;
+            return _hasRuntimeStats ? _runtimeMoveSpeed : GetBaseMoveSpeed();
         }
 
         private float GetMaxHealth()
         {
-            return unitData != null ? unitData.MaxHealth : fallbackMaxHealth;
+            return _hasRuntimeStats ? _runtimeMaxHealth : GetBaseMaxHealth();
         }
 
         private float GetContactDamage()
         {
+            return _hasRuntimeStats ? _runtimeContactDamage : GetBaseContactDamage();
+        }
+
+        private float GetBaseMoveSpeed()
+        {
+            return unitData != null ? unitData.MoveSpeed : fallbackMoveSpeed;
+        }
+
+        private float GetBaseMaxHealth()
+        {
+            return unitData != null ? unitData.MaxHealth : fallbackMaxHealth;
+        }
+
+        private float GetBaseContactDamage()
+        {
             return unitData != null ? unitData.ContactDamage : fallbackContactDamage;
+        }
+
+        private bool GetDestroyOnPlayerHit()
+        {
+            return _hasRuntimeStats ? _runtimeDestroyOnPlayerHit : destroyOnPlayerHit;
+        }
+
+        private int GetCoinReward()
+        {
+            if (_hasRuntimeStats)
+            {
+                return _runtimeCoinReward > 0 ? _runtimeCoinReward : _runtimeScoreValue;
+            }
+
+            return coinReward > 0 ? coinReward : scoreValue;
+        }
+
+        private void ClearRuntimeStats()
+        {
+            _hasRuntimeStats = false;
+            _runtimeMaxHealth = 0f;
+            _runtimeMoveSpeed = 0f;
+            _runtimeContactDamage = 0f;
+            _runtimeScoreValue = 0;
+            _runtimeCoinReward = 0;
+            _runtimeDestroyOnPlayerHit = false;
         }
 
         private void RefreshHealthBar()

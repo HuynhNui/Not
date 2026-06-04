@@ -12,19 +12,38 @@ namespace _Project.Scripts.Systems.UISystem
         private Rect _lastSafeArea;
         private Vector2Int _lastScreenSize;
 
+        private void Awake()
+        {
+            ResolveTarget();
+        }
+
         private void OnEnable()
         {
-            target ??= transform as RectTransform;
-            ApplySafeArea();
+            ApplySafeArea(force: true);
         }
 
         private void Update()
         {
-            ApplySafeArea();
+            ApplySafeArea(force: false);
         }
 
-        private void ApplySafeArea()
+        private void OnRectTransformDimensionsChange()
         {
+            ApplySafeArea(force: true);
+        }
+
+        private void ResolveTarget()
+        {
+            if (target == null)
+            {
+                target = transform as RectTransform;
+            }
+        }
+
+        private void ApplySafeArea(bool force)
+        {
+            ResolveTarget();
+
             if (target == null || Screen.width <= 0 || Screen.height <= 0)
             {
                 return;
@@ -33,7 +52,7 @@ namespace _Project.Scripts.Systems.UISystem
             Rect safeArea = Screen.safeArea;
             Vector2Int screenSize = new Vector2Int(Screen.width, Screen.height);
 
-            if (safeArea == _lastSafeArea && screenSize == _lastScreenSize)
+            if (!force && safeArea == _lastSafeArea && screenSize == _lastScreenSize)
             {
                 return;
             }

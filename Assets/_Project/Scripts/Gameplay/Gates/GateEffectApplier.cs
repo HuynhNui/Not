@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Combat;
 using _Project.Scripts.Gameplay.Player;
@@ -30,7 +29,7 @@ namespace _Project.Scripts.Gameplay.Gates
                     ApplyToSquadFireRate(config, mainUnit, squad);
                     break;
                 case GateStatTarget.MaxHp:
-                    ApplyMaxHp(config, mainUnit);
+                    ApplyMaxHp(config, mainUnit, squad);
                     break;
                 case GateStatTarget.ProjectileCount:
                     ApplyWeaponEffect(config, mainUnit, squad);
@@ -45,20 +44,36 @@ namespace _Project.Scripts.Gameplay.Gates
         {
             float newDamage = ApplyOperation(mainUnit.Damage, config.OperationType, config.Amount);
             mainUnit.SetDamage(newDamage);
-            SyncFollowersFromMain(mainUnit, squad, syncDamage: true, syncFireRate: false);
+            squad?.SyncFollowersFromMain(
+                syncDamage: true,
+                syncFireRate: false,
+                syncMaxHp: false,
+                healMaxHpByDelta: false,
+                syncProjectileCount: false);
         }
 
         private static void ApplyToSquadFireRate(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
         {
             float newFireRate = ApplyOperation(mainUnit.FireRate, config.OperationType, config.Amount);
             mainUnit.SetFireRate(newFireRate);
-            SyncFollowersFromMain(mainUnit, squad, syncDamage: false, syncFireRate: true);
+            squad?.SyncFollowersFromMain(
+                syncDamage: false,
+                syncFireRate: true,
+                syncMaxHp: false,
+                healMaxHpByDelta: false,
+                syncProjectileCount: false);
         }
 
-        private static void ApplyMaxHp(GateConfig config, MainPlayerUnit mainUnit)
+        private static void ApplyMaxHp(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
         {
             float newMaxHp = ApplyOperation(mainUnit.MaxHp, config.OperationType, config.Amount);
             mainUnit.SetMaxHp(newMaxHp, healByDelta: config.OperationType == GateOperationType.Add);
+            squad?.SyncFollowersFromMain(
+                syncDamage: false,
+                syncFireRate: false,
+                syncMaxHp: true,
+                healMaxHpByDelta: config.OperationType == GateOperationType.Add,
+                syncProjectileCount: false);
         }
 
         private static void ApplyWeaponEffect(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
@@ -83,7 +98,12 @@ namespace _Project.Scripts.Gameplay.Gates
             int next = Mathf.RoundToInt(ApplyOperation(current, config.OperationType, config.Amount));
             int clampedNext = Mathf.Clamp(next, 1, MaxProjectileCount);
             spawner.SetProjectileCount(clampedNext);
-            SyncFollowersProjectileCount(squad, clampedNext);
+            squad?.SyncFollowersFromMain(
+                syncDamage: false,
+                syncFireRate: false,
+                syncMaxHp: false,
+                healMaxHpByDelta: false,
+                syncProjectileCount: true);
         }
 
         private static void ApplyPlayerCount(GateConfig config, PlayerController squad)
@@ -96,58 +116,6 @@ namespace _Project.Scripts.Gameplay.Gates
             int current = Mathf.Max(1, squad.CurrentSquadCount);
             int next = Mathf.RoundToInt(ApplyOperation(current, config.OperationType, config.Amount));
             squad.SetSquadCount(Mathf.Clamp(next, 1, MaxPlayerCount));
-        }
-
-        private static void SyncFollowersFromMain(
-            MainPlayerUnit mainUnit,
-            PlayerController squad,
-            bool syncDamage,
-            bool syncFireRate)
-        {
-            if (squad == null)
-            {
-                return;
-            }
-
-            IReadOnlyList<FollowerUnit> followers = squad.Followers;
-            for (int index = 0; index < followers.Count; index++)
-            {
-                FollowerUnit follower = followers[index];
-                if (follower == null)
-                {
-                    continue;
-                }
-
-                if (syncDamage)
-                {
-                    follower.SetDamage(mainUnit.Damage);
-                }
-
-                if (syncFireRate)
-                {
-                    follower.SetFireRate(mainUnit.FireRate);
-                }
-            }
-        }
-
-        private static void SyncFollowersProjectileCount(PlayerController squad, int projectileCount)
-        {
-            if (squad == null)
-            {
-                return;
-            }
-
-            IReadOnlyList<FollowerUnit> followers = squad.Followers;
-            for (int index = 0; index < followers.Count; index++)
-            {
-                FollowerUnit follower = followers[index];
-                if (follower == null || follower.BulletSpawner == null)
-                {
-                    continue;
-                }
-
-                follower.BulletSpawner.SetProjectileCount(projectileCount);
-            }
         }
 
         private static float ApplyOperation(float baseValue, GateOperationType operationType, float amount)

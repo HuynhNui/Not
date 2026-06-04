@@ -29,6 +29,12 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField, Range(0.05f, 0.3f)] private float maxGateHeightViewport = 0.18f;
         [SerializeField] private float minGateWorldWidth = 0.55f;
 
+        [Header("Viewport Safe Zone")]
+        [SerializeField, Range(0f, 0.3f)] private float topReservedViewport = 0.18f;
+        [SerializeField, Range(0f, 0.3f)] private float bottomReservedViewport = 0.16f;
+        [SerializeField, Range(0f, 0.3f)] private float horizontalViewportPadding = 0.10f;
+        [SerializeField] private float topSpawnMarginPixels = 12f;
+
         [Header("Configs (pick 3 each spawn)")]
         [SerializeField] private List<GateConfig> availableGateConfigs = new List<GateConfig>();
 
@@ -39,11 +45,11 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField] private int maxPlayerCount = 50;
         [SerializeField] private List<GateOfferRule> offerRules = new List<GateOfferRule>
         {
-            new GateOfferRule(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false),
-            new GateOfferRule(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false),
-            new GateOfferRule(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false),
-            new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, 50f, true),
-            new GateOfferRule(GateStatTarget.PlayerCount, 1f, 1f, 2f, 2f, 1f, 50f, true)
+            new GateOfferRule(GateStatTarget.Damage, 1f, 1f, 0f, 2f, 0f, 999f, false),
+            new GateOfferRule(GateStatTarget.FireRate, 1f, 1f, 1.25f, 2f, 0.25f, 20f, false),
+            new GateOfferRule(GateStatTarget.MaxHp, 5f, 5f, 1.25f, 2f, 1f, 999f, false),
+            new GateOfferRule(GateStatTarget.ProjectileCount, 1f, 1f, 0f, 2f, 1f, 50f, true),
+            new GateOfferRule(GateStatTarget.PlayerCount, 1f, 1f, 0f, 2f, 1f, 50f, true)
         };
 
         [Header("Runtime references")]
@@ -125,7 +131,6 @@ namespace _Project.Scripts.Systems.GateSystem
 
             ResolveGameplayCamera();
 
-            float spawnY = GetSpawnWorldY();
             int count = Mathf.Max(1, gateCount);
             BuildSpawnConfigs(count);
 
@@ -144,6 +149,7 @@ namespace _Project.Scripts.Systems.GateSystem
                 }
 
                 GateLaneLayout laneLayout = GetGateLaneLayout(index, count);
+                float spawnY = GetSpawnWorldY(laneLayout.GateHeight);
                 Vector3 spawnPosition = new Vector3(laneLayout.CenterX, spawnY, 0f);
 
                 GateLogic instance = poolSystem != null
@@ -342,11 +348,11 @@ namespace _Project.Scripts.Systems.GateSystem
                 offerRules = new List<GateOfferRule>();
             }
 
-            AddDefaultOfferRuleIfMissing(GateStatTarget.Damage, 1f, 1f, 2f, 2f, 0f, 999f, false);
-            AddDefaultOfferRuleIfMissing(GateStatTarget.FireRate, 1f, 1f, 1.5f, 2f, 0.25f, 20f, false);
-            AddDefaultOfferRuleIfMissing(GateStatTarget.MaxHp, 5f, 5f, 1.5f, 2f, 1f, 999f, false);
-            AddDefaultOfferRuleIfMissing(GateStatTarget.ProjectileCount, 1f, 1f, 2f, 2f, 1f, maxProjectileCount, true);
-            AddDefaultOfferRuleIfMissing(GateStatTarget.PlayerCount, 1f, 1f, 2f, 2f, 1f, maxPlayerCount, true);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.Damage, 1f, 1f, 0f, 2f, 0f, 999f, false);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.FireRate, 1f, 1f, 1.25f, 2f, 0.25f, 20f, false);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.MaxHp, 5f, 5f, 1.25f, 2f, 1f, 999f, false);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.ProjectileCount, 1f, 1f, 0f, 2f, 1f, maxProjectileCount, true);
+            AddDefaultOfferRuleIfMissing(GateStatTarget.PlayerCount, 1f, 1f, 0f, 2f, 1f, maxPlayerCount, true);
         }
 
         private void AddDefaultOfferRuleIfMissing(
@@ -381,6 +387,11 @@ namespace _Project.Scripts.Systems.GateSystem
 
         private void AddCandidateIfAllowed(GateOfferRule rule, GateOperationType operationType)
         {
+            if (!ShouldOfferOperation(rule.StatTarget, operationType))
+            {
+                return;
+            }
+
             float currentValue = GetCurrentStatValue(rule.StatTarget);
             float amount = rule.GetAmount(operationType);
             float minValue = rule.GetMinValue(maxProjectileCount, maxPlayerCount);
@@ -400,6 +411,22 @@ namespace _Project.Scripts.Systems.GateSystem
             }
 
             _neutralCandidateBuffer.Add(candidate);
+        }
+
+        private static bool ShouldOfferOperation(GateStatTarget statTarget, GateOperationType operationType)
+        {
+            if (operationType != GateOperationType.Multiply)
+            {
+                return true;
+            }
+
+            return statTarget switch
+            {
+                GateStatTarget.Damage => false,
+                GateStatTarget.ProjectileCount => false,
+                GateStatTarget.PlayerCount => false,
+                _ => true
+            };
         }
 
         private bool IsCandidateAllowed(
@@ -522,15 +549,18 @@ namespace _Project.Scripts.Systems.GateSystem
             }
         }
 
-        private float GetSpawnWorldY()
+        private float GetSpawnWorldY(float gateHeight)
         {
             if (gameplayCamera != null && gameplayCamera.orthographic)
             {
-                float halfHeight = gameplayCamera.orthographicSize;
-                return gameplayCamera.transform.position.y + halfHeight + spawnAboveCameraOffset;
+                float zDistance = GetViewportZDistance();
+                float topWorldY = gameplayCamera.ViewportToWorldPoint(new Vector3(0.5f, 1f, zDistance)).y;
+                float marginWorld = GetViewportWorldHeight() * Mathf.Max(0f, topSpawnMarginPixels) / Mathf.Max(1f, Screen.height);
+                return topWorldY + Mathf.Max(0f, gateHeight) * 0.5f + Mathf.Max(0f, spawnAboveCameraOffset) + marginWorld;
             }
 
-            return mainPlayerUnit != null ? mainPlayerUnit.transform.position.y + 6f : transform.position.y + 6f;
+            float fallbackOffset = Mathf.Max(0.01f, spawnAboveCameraOffset);
+            return mainPlayerUnit != null ? mainPlayerUnit.transform.position.y + fallbackOffset : transform.position.y + fallbackOffset;
         }
 
         private GateLaneLayout GetGateLaneLayout(int laneIndex, int totalLanes)
@@ -563,10 +593,14 @@ namespace _Project.Scripts.Systems.GateSystem
             totalLanes = Mathf.Max(1, totalLanes);
             float zDistance = GetViewportZDistance();
 
+            float laneMinViewport = GetSafeLaneMinViewport();
+            float laneMaxViewport = GetSafeLaneMaxViewport(laneMinViewport);
+            float playfieldCenterViewportY = GetPlayfieldCenterViewportY();
+
             Vector3 worldMin = gameplayCamera.ViewportToWorldPoint(
-                new Vector3(viewportLaneMin, 0.5f, zDistance));
+                new Vector3(laneMinViewport, playfieldCenterViewportY, zDistance));
             Vector3 worldMax = gameplayCamera.ViewportToWorldPoint(
-                new Vector3(viewportLaneMax, 0.5f, zDistance));
+                new Vector3(laneMaxViewport, playfieldCenterViewportY, zDistance));
 
             float left = Mathf.Min(worldMin.x, worldMax.x);
             float right = Mathf.Max(worldMin.x, worldMax.x);
@@ -576,12 +610,56 @@ namespace _Project.Scripts.Systems.GateSystem
                 : Mathf.Clamp(laneGapWorld, 0f, availableWidth * 0.12f);
             float laneWidth = Mathf.Max(0.1f, (availableWidth - gap * (totalLanes - 1)) / totalLanes);
             float gateWidth = Mathf.Max(0.1f, laneWidth);
-            float maxHeight = gameplayCamera.orthographicSize * 2f * Mathf.Clamp(maxGateHeightViewport, 0.05f, 0.3f);
+            float maxHeight = GetPlayfieldWorldHeight() * Mathf.Clamp(maxGateHeightViewport, 0.05f, 0.3f);
             float gateHeight = Mathf.Min(gateWidth * Mathf.Max(0.5f, gateHeightToWidth), maxHeight);
             float centerX = left + laneWidth * 0.5f + laneIndex * (laneWidth + gap);
 
             layout = new GateLaneLayout(centerX, gateWidth, gateHeight);
             return true;
+        }
+
+        private float GetSafeLaneMinViewport()
+        {
+            return Mathf.Clamp01(Mathf.Min(Mathf.Clamp01(viewportLaneMin), horizontalViewportPadding));
+        }
+
+        private float GetSafeLaneMaxViewport(float laneMinViewport)
+        {
+            float laneMaxViewport = Mathf.Clamp01(Mathf.Max(Mathf.Clamp01(viewportLaneMax), 1f - horizontalViewportPadding));
+            return Mathf.Max(laneMinViewport + 0.01f, laneMaxViewport);
+        }
+
+        private float GetPlayfieldCenterViewportY()
+        {
+            float bottom = Mathf.Clamp01(bottomReservedViewport);
+            float top = Mathf.Clamp01(1f - topReservedViewport);
+            return (bottom + Mathf.Max(bottom + 0.01f, top)) * 0.5f;
+        }
+
+        private float GetPlayfieldWorldHeight()
+        {
+            if (gameplayCamera == null || !gameplayCamera.orthographic)
+            {
+                return 1f;
+            }
+
+            float zDistance = GetViewportZDistance();
+            float bottom = Mathf.Clamp01(bottomReservedViewport);
+            float top = Mathf.Clamp01(1f - topReservedViewport);
+            top = Mathf.Max(bottom + 0.01f, top);
+            float bottomY = gameplayCamera.ViewportToWorldPoint(new Vector3(0.5f, bottom, zDistance)).y;
+            float topY = gameplayCamera.ViewportToWorldPoint(new Vector3(0.5f, top, zDistance)).y;
+            return Mathf.Max(0.1f, Mathf.Abs(topY - bottomY));
+        }
+
+        private float GetViewportWorldHeight()
+        {
+            if (gameplayCamera == null || !gameplayCamera.orthographic)
+            {
+                return 1f;
+            }
+
+            return Mathf.Max(0.1f, gameplayCamera.orthographicSize * 2f);
         }
 
         private float GetViewportZDistance()

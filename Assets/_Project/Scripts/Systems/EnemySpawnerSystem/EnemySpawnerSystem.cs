@@ -15,6 +15,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
     public sealed class EnemySpawnerSystem : MonoBehaviour
     {
         [SerializeField] private EnemySpawnConfig spawnConfig;
+        [SerializeField] private RunProgressionConfig runProgressionConfig;
         [SerializeField] private EnemyController enemyPrefab;
         [SerializeField] private List<EnemySpawnEntry> spawnEntries = new List<EnemySpawnEntry>();
         [SerializeField] private Transform[] spawnPoints;
@@ -30,6 +31,8 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         private float _elapsedTime;
         private float _nextSpawnTime;
         private bool _spawningEnabled = true;
+        private readonly HashSet<EnemyController> _activeEnemies = new HashSet<EnemyController>();
+        private readonly List<EnemyController> _enemyRemovalBuffer = new List<EnemyController>();
 
         public event Action<EnemyController> EnemyKilled;
 
@@ -45,6 +48,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             _elapsedTime = 0f;
             _nextSpawnTime = 0f;
+            _activeEnemies.Clear();
         }
 
         private void Awake()
@@ -61,11 +65,23 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             _elapsedTime += Time.deltaTime;
 
+            if (GetActiveEnemyCount() >= GetCurrentMaxActiveEnemies())
+            {
+                return;
+            }
+
             if (Time.time >= _nextSpawnTime)
             {
                 Spawn();
                 _nextSpawnTime = Time.time + GetCurrentSpawnInterval();
             }
+        }
+
+        public void BeginRun()
+        {
+            _elapsedTime = 0f;
+            _nextSpawnTime = Time.time;
+            _activeEnemies.Clear();
         }
 
         public void Spawn()
@@ -75,7 +91,32 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
                 return;
             }
 
-            EnemyController selectedPrefab = SelectEnemyPrefab();
+            int batchSize = GetCurrentSpawnBatchSize();
+            for (int spawnIndex = 0; spawnIndex < batchSize; spawnIndex++)
+            {
+                if (GetActiveEnemyCount() >= GetCurrentMaxActiveEnemies())
+                {
+                    return;
+                }
+
+                SpawnSingleEnemy();
+            }
+        }
+
+        public void SetSpawningEnabled(bool isEnabled)
+        {
+            _spawningEnabled = isEnabled;
+        }
+
+        private void SpawnSingleEnemy()
+        {
+            if (!_spawningEnabled || playerUnit == null)
+            {
+                return;
+            }
+
+            EnemySpawnEntry selectedEntry = SelectEnemyEntry();
+            EnemyController selectedPrefab = selectedEntry != null ? selectedEntry.Prefab : enemyPrefab;
 
             if (selectedPrefab == null)
             {
@@ -94,17 +135,31 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             enemyInstance.SetPoolSystem(poolSystem);
             enemyInstance.Init(playerUnit.transform, playerUnit, gameplayCamera);
+            ApplyRunProgression(enemyInstance);
             enemyInstance.Killed -= HandleEnemyKilled;
             enemyInstance.Killed += HandleEnemyKilled;
+            enemyInstance.Despawned -= HandleEnemyDespawned;
+            enemyInstance.Despawned += HandleEnemyDespawned;
             enemyInstance.Spawn();
-        }
-
-        public void SetSpawningEnabled(bool isEnabled)
-        {
-            _spawningEnabled = isEnabled;
+            TrackEnemy(enemyInstance);
         }
 
         private float GetCurrentSpawnInterval()
+        {
+            if (runProgressionConfig != null)
+            {
+                return runProgressionConfig.GetSpawnInterval(_elapsedTime);
+            }
+
+            if (spawnConfig == null)
+            {
+                return Mathf.Min(GetLegacySpawnInterval(), RunProgressionConfig.GetDefaultSpawnInterval(_elapsedTime));
+            }
+
+            return RunProgressionConfig.GetDefaultSpawnInterval(_elapsedTime);
+        }
+
+        private float GetLegacySpawnInterval()
         {
             AnimationCurve activeDifficultyCurve = spawnConfig != null ? spawnConfig.DifficultyCurve : difficultyCurve;
             float activeBaseInterval = spawnConfig != null ? spawnConfig.BaseSpawnInterval : baseSpawnInterval;
@@ -114,23 +169,51 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             return Mathf.Max(activeMinimumInterval, scaledInterval);
         }
 
-        private bool HasSpawnableEnemy()
+        private int GetCurrentMaxActiveEnemies()
         {
-            if (enemyPrefab != null)
+            if (runProgressionConfig != null)
             {
-                return true;
+                return runProgressionConfig.GetMaxActiveEnemies(_elapsedTime);
             }
 
-            if (spawnEntries == null)
+            return RunProgressionConfig.GetDefaultMaxActiveEnemies(_elapsedTime);
+        }
+
+        private int GetCurrentSpawnBatchSize()
+        {
+            if (runProgressionConfig != null)
             {
-                return false;
+                return runProgressionConfig.GetSpawnBatchSize(_elapsedTime);
+            }
+
+            return RunProgressionConfig.GetDefaultSpawnBatchSize(_elapsedTime);
+        }
+
+        private EnemyRunScaling GetCurrentEnemyRunScaling()
+        {
+            if (runProgressionConfig != null)
+            {
+                return runProgressionConfig.GetEnemyRunScaling(_elapsedTime);
+            }
+
+            return RunProgressionConfig.GetDefaultEnemyRunScaling(_elapsedTime);
+        }
+
+        private bool HasSpawnableEnemy()
+        {
+            if (spawnEntries == null || spawnEntries.Count == 0)
+            {
+                return enemyPrefab != null;
             }
 
             for (int index = 0; index < spawnEntries.Count; index++)
             {
                 EnemySpawnEntry entry = spawnEntries[index];
 
-                if (entry != null && entry.Prefab != null && entry.GetWeight() > 0f && _elapsedTime >= entry.UnlockAfterSeconds)
+                if (entry != null
+                    && entry.Prefab != null
+                    && entry.GetWeight(_elapsedTime, runProgressionConfig) > 0f
+                    && _elapsedTime >= entry.GetUnlockAfterSeconds(runProgressionConfig))
                 {
                     return true;
                 }
@@ -139,11 +222,11 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             return false;
         }
 
-        private EnemyController SelectEnemyPrefab()
+        private EnemySpawnEntry SelectEnemyEntry()
         {
             if (spawnEntries == null || spawnEntries.Count == 0)
             {
-                return enemyPrefab;
+                return null;
             }
 
             float totalWeight = 0f;
@@ -152,17 +235,19 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             {
                 EnemySpawnEntry entry = spawnEntries[index];
 
-                if (entry == null || entry.Prefab == null || _elapsedTime < entry.UnlockAfterSeconds)
+                if (entry == null
+                    || entry.Prefab == null
+                    || _elapsedTime < entry.GetUnlockAfterSeconds(runProgressionConfig))
                 {
                     continue;
                 }
 
-                totalWeight += entry.GetWeight();
+                totalWeight += entry.GetWeight(_elapsedTime, runProgressionConfig);
             }
 
             if (totalWeight <= 0f)
             {
-                return enemyPrefab;
+                return null;
             }
 
             float roll = Random.Range(0f, totalWeight);
@@ -172,30 +257,107 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             {
                 EnemySpawnEntry entry = spawnEntries[index];
 
-                if (entry == null || entry.Prefab == null || _elapsedTime < entry.UnlockAfterSeconds)
+                if (entry == null
+                    || entry.Prefab == null
+                    || _elapsedTime < entry.GetUnlockAfterSeconds(runProgressionConfig))
                 {
                     continue;
                 }
 
-                accumulatedWeight += entry.GetWeight();
+                accumulatedWeight += entry.GetWeight(_elapsedTime, runProgressionConfig);
 
                 if (roll <= accumulatedWeight)
                 {
-                    return entry.Prefab;
+                    return entry;
                 }
             }
 
-            return enemyPrefab;
+            return null;
         }
 
         private void HandleEnemyKilled(EnemyController enemy)
         {
-            if (enemy != null)
+            UntrackEnemy(enemy);
+            EnemyKilled?.Invoke(enemy);
+        }
+
+        private void HandleEnemyDespawned(EnemyController enemy)
+        {
+            UntrackEnemy(enemy);
+        }
+
+        private void TrackEnemy(EnemyController enemy)
+        {
+            if (enemy == null)
             {
-                enemy.Killed -= HandleEnemyKilled;
+                return;
             }
 
-            EnemyKilled?.Invoke(enemy);
+            _activeEnemies.Add(enemy);
+        }
+
+        private void UntrackEnemy(EnemyController enemy)
+        {
+            if (enemy == null)
+            {
+                _activeEnemies.Remove(enemy);
+                return;
+            }
+
+            _activeEnemies.Remove(enemy);
+            enemy.Killed -= HandleEnemyKilled;
+            enemy.Despawned -= HandleEnemyDespawned;
+        }
+
+        private int GetActiveEnemyCount()
+        {
+            if (_activeEnemies.Count <= 0)
+            {
+                return 0;
+            }
+
+            _enemyRemovalBuffer.Clear();
+
+            foreach (EnemyController enemy in _activeEnemies)
+            {
+                if (enemy == null || !enemy.IsActive)
+                {
+                    _enemyRemovalBuffer.Add(enemy);
+                }
+            }
+
+            for (int index = 0; index < _enemyRemovalBuffer.Count; index++)
+            {
+                UntrackEnemy(_enemyRemovalBuffer[index]);
+            }
+
+            _enemyRemovalBuffer.Clear();
+            return _activeEnemies.Count;
+        }
+
+        private void ApplyRunProgression(EnemyController enemy)
+        {
+            if (enemy == null)
+            {
+                return;
+            }
+
+            EnemyRunScaling scaling = GetCurrentEnemyRunScaling();
+            enemy.ApplyRuntimeStats(enemy.CreateBaseRuntimeStats().Scale(scaling));
+            ApplyRuntimeTuning(enemy, scaling);
+        }
+
+        private static void ApplyRuntimeTuning(EnemyController enemy, EnemyRunScaling scaling)
+        {
+            MonoBehaviour[] behaviours = enemy.GetComponents<MonoBehaviour>();
+
+            for (int index = 0; index < behaviours.Length; index++)
+            {
+                if (behaviours[index] is IEnemyRuntimeTunable tunable)
+                {
+                    tunable.ApplyRunScaling(scaling);
+                }
+            }
         }
 
         private Vector3 GetSpawnPosition()
@@ -244,13 +406,52 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         [SerializeField] private EnemyController prefab;
         [SerializeField] private float spawnWeight = 1f;
         [SerializeField] private float unlockAfterSeconds;
+        [SerializeField] private EnemyProgressionRole progressionRole = EnemyProgressionRole.Auto;
 
         public EnemyController Prefab => prefab;
-        public float UnlockAfterSeconds => Mathf.Max(0f, unlockAfterSeconds);
 
-        public float GetWeight()
+        public float GetUnlockAfterSeconds(RunProgressionConfig progressionConfig)
         {
-            return Mathf.Max(0f, spawnWeight);
+            EnemyProgressionRole role = ResolveProgressionRole();
+
+            if (progressionConfig != null)
+            {
+                return progressionConfig.GetUnlockAfterSeconds(role, unlockAfterSeconds);
+            }
+
+            return RunProgressionConfig.GetDefaultUnlockAfterSeconds(role, unlockAfterSeconds);
+        }
+
+        public float GetWeight(float elapsedSeconds, RunProgressionConfig progressionConfig)
+        {
+            EnemyProgressionRole role = ResolveProgressionRole();
+
+            if (progressionConfig != null)
+            {
+                return progressionConfig.GetSpawnWeight(role, elapsedSeconds, spawnWeight);
+            }
+
+            return RunProgressionConfig.GetDefaultSpawnWeight(role, elapsedSeconds, spawnWeight);
+        }
+
+        private EnemyProgressionRole ResolveProgressionRole()
+        {
+            if (progressionRole != EnemyProgressionRole.Auto || prefab == null)
+            {
+                return progressionRole;
+            }
+
+            if (prefab.GetComponent<VomfyRangedAttackController>() != null)
+            {
+                return EnemyProgressionRole.Ranged;
+            }
+
+            if (prefab.GetComponent<ChomboomController>() != null)
+            {
+                return EnemyProgressionRole.ExploderMelee;
+            }
+
+            return EnemyProgressionRole.BasicMelee;
         }
     }
 }

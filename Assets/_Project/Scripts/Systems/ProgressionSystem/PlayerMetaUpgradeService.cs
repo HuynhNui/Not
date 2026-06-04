@@ -68,9 +68,40 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 mainPlayerUnit.BulletSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount + projectileBonus);
             }
 
+            SyncFollowersFromMain(playerController, mainPlayerUnit);
+
             if (playerController != null && playerController.PlayerMovement != null)
             {
                 playerController.PlayerMovement.SetMoveSpeed(playerController.PlayerMovement.MoveSpeed + GetBonus(PlayerMetaUpgradeType.MoveSpeed));
+            }
+        }
+
+        private static void SyncFollowersFromMain(PlayerController playerController, MainPlayerUnit mainPlayerUnit)
+        {
+            if (playerController == null || mainPlayerUnit == null)
+            {
+                return;
+            }
+
+            var followers = playerController.Followers;
+            for (int index = 0; index < followers.Count; index++)
+            {
+                FollowerUnit follower = followers[index];
+                if (follower == null || follower.IsDead)
+                {
+                    continue;
+                }
+
+                follower.SetDamage(mainPlayerUnit.Damage);
+                follower.SetFireRate(mainPlayerUnit.FireRate);
+                follower.SetMaxHp(mainPlayerUnit.MaxHp, healByDelta: true);
+                follower.RestoreFullHealth();
+
+                if (follower.BulletSpawner != null && mainPlayerUnit.BulletSpawner != null)
+                {
+                    follower.BulletSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount);
+                    follower.BulletSpawner.SetVisualTierDamage(mainPlayerUnit.Damage);
+                }
             }
         }
 

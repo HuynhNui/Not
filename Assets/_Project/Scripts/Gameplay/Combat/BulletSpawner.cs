@@ -1,4 +1,5 @@
 using _Project.Scripts.Systems.PoolSystem;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,6 +20,8 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private float burstSpread = 0.35f;
         [SerializeField] private bool forceVerticalDirection = true;
         [SerializeField] private PoolSystem poolSystem;
+        [SerializeField] private float visualTierDamage;
+        [SerializeField] private List<BulletVisualTier> visualTiers = new List<BulletVisualTier>();
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
 
         private readonly List<BulletModifierConfig> _runtimeModifierConfigs = new List<BulletModifierConfig>();
@@ -29,6 +32,7 @@ namespace _Project.Scripts.Gameplay.Combat
         public float Damage => damage;
         public float BulletSpeed => bulletSpeed;
         public int ProjectileCount => projectileCount;
+        public float VisualTierDamage => visualTierDamage;
 
         public void ConfigureFromTemplate(BulletSpawner template)
         {
@@ -45,6 +49,10 @@ namespace _Project.Scripts.Gameplay.Combat
             burstSpread = template.burstSpread;
             forceVerticalDirection = template.forceVerticalDirection;
             poolSystem = template.poolSystem != null ? template.poolSystem : FindAnyObjectByType<PoolSystem>();
+            visualTierDamage = template.visualTierDamage;
+
+            visualTiers.Clear();
+            visualTiers.AddRange(template.visualTiers);
 
             defaultModifierConfigs.Clear();
             defaultModifierConfigs.AddRange(template.defaultModifierConfigs);
@@ -61,12 +69,18 @@ namespace _Project.Scripts.Gameplay.Combat
         {
             poolSystem ??= FindAnyObjectByType<PoolSystem>();
             damage = Mathf.Max(0f, initialDamage);
+            visualTierDamage = Mathf.Max(0f, visualTierDamage);
             fireRate = Mathf.Max(0f, initialFireRate);
         }
 
         public void SetDamage(float value)
         {
             damage = Mathf.Max(0f, value);
+        }
+
+        public void SetVisualTierDamage(float value)
+        {
+            visualTierDamage = Mathf.Max(0f, value);
         }
 
         public void SetFireRate(float value)
@@ -141,7 +155,7 @@ namespace _Project.Scripts.Gameplay.Combat
             IReadOnlyList<BulletModifierConfig> sourceConfigs,
             BulletModifierConfig excludedModifier)
         {
-            if (bulletPrefab == null)
+            if (GetBulletPrefabForCurrentTier() == null)
             {
                 return;
             }
@@ -152,7 +166,7 @@ namespace _Project.Scripts.Gameplay.Combat
 
         private bool CanShoot()
         {
-            return bulletPrefab != null && fireRate > 0f && Time.time >= _nextShotTime;
+            return GetBulletPrefabForCurrentTier() != null && fireRate > 0f && Time.time >= _nextShotTime;
         }
 
         private float GetShotInterval()
@@ -167,14 +181,16 @@ namespace _Project.Scripts.Gameplay.Combat
             float projectileSpeed,
             IReadOnlyList<BulletModifierConfig> modifierConfigs)
         {
-            if (bulletPrefab == null)
+            Bullet prefab = GetBulletPrefabForCurrentTier();
+
+            if (prefab == null)
             {
                 return null;
             }
 
             Bullet spawnedBullet = poolSystem != null
-                ? poolSystem.Spawn(bulletPrefab, position, rotation)
-                : Instantiate(bulletPrefab, position, rotation);
+                ? poolSystem.Spawn(prefab, position, rotation)
+                : Instantiate(prefab, position, rotation);
 
             if (spawnedBullet == null)
             {
@@ -186,6 +202,32 @@ namespace _Project.Scripts.Gameplay.Combat
             spawnedBullet.Configure(this, modifierConfigs);
             spawnedBullet.Spawn();
             return spawnedBullet;
+        }
+
+        private Bullet GetBulletPrefabForCurrentTier()
+        {
+            Bullet selectedPrefab = bulletPrefab;
+            float selectedMinDamage = float.NegativeInfinity;
+
+            for (int index = 0; index < visualTiers.Count; index++)
+            {
+                BulletVisualTier tier = visualTiers[index];
+
+                if (tier == null || tier.BulletPrefab == null || visualTierDamage < tier.MinDamage)
+                {
+                    continue;
+                }
+
+                if (tier.MinDamage < selectedMinDamage)
+                {
+                    continue;
+                }
+
+                selectedMinDamage = tier.MinDamage;
+                selectedPrefab = tier.BulletPrefab;
+            }
+
+            return selectedPrefab;
         }
 
         private IReadOnlyList<BulletModifierConfig> BuildModifierConfigBuffer()
@@ -220,6 +262,16 @@ namespace _Project.Scripts.Gameplay.Combat
             }
 
             return _activeModifierBuffer;
+        }
+
+        [Serializable]
+        private sealed class BulletVisualTier
+        {
+            [SerializeField] private float minDamage;
+            [SerializeField] private Bullet bulletPrefab;
+
+            public float MinDamage => Mathf.Max(0f, minDamage);
+            public Bullet BulletPrefab => bulletPrefab;
         }
     }
 }

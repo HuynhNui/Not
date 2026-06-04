@@ -6,7 +6,7 @@ namespace _Project.Scripts.Gameplay.Enemies
     /// <summary>
     /// Shooter behavior layered on top of the shared EnemyController lifecycle.
     /// </summary>
-    public sealed class VomfyRangedAttackController : MonoBehaviour
+    public sealed class VomfyRangedAttackController : MonoBehaviour, IEnemyRuntimeTunable
     {
         [SerializeField] private EnemyController enemyController;
         [SerializeField] private Animator animator;
@@ -33,9 +33,13 @@ namespace _Project.Scripts.Gameplay.Enemies
         private float _previousAttackNormalizedTime;
         private int _lastFiredAttackLoop = -1;
         private bool _hasPreviousAttackNormalizedTime;
+        private bool _hasBaseRuntimeValues;
+        private float _baseProjectileDamage;
+        private float _baseProjectileSpeed;
 
         private void Awake()
         {
+            CacheBaseRuntimeValues();
             enemyController ??= GetComponent<EnemyController>();
             animator ??= GetComponentInChildren<Animator>();
             _poolSystem = FindAnyObjectByType<PoolSystem>();
@@ -49,6 +53,13 @@ namespace _Project.Scripts.Gameplay.Enemies
                 enemyController.Despawned -= HandleDespawned;
                 enemyController.Despawned += HandleDespawned;
             }
+        }
+
+        public void ApplyRunScaling(EnemyRunScaling scaling)
+        {
+            CacheBaseRuntimeValues();
+            projectileDamage = _baseProjectileDamage * scaling.DamageMultiplier;
+            projectileSpeed = _baseProjectileSpeed * scaling.ProjectileSpeedMultiplier;
         }
 
         private void OnDestroy()
@@ -178,6 +189,18 @@ namespace _Project.Scripts.Gameplay.Enemies
             projectile.SetPoolSystem(_poolSystem);
             projectile.Init(projectileDamage, projectileSpeed);
             projectile.Spawn();
+        }
+
+        private void CacheBaseRuntimeValues()
+        {
+            if (_hasBaseRuntimeValues)
+            {
+                return;
+            }
+
+            _baseProjectileDamage = projectileDamage;
+            _baseProjectileSpeed = projectileSpeed;
+            _hasBaseRuntimeValues = true;
         }
 
         private void TryFireFromAttackWindow()

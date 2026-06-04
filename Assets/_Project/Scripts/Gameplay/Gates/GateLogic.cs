@@ -126,6 +126,11 @@ namespace _Project.Scripts.Gameplay.Gates
                 return;
             }
 
+            if (_playerUnit != null && hitPlayer != _playerUnit)
+            {
+                return;
+            }
+
             _gateSystem?.HandleGateChosen(this);
         }
 

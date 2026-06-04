@@ -14,9 +14,17 @@ namespace _Project.Scripts.Gameplay.Player
         [SerializeField] private Collider2D movementBoundsCollider;
         [SerializeField] private float horizontalClamp = 3.5f;
         [SerializeField] private bool useCameraBounds = true;
-        [SerializeField] private bool useColliderHalfWidth = true;
-        [SerializeField] private float edgePadding = 0.35f;
         [SerializeField] private bool ignoreTouchesOverUi = true;
+
+        [Header("Horizontal Bounds")]
+        [SerializeField, Range(0f, 0.1f)] private float playerHorizontalViewportPadding = 0.01f;
+        [SerializeField] private float playerHorizontalWorldPadding = 0f;
+
+        [Header("Viewport Safe Zone")]
+        [SerializeField, Range(0f, 0.3f)] private float bottomReservedViewport = 0.16f;
+        [SerializeField, Range(0.05f, 0.45f)] private float runStartViewportY = 0.25f;
+        [SerializeField] private float bottomWorldPadding = 0.08f;
+        [SerializeField] private bool keepMainAboveBottomSafeZone = true;
 
         private bool _hasActivePointer;
         private int _activeFingerId = -1;
@@ -24,11 +32,15 @@ namespace _Project.Scripts.Gameplay.Player
         private float _targetX;
         private float _dragOffset;
         private bool _inputEnabled = true;
+        private Transform _mainPlayerTransform;
+        private Transform _fireLineAnchorTransform;
+        private Renderer _mainPlayerRenderer;
 
         public override void Init()
         {
             gameplayCamera ??= Camera.main;
             movementBoundsCollider ??= GetComponentInChildren<Collider2D>();
+            CacheMainPlayerReference();
             _targetX = transform.position.x;
             _hasActivePointer = false;
             _activeFingerId = -1;
@@ -69,6 +81,39 @@ namespace _Project.Scripts.Gameplay.Player
                 _hasActivePointer = false;
                 _activeFingerId = -1;
             }
+        }
+
+        public void SnapToRunStartViewport(Transform mainPlayerTransform)
+        {
+            _mainPlayerTransform = mainPlayerTransform != null ? mainPlayerTransform : _mainPlayerTransform;
+            CacheMainPlayerRenderer();
+
+            if (gameplayCamera == null)
+            {
+                gameplayCamera = Camera.main;
+            }
+
+            if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
+            {
+                ResetTargetToCurrentPosition();
+                return;
+            }
+
+            Vector3 anchorPosition = GetMainVisualCenter();
+            float targetWorldY = ViewportToWorldPoint(new Vector2(0.5f, runStartViewportY)).y;
+            float deltaY = targetWorldY - anchorPosition.y;
+            transform.position = new Vector3(transform.position.x, transform.position.y + deltaY, transform.position.z);
+
+            ResetTargetToCurrentPosition();
+            ClampMainBottomToSafeZone();
+        }
+
+        public void ResetTargetToCurrentPosition()
+        {
+            _targetX = transform.position.x;
+            _dragOffset = 0f;
+            _hasActivePointer = false;
+            _activeFingerId = -1;
         }
 
         // ===================== INPUT =====================
@@ -194,39 +239,81 @@ namespace _Project.Scripts.Gameplay.Player
                 transform.position.y,
                 transform.position.z
             );
+
+            ClampMainBottomToSafeZone();
         }
 
         private float GetMinX()
         {
-            float playerHalfWidth = GetPlayerHalfWidth();
+            float anchorOffsetX = GetFireLineAnchorOffsetX();
 
             if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
             {
-                return -horizontalClamp + playerHalfWidth;
+                return -horizontalClamp + Mathf.Max(0f, playerHorizontalWorldPadding) - anchorOffsetX;
             }
 
-            float halfWidth = gameplayCamera.orthographicSize * gameplayCamera.aspect;
-            return gameplayCamera.transform.position.x - halfWidth + edgePadding + playerHalfWidth;
+            float viewportPadding = Mathf.Clamp01(playerHorizontalViewportPadding);
+            float leftWorld = ViewportToWorldPoint(new Vector2(viewportPadding, 0.5f)).x;
+            return leftWorld + Mathf.Max(0f, playerHorizontalWorldPadding) - anchorOffsetX;
         }
 
         private float GetMaxX()
         {
-            float playerHalfWidth = GetPlayerHalfWidth();
+            float anchorOffsetX = GetFireLineAnchorOffsetX();
 
             if (!useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
             {
-                return horizontalClamp - playerHalfWidth;
+                return horizontalClamp - Mathf.Max(0f, playerHorizontalWorldPadding) - anchorOffsetX;
             }
 
-            float halfWidth = gameplayCamera.orthographicSize * gameplayCamera.aspect;
-            return gameplayCamera.transform.position.x + halfWidth - edgePadding - playerHalfWidth;
+            float viewportPadding = Mathf.Clamp01(playerHorizontalViewportPadding);
+            float rightWorld = ViewportToWorldPoint(new Vector2(1f - viewportPadding, 0.5f)).x;
+            return rightWorld - Mathf.Max(0f, playerHorizontalWorldPadding) - anchorOffsetX;
         }
 
-        private float GetPlayerHalfWidth()
+        private void ClampMainBottomToSafeZone()
         {
-            if (!useColliderHalfWidth)
+            if (!keepMainAboveBottomSafeZone || !useCameraBounds || gameplayCamera == null || !gameplayCamera.orthographic)
             {
-                return 0f;
+                return;
+            }
+
+            float mainBottom = GetMainVisualBottom();
+            float safeBottom = ViewportToWorldPoint(new Vector2(0.5f, bottomReservedViewport)).y + bottomWorldPadding;
+            if (mainBottom >= safeBottom)
+            {
+                return;
+            }
+
+            float deltaY = safeBottom - mainBottom;
+            transform.position = new Vector3(transform.position.x, transform.position.y + deltaY, transform.position.z);
+            ResetTargetToCurrentPosition();
+        }
+
+        private Vector3 GetMainVisualCenter()
+        {
+            CacheMainPlayerRenderer();
+
+            if (_mainPlayerRenderer != null && _mainPlayerRenderer.enabled)
+            {
+                return _mainPlayerRenderer.bounds.center;
+            }
+
+            if (_mainPlayerTransform != null)
+            {
+                return _mainPlayerTransform.position;
+            }
+
+            return transform.position;
+        }
+
+        private float GetMainVisualBottom()
+        {
+            CacheMainPlayerRenderer();
+
+            if (_mainPlayerRenderer != null && _mainPlayerRenderer.enabled)
+            {
+                return _mainPlayerRenderer.bounds.min.y;
             }
 
             if (movementBoundsCollider == null)
@@ -234,12 +321,79 @@ namespace _Project.Scripts.Gameplay.Player
                 movementBoundsCollider = GetComponentInChildren<Collider2D>();
             }
 
-            if (movementBoundsCollider == null)
+            if (movementBoundsCollider != null && movementBoundsCollider.enabled)
             {
-                return 0f;
+                return movementBoundsCollider.bounds.min.y;
             }
 
-            return movementBoundsCollider.bounds.extents.x;
+            return transform.position.y;
+        }
+
+        private void CacheMainPlayerRenderer()
+        {
+            if (_mainPlayerRenderer != null || _mainPlayerTransform == null)
+            {
+                return;
+            }
+
+            _mainPlayerRenderer = _mainPlayerTransform.GetComponentInChildren<Renderer>();
+        }
+
+        private float GetFireLineAnchorOffsetX()
+        {
+            CacheFireLineAnchor();
+            Transform anchor = _fireLineAnchorTransform != null ? _fireLineAnchorTransform : transform;
+            return anchor.position.x - transform.position.x;
+        }
+
+        private void CacheFireLineAnchor()
+        {
+            CacheMainPlayerReference();
+
+            if (_fireLineAnchorTransform != null || _mainPlayerTransform == null)
+            {
+                return;
+            }
+
+            _fireLineAnchorTransform = _mainPlayerTransform.Find("FirePoint");
+            if (_fireLineAnchorTransform == null)
+            {
+                _fireLineAnchorTransform = _mainPlayerTransform;
+            }
+        }
+
+        private void CacheMainPlayerReference()
+        {
+            if (_mainPlayerTransform == null)
+            {
+                if (movementBoundsCollider == null)
+                {
+                    movementBoundsCollider = GetComponentInChildren<Collider2D>();
+                }
+
+                if (movementBoundsCollider != null)
+                {
+                    _mainPlayerTransform = movementBoundsCollider.transform;
+                }
+            }
+
+            CacheMainPlayerRenderer();
+        }
+
+        private Vector3 ViewportToWorldPoint(Vector2 viewportPoint)
+        {
+            if (gameplayCamera == null)
+            {
+                gameplayCamera = Camera.main;
+            }
+
+            if (gameplayCamera == null)
+            {
+                return transform.position;
+            }
+
+            float distance = Mathf.Abs(transform.position.z - gameplayCamera.transform.position.z);
+            return gameplayCamera.ViewportToWorldPoint(new Vector3(viewportPoint.x, viewportPoint.y, distance));
         }
     }
 }

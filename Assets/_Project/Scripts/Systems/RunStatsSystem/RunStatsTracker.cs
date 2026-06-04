@@ -9,9 +9,10 @@ namespace _Project.Scripts.Systems.RunStatsSystem
     /// </summary>
     public sealed class RunStatsTracker : MonoBehaviour
     {
-        private const string BestSurvivalTimeKey = "RunStats.BestSurvivalTime";
-        private const string BestKillCountKey = "RunStats.BestKillCount";
-        private const string BestCoinsEarnedKey = "RunStats.BestCoinsEarned";
+        public const string BestSurvivalTimePrefsKey = "RunStats.BestSurvivalTime";
+        public const string BestKillCountPrefsKey = "RunStats.BestKillCount";
+        public const string BestCoinsEarnedPrefsKey = "RunStats.BestCoinsEarned";
+        public const string BestScorePrefsKey = "RunStats.BestScore";
         public const string WalletCoinsPrefsKey = "RunStats.WalletCoins";
 
         private RuntimeEnemySpawnerSystem _enemySpawnerSystem;
@@ -19,14 +20,17 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         private float _survivalTime;
         private int _enemyKills;
         private int _coinsEarned;
+        private int _score;
 
         public float SurvivalTime => _survivalTime;
         public int EnemyKills => _enemyKills;
         public int CoinsEarned => _coinsEarned;
+        public int Score => _score;
         public int WalletCoins => PlayerPrefs.GetInt(WalletCoinsPrefsKey, 0);
-        public float BestSurvivalTime => PlayerPrefs.GetFloat(BestSurvivalTimeKey, 0f);
-        public int BestKillCount => PlayerPrefs.GetInt(BestKillCountKey, 0);
-        public int BestCoinsEarned => PlayerPrefs.GetInt(BestCoinsEarnedKey, 0);
+        public float BestSurvivalTime => PlayerPrefs.GetFloat(BestSurvivalTimePrefsKey, 0f);
+        public int BestKillCount => PlayerPrefs.GetInt(BestKillCountPrefsKey, 0);
+        public int BestCoinsEarned => PlayerPrefs.GetInt(BestCoinsEarnedPrefsKey, 0);
+        public int BestScore => PlayerPrefs.GetInt(BestScorePrefsKey, 0);
 
         public void Init(RuntimeEnemySpawnerSystem enemySpawnerSystem)
         {
@@ -67,6 +71,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
             _survivalTime = 0f;
             _enemyKills = 0;
             _coinsEarned = 0;
+            _score = 0;
             _isTracking = true;
         }
 
@@ -87,10 +92,12 @@ namespace _Project.Scripts.Systems.RunStatsSystem
                 _survivalTime,
                 _enemyKills,
                 _coinsEarned,
+                _score,
                 WalletCoins,
                 BestSurvivalTime,
                 BestKillCount,
-                BestCoinsEarned);
+                BestCoinsEarned,
+                BestScore);
         }
 
         public bool TrySpendWalletCoins(int amount)
@@ -117,23 +124,29 @@ namespace _Project.Scripts.Systems.RunStatsSystem
 
             _enemyKills++;
             _coinsEarned += enemy.CoinReward;
+            _score += Mathf.Max(0, enemy.ScoreValue);
         }
 
         private void SaveBestStats()
         {
             if (_survivalTime > BestSurvivalTime)
             {
-                PlayerPrefs.SetFloat(BestSurvivalTimeKey, _survivalTime);
+                PlayerPrefs.SetFloat(BestSurvivalTimePrefsKey, _survivalTime);
             }
 
             if (_enemyKills > BestKillCount)
             {
-                PlayerPrefs.SetInt(BestKillCountKey, _enemyKills);
+                PlayerPrefs.SetInt(BestKillCountPrefsKey, _enemyKills);
             }
 
             if (_coinsEarned > BestCoinsEarned)
             {
-                PlayerPrefs.SetInt(BestCoinsEarnedKey, _coinsEarned);
+                PlayerPrefs.SetInt(BestCoinsEarnedPrefsKey, _coinsEarned);
+            }
+
+            if (_score > BestScore)
+            {
+                PlayerPrefs.SetInt(BestScorePrefsKey, _score);
             }
 
             PlayerPrefs.SetInt(WalletCoinsPrefsKey, WalletCoins + _coinsEarned);
@@ -146,27 +159,33 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         public readonly float SurvivalTime;
         public readonly int EnemyKills;
         public readonly int CoinsEarned;
+        public readonly int Score;
         public readonly int WalletCoins;
         public readonly float BestSurvivalTime;
         public readonly int BestKillCount;
         public readonly int BestCoinsEarned;
+        public readonly int BestScore;
 
         public RunStatsSnapshot(
             float survivalTime,
             int enemyKills,
             int coinsEarned,
+            int score,
             int walletCoins,
             float bestSurvivalTime,
             int bestKillCount,
-            int bestCoinsEarned)
+            int bestCoinsEarned,
+            int bestScore)
         {
             SurvivalTime = survivalTime;
             EnemyKills = enemyKills;
             CoinsEarned = coinsEarned;
+            Score = score;
             WalletCoins = walletCoins;
             BestSurvivalTime = bestSurvivalTime;
             BestKillCount = bestKillCount;
             BestCoinsEarned = bestCoinsEarned;
+            BestScore = bestScore;
         }
     }
 }

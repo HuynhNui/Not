@@ -6,7 +6,7 @@ using UnityEngine;
 namespace _Project.Scripts.Gameplay.Enemies
 {
     /// <summary>
-    /// Enemy-owned projectile that only damages the player squad's main unit.
+    /// Enemy-owned projectile that damages the player squad unit it hits.
     /// </summary>
     public sealed class EnemyProjectile : MonoBehaviour, IPoolable
     {
@@ -98,11 +98,11 @@ namespace _Project.Scripts.Gameplay.Enemies
                 return;
             }
 
-            MainPlayerUnit player = other.GetComponent<MainPlayerUnit>();
+            PlayerUnit player = other.GetComponent<PlayerUnit>();
 
             if (player == null)
             {
-                player = other.GetComponentInParent<MainPlayerUnit>();
+                player = other.GetComponentInParent<PlayerUnit>();
             }
 
             if (player == null || player.IsDead)

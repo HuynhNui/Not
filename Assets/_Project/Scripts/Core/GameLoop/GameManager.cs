@@ -74,10 +74,10 @@ namespace _Project.Scripts.Core.GameLoop
 
             gateSystem?.Init();
 
-            if (mainPlayerUnit != null)
+            if (playerController != null)
             {
-                mainPlayerUnit.Died -= HandlePlayerDied;
-                mainPlayerUnit.Died += HandlePlayerDied;
+                playerController.SquadDefeated -= HandleSquadDefeated;
+                playerController.SquadDefeated += HandleSquadDefeated;
             }
 
             Time.timeScale = 1f;
@@ -105,9 +105,9 @@ namespace _Project.Scripts.Core.GameLoop
                 uiSystem.HomeRequested -= ReturnHome;
             }
 
-            if (mainPlayerUnit != null)
+            if (playerController != null)
             {
-                mainPlayerUnit.Died -= HandlePlayerDied;
+                playerController.SquadDefeated -= HandleSquadDefeated;
             }
         }
 
@@ -123,8 +123,10 @@ namespace _Project.Scripts.Core.GameLoop
                 PlayerMetaUpgradeService.ApplyToPlayer(mainPlayerUnit, playerController);
             }
 
+            playerController?.ResetRunPosition();
             runStatsTracker?.BeginRun();
             playerController?.SetControlsEnabled(true);
+            enemySpawnerSystem?.BeginRun();
             enemySpawnerSystem?.SetSpawningEnabled(true);
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
@@ -176,7 +178,7 @@ namespace _Project.Scripts.Core.GameLoop
             SceneManager.LoadScene(activeScene.name);
         }
 
-        private void HandlePlayerDied(MainPlayerUnit deadPlayer)
+        private void HandleSquadDefeated(PlayerController defeatedSquad)
         {
             if (_isGameOver)
             {

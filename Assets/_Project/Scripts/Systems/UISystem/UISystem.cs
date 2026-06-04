@@ -30,12 +30,17 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private Button mainMenuSettingsButton;
         [SerializeField] private TextMeshProUGUI bestRunText;
         [SerializeField] private TextMeshProUGUI walletText;
+        [SerializeField] private TextMeshProUGUI bestScoreText;
+        [SerializeField] private TextMeshProUGUI bestTimeText;
+        [SerializeField] private TextMeshProUGUI bestEnemiesKilledText;
+        [SerializeField] private TextMeshProUGUI bestCoinsText;
 
         [Header("Gameplay HUD")]
         [SerializeField] private Button pauseButton;
         [SerializeField] private TextMeshProUGUI timeSurvivalText;
         [SerializeField] private TextMeshProUGUI moneyText;
         [SerializeField] private TextMeshProUGUI enemyDefeatedCountText;
+        [SerializeField] private TextMeshProUGUI scoreText;
 
         [Header("Upgrade")]
         [SerializeField] private TextMeshProUGUI upgradeCurrencyText;
@@ -59,8 +64,10 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private TextMeshProUGUI finalTimeText;
         [SerializeField] private TextMeshProUGUI finalKillText;
         [SerializeField] private TextMeshProUGUI moneyEarnedText;
-        [SerializeField] private TextMeshProUGUI bestTimeText;
-        [SerializeField] private TextMeshProUGUI bestKillText;
+        [FormerlySerializedAs("bestTimeText")]
+        [SerializeField] private TextMeshProUGUI gameOverBestTimeText;
+        [FormerlySerializedAs("bestKillText")]
+        [SerializeField] private TextMeshProUGUI gameOverBestKillText;
         [FormerlySerializedAs("playAgainButton")]
         [SerializeField] private Button retryButton;
         [SerializeField] private Button gameOverUpgradeButton;
@@ -185,8 +192,8 @@ namespace _Project.Scripts.Systems.UISystem
             SetText(finalTimeText, FormatTime(snapshot.SurvivalTime));
             SetText(finalKillText, snapshot.EnemyKills.ToString());
             SetText(moneyEarnedText, snapshot.CoinsEarned.ToString());
-            SetText(bestTimeText, FormatTime(Mathf.Max(snapshot.BestSurvivalTime, snapshot.SurvivalTime)));
-            SetText(bestKillText, Mathf.Max(snapshot.BestKillCount, snapshot.EnemyKills).ToString());
+            SetText(gameOverBestTimeText, FormatTime(Mathf.Max(snapshot.BestSurvivalTime, snapshot.SurvivalTime)));
+            SetText(gameOverBestKillText, Mathf.Max(snapshot.BestKillCount, snapshot.EnemyKills).ToString());
             RefreshMenuStats();
         }
 
@@ -366,28 +373,44 @@ namespace _Project.Scripts.Systems.UISystem
         {
             if (_runStatsTracker == null)
             {
-                SetText(bestRunText, "BEST 00:00 | KILLS 0");
-                SetText(walletText, $"CREDITS {PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0)}");
+                int walletCoins = PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0);
+                float bestSurvivalTime = PlayerPrefs.GetFloat(RunStatsTracker.BestSurvivalTimePrefsKey, 0f);
+                int bestKillCount = PlayerPrefs.GetInt(RunStatsTracker.BestKillCountPrefsKey, 0);
+                int bestCoinsEarned = PlayerPrefs.GetInt(RunStatsTracker.BestCoinsEarnedPrefsKey, 0);
+                int bestScore = PlayerPrefs.GetInt(RunStatsTracker.BestScorePrefsKey, 0);
+
+                SetText(bestRunText, $"BEST {FormatTime(bestSurvivalTime)} | KILLS {bestKillCount}");
+                SetText(walletText, $"{walletCoins}");
+                SetText(bestScoreText, bestScore.ToString());
+                SetText(bestTimeText, FormatTime(bestSurvivalTime));
+                SetText(bestEnemiesKilledText, bestKillCount.ToString());
+                SetText(bestCoinsText, bestCoinsEarned.ToString());
                 return;
             }
 
             SetText(bestRunText, $"BEST {FormatTime(_runStatsTracker.BestSurvivalTime)} | KILLS {_runStatsTracker.BestKillCount}");
-            SetText(walletText, $"CREDITS {_runStatsTracker.WalletCoins}");
+            SetText(walletText, $"{_runStatsTracker.WalletCoins}");
+            SetText(bestScoreText, _runStatsTracker.BestScore.ToString());
+            SetText(bestTimeText, FormatTime(_runStatsTracker.BestSurvivalTime));
+            SetText(bestEnemiesKilledText, _runStatsTracker.BestKillCount.ToString());
+            SetText(bestCoinsText, _runStatsTracker.BestCoinsEarned.ToString());
         }
 
         private void RefreshHud()
         {
             if (_runStatsTracker == null)
             {
-                SetText(timeSurvivalText, "TIME 00:00");
-                SetText(moneyText, "CREDITS 0");
-                SetText(enemyDefeatedCountText, "KILLS 0");
+                SetText(timeSurvivalText, "00:00");
+                SetText(moneyText, "0");
+                SetText(enemyDefeatedCountText, "0");
+                SetText(scoreText, "0");
                 return;
             }
 
-            SetText(timeSurvivalText, $"TIME {FormatTime(_runStatsTracker.SurvivalTime)}");
-            SetText(moneyText, $"CREDITS {_runStatsTracker.CoinsEarned}");
-            SetText(enemyDefeatedCountText, $"KILLS {_runStatsTracker.EnemyKills}");
+            SetText(timeSurvivalText, FormatTime(_runStatsTracker.SurvivalTime));
+            SetText(moneyText, _runStatsTracker.CoinsEarned.ToString());
+            SetText(enemyDefeatedCountText, _runStatsTracker.EnemyKills.ToString());
+            SetText(scoreText, _runStatsTracker.Score.ToString());
         }
 
         private void RefreshUpgradePanel()
@@ -449,8 +472,19 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(settingsPanel, nameof(settingsPanel), "GameCanvas/UIRoot/SafeAreaRoot/SettingsPanel");
             WarnIfMissing(pausePanel, nameof(pausePanel), "GameCanvas/UIRoot/SafeAreaRoot/PausePanel");
             WarnIfMissing(gameOverPanel, nameof(gameOverPanel), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
-            WarnIfMissing(playButton, nameof(playButton), "MainMenuPanel/PlayButton");
-            WarnIfMissing(pauseButton, nameof(pauseButton), "GameplayHUDPanel/PauseButton");
+            WarnIfMissing(playButton, nameof(playButton), "MainMenuPanel/StartRunButton");
+            WarnIfMissing(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), "MainMenuPanel/BottomNavigationBar/UPDATEButton");
+            WarnIfMissing(mainMenuSettingsButton, nameof(mainMenuSettingsButton), "MainMenuPanel/BottomNavigationBar/SETTINGButton");
+            WarnIfMissing(walletText, nameof(walletText), "MainMenuPanel/TopHUD/ResourceBox/CoinValueText");
+            WarnIfMissing(bestScoreText, nameof(bestScoreText), "MainMenuPanel/StatsBar/BESTSCORECell/BestScoreValueText");
+            WarnIfMissing(bestTimeText, nameof(bestTimeText), "MainMenuPanel/StatsBar/BESTTIMECell/BestTimeValueText");
+            WarnIfMissing(bestEnemiesKilledText, nameof(bestEnemiesKilledText), "MainMenuPanel/StatsBar/ENEMIESKILLEDCell/BestEnemiesKilledValueText");
+            WarnIfMissing(bestCoinsText, nameof(bestCoinsText), "MainMenuPanel/StatsBar/BESTCOINSCell/BestCoinsValueText");
+            WarnIfMissing(pauseButton, nameof(pauseButton), "GameplayHUDPanel/HudContentRoot/TopRightHud/PauseButton");
+            WarnIfMissing(timeSurvivalText, nameof(timeSurvivalText), "GameplayHUDPanel/HudContentRoot/TopLeftHud/TimeFrame/TimeText");
+            WarnIfMissing(moneyText, nameof(moneyText), "GameplayHUDPanel/HudContentRoot/TopRightHud/CoinFrame/CoinText");
+            WarnIfMissing(enemyDefeatedCountText, nameof(enemyDefeatedCountText), "GameplayHUDPanel/HudContentRoot/TopLeftHud/KillFrame/KillText");
+            WarnIfMissing(scoreText, nameof(scoreText), "GameplayHUDPanel/HudContentRoot/ScoreFrame/ScoreValueText");
             WarnIfMissing(retryButton, nameof(retryButton), "GameOverPanel/RetryButton");
         }
 
