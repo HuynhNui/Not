@@ -11,7 +11,7 @@ namespace _Project.Scripts.Gameplay.Enemies
     /// <summary>
     /// Defines a pooled enemy unit that can spawn, move toward the player, and receive damage.
     /// </summary>
-    public sealed class EnemyController : MonoBehaviour, IPoolable, IDamageable
+    public sealed class EnemyController : MonoBehaviour, IPoolable, IDamageable, IConditionalDamageable
     {
         [SerializeField] private UnitData unitData;
         [SerializeField] private float currentHealth = 1f;
@@ -22,6 +22,7 @@ namespace _Project.Scripts.Gameplay.Enemies
         [SerializeField] private int coinReward = 1;
         [SerializeField] private bool destroyOnPlayerHit = true;
         [SerializeField] private bool despawnImmediatelyOnDeath = true;
+        [SerializeField] private bool requireCameraVisibilityForDamage = true;
         [SerializeField] private EnemyMovementMode movementMode = EnemyMovementMode.ChaseTarget;
         [SerializeField] private float enterMoveSpeed = 2.7f;
         [SerializeField, Range(0f, 1f)] private float topBandViewportY = 0.75f;
@@ -161,7 +162,7 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         public void TakeDamage(float damageAmount)
         {
-            if (!_isActive || !_canReceiveDamage)
+            if (!CanReceiveDamageFrom(null))
             {
                 return;
             }
@@ -187,6 +188,30 @@ namespace _Project.Scripts.Gameplay.Enemies
                     Despawn();
                 }
             }
+        }
+
+        public bool CanReceiveDamageFrom(GameObject damageSource)
+        {
+            return _isActive
+                && _canReceiveDamage
+                && (!requireCameraVisibilityForDamage || IsInsideGameplayCamera());
+        }
+
+        public bool IsInsideGameplayCamera(float viewportPadding = 0f)
+        {
+            if (_gameplayCamera == null)
+            {
+                return true;
+            }
+
+            Vector3 viewportPosition = _gameplayCamera.WorldToViewportPoint(transform.position);
+            float padding = Mathf.Max(0f, viewportPadding);
+
+            return viewportPosition.z >= 0f
+                && viewportPosition.x >= -padding
+                && viewportPosition.x <= 1f + padding
+                && viewportPosition.y >= -padding
+                && viewportPosition.y <= 1f + padding;
         }
 
         private void OnTriggerEnter2D(Collider2D other)

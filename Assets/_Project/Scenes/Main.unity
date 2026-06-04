@@ -8901,6 +8901,9 @@ MonoBehaviour:
   minimumSpawnInterval: 0.35
   spawnYOffset: 1
   horizontalSpawnPadding: 0.35
+  minimumVisibleEnemies: 10
+  visibleFloorSpawnViewportY: 0.92
+  visibleFloorSpawnPadding: 0.35
 --- !u!1 &1758129875
 GameObject:
   m_ObjectHideFlags: 0
@@ -10347,22 +10350,22 @@ MonoBehaviour:
   poolDefinitions:
   - poolId: Bullet
     prefab: {fileID: 6287597917186159759, guid: 160e2a92faff0f043aa475a569f9d2e4, type: 3}
-    initialSize: 32
+    initialSize: 64
   - poolId: Enemy
     prefab: {fileID: 7108934321361900162, guid: 1d7066d363c1cd74e8d9e0abe1ca46d8, type: 3}
-    initialSize: 16
+    initialSize: 600
   - poolId: Vomfy
     prefab: {fileID: 7108934321361900162, guid: 2e932b97659c413f8c7deed8487281ab, type: 3}
-    initialSize: 8
+    initialSize: 96
   - poolId: VomfyRainbowBeamProjectile
     prefab: {fileID: 6287597917186159759, guid: 9b1f1e79e4dd4c1e852df4c21e985817, type: 3}
-    initialSize: 24
+    initialSize: 180
   - poolId: Chomboom
     prefab: {fileID: 1481105931336844537, guid: 3bf22a5eab53baa468b15af02b15b6cc, type: 3}
-    initialSize: 8
+    initialSize: 120
   - poolId: ChomboomBoomFx
     prefab: {fileID: 3446788563097502843, guid: d23b87f171dd2664881b7975e7d28445, type: 3}
-    initialSize: 8
+    initialSize: 96
 --- !u!1 &2129659427
 GameObject:
   m_ObjectHideFlags: 0

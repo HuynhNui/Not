@@ -27,6 +27,9 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         [SerializeField] private float minimumSpawnInterval = 0.35f;
         [SerializeField] private float spawnYOffset = 1f;
         [SerializeField] private float horizontalSpawnPadding = 0.35f;
+        [SerializeField] private int minimumVisibleEnemies = 10;
+        [SerializeField, Range(0f, 1f)] private float visibleFloorSpawnViewportY = 0.92f;
+        [SerializeField] private float visibleFloorSpawnPadding = 0.35f;
 
         private float _elapsedTime;
         private float _nextSpawnTime;
@@ -35,6 +38,18 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         private readonly List<EnemyController> _enemyRemovalBuffer = new List<EnemyController>();
 
         public event Action<EnemyController> EnemyKilled;
+
+        public int ActiveEnemyCount => GetActiveEnemyCount();
+        public int VisibleEnemyCount => GetVisibleEnemyCount();
+        public int CurrentMaxActiveEnemies => GetCurrentMaxActiveEnemies();
+        public float CurrentRawSpawnPerSecond
+        {
+            get
+            {
+                float spawnInterval = GetCurrentSpawnInterval();
+                return spawnInterval > 0f ? GetCurrentSpawnBatchSize() / spawnInterval : 0f;
+            }
+        }
 
         public void Init()
         {
@@ -64,6 +79,8 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             _elapsedTime += Time.deltaTime;
+
+            TopUpVisibleEnemies();
 
             if (GetActiveEnemyCount() >= GetCurrentMaxActiveEnemies())
             {
@@ -99,7 +116,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
                     return;
                 }
 
-                SpawnSingleEnemy();
+                SpawnSingleEnemy(GetSpawnPosition(), false);
             }
         }
 
@@ -108,14 +125,14 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             _spawningEnabled = isEnabled;
         }
 
-        private void SpawnSingleEnemy()
+        private void SpawnSingleEnemy(Vector3 spawnPosition, bool basicOnly)
         {
             if (!_spawningEnabled || playerUnit == null)
             {
                 return;
             }
 
-            EnemySpawnEntry selectedEntry = SelectEnemyEntry();
+            EnemySpawnEntry selectedEntry = SelectEnemyEntry(basicOnly);
             EnemyController selectedPrefab = selectedEntry != null ? selectedEntry.Prefab : enemyPrefab;
 
             if (selectedPrefab == null)
@@ -123,7 +140,6 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
                 return;
             }
 
-            Vector3 spawnPosition = GetSpawnPosition();
             EnemyController enemyInstance = poolSystem != null
                 ? poolSystem.Spawn(selectedPrefab, spawnPosition, Quaternion.identity)
                 : Instantiate(selectedPrefab, spawnPosition, Quaternion.identity);
@@ -222,7 +238,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             return false;
         }
 
-        private EnemySpawnEntry SelectEnemyEntry()
+        private EnemySpawnEntry SelectEnemyEntry(bool basicOnly = false)
         {
             if (spawnEntries == null || spawnEntries.Count == 0)
             {
@@ -237,6 +253,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
                 if (entry == null
                     || entry.Prefab == null
+                    || (basicOnly && !entry.MatchesProgressionRole(EnemyProgressionRole.BasicMelee))
                     || _elapsedTime < entry.GetUnlockAfterSeconds(runProgressionConfig))
                 {
                     continue;
@@ -259,6 +276,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
                 if (entry == null
                     || entry.Prefab == null
+                    || (basicOnly && !entry.MatchesProgressionRole(EnemyProgressionRole.BasicMelee))
                     || _elapsedTime < entry.GetUnlockAfterSeconds(runProgressionConfig))
                 {
                     continue;
@@ -335,6 +353,61 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             return _activeEnemies.Count;
         }
 
+        private int GetVisibleEnemyCount()
+        {
+            if (GetActiveEnemyCount() <= 0)
+            {
+                return 0;
+            }
+
+            int visibleCount = 0;
+
+            foreach (EnemyController enemy in _activeEnemies)
+            {
+                if (enemy != null && enemy.IsActive && enemy.IsInsideGameplayCamera())
+                {
+                    visibleCount++;
+                }
+            }
+
+            return visibleCount;
+        }
+
+        private void TopUpVisibleEnemies()
+        {
+            int targetVisibleCount = Mathf.Max(0, minimumVisibleEnemies);
+
+            if (targetVisibleCount <= 0)
+            {
+                return;
+            }
+
+            int activeCount = GetActiveEnemyCount();
+            int maxActiveEnemies = GetCurrentMaxActiveEnemies();
+
+            if (activeCount >= maxActiveEnemies)
+            {
+                return;
+            }
+
+            int missingVisibleEnemies = targetVisibleCount - GetVisibleEnemyCount();
+
+            if (missingVisibleEnemies <= 0)
+            {
+                return;
+            }
+
+            int spawnCount = Mathf.Min(missingVisibleEnemies, maxActiveEnemies - activeCount);
+            bool basicOnly = _elapsedTime < RunProgressionConfig.GetDefaultUnlockAfterSeconds(
+                EnemyProgressionRole.ExploderMelee,
+                45f);
+
+            for (int spawnIndex = 0; spawnIndex < spawnCount; spawnIndex++)
+            {
+                SpawnSingleEnemy(GetVisibleFloorSpawnPosition(), basicOnly);
+            }
+        }
+
         private void ApplyRunProgression(EnemyController enemy)
         {
             if (enemy == null)
@@ -376,6 +449,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             {
                 float halfHeight = gameplayCamera.orthographicSize;
                 float halfWidth = halfHeight * gameplayCamera.aspect;
+
                 float spawnX = Random.Range(
                     gameplayCamera.transform.position.x - halfWidth + GetHorizontalSpawnPadding(),
                     gameplayCamera.transform.position.x + halfWidth - GetHorizontalSpawnPadding());
@@ -387,6 +461,27 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             return transform.position;
+        }
+
+        private Vector3 GetVisibleFloorSpawnPosition()
+        {
+            if (gameplayCamera == null || !gameplayCamera.orthographic)
+            {
+                return GetSpawnPosition();
+            }
+
+            float halfHeight = gameplayCamera.orthographicSize;
+            float halfWidth = halfHeight * gameplayCamera.aspect;
+            Vector3 cameraPosition = gameplayCamera.transform.position;
+            float horizontalPadding = Mathf.Max(0f, visibleFloorSpawnPadding);
+            float spawnViewportY = Mathf.Clamp01(visibleFloorSpawnViewportY);
+
+            float spawnX = Random.Range(
+                cameraPosition.x - halfWidth + horizontalPadding,
+                cameraPosition.x + halfWidth - horizontalPadding);
+            float spawnY = cameraPosition.y - halfHeight + (halfHeight * 2f * spawnViewportY);
+
+            return new Vector3(spawnX, spawnY, 0f);
         }
 
         private float GetSpawnYOffset()
@@ -432,6 +527,11 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             return RunProgressionConfig.GetDefaultSpawnWeight(role, elapsedSeconds, spawnWeight);
+        }
+
+        public bool MatchesProgressionRole(EnemyProgressionRole role)
+        {
+            return ResolveProgressionRole() == role;
         }
 
         private EnemyProgressionRole ResolveProgressionRole()

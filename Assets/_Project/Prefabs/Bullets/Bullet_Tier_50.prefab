@@ -109,7 +109,7 @@ MonoBehaviour:
   speed: 1
   lifetime: 2
   damage: 0
-  destroyOnHitByDefault: 0
+  destroyOnHitByDefault: 1
   requireDamageableHit: 1
 --- !u!61 &378159823763004214
 BoxCollider2D:

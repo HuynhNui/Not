@@ -169,6 +169,13 @@ namespace _Project.Scripts.Gameplay.Combat
                 return;
             }
 
+            if (damageable is IConditionalDamageable conditionalDamageable
+                && !conditionalDamageable.CanReceiveDamageFrom(gameObject))
+            {
+                Despawn();
+                return;
+            }
+
             _preserveAfterHit = false;
             damageable?.TakeDamage(damage);
 

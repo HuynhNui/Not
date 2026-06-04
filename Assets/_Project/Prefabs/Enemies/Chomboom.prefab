@@ -130,6 +130,7 @@ MonoBehaviour:
   coinReward: 1
   destroyOnPlayerHit: 0
   despawnImmediatelyOnDeath: 0
+  requireCameraVisibilityForDamage: 1
   movementMode: 0
   enterMoveSpeed: 2.7
   topBandViewportY: 0.75
