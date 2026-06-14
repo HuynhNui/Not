@@ -12,28 +12,28 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
     public sealed class RunProgressionConfig : ScriptableObject
     {
         [SerializeField] private AnimationCurve spawnIntervalCurve = new AnimationCurve(
-            new Keyframe(0f, 0.10f),
-            new Keyframe(60f, 0.09f),
-            new Keyframe(180f, 0.08f),
-            new Keyframe(300f, 0.07f),
-            new Keyframe(420f, 0.06f),
-            new Keyframe(720f, 0.06f));
+            new Keyframe(0f, 0.25f),
+            new Keyframe(60f, 0.23f),
+            new Keyframe(180f, 0.20f),
+            new Keyframe(300f, 0.18f),
+            new Keyframe(420f, 0.16f),
+            new Keyframe(720f, 0.14f));
 
         [SerializeField] private AnimationCurve spawnBatchSizeCurve = new AnimationCurve(
-            new Keyframe(0f, 10f),
-            new Keyframe(60f, 10f),
-            new Keyframe(180f, 10f),
-            new Keyframe(300f, 10f),
-            new Keyframe(420f, 10f),
-            new Keyframe(720f, 15f));
+            new Keyframe(0f, 5f),
+            new Keyframe(60f, 5f),
+            new Keyframe(180f, 5f),
+            new Keyframe(300f, 6f),
+            new Keyframe(420f, 6f),
+            new Keyframe(720f, 7f));
 
         [SerializeField] private AnimationCurve maxActiveEnemiesCurve = new AnimationCurve(
-            new Keyframe(0f, 360f),
-            new Keyframe(60f, 420f),
-            new Keyframe(180f, 520f),
-            new Keyframe(300f, 620f),
-            new Keyframe(420f, 720f),
-            new Keyframe(720f, 800f));
+            new Keyframe(0f, 80f),
+            new Keyframe(60f, 95f),
+            new Keyframe(180f, 120f),
+            new Keyframe(300f, 145f),
+            new Keyframe(420f, 170f),
+            new Keyframe(720f, 220f));
 
         [SerializeField] private AnimationCurve enemyHpMultiplierCurve = new AnimationCurve(
             new Keyframe(0f, 1f),
@@ -73,16 +73,16 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
                 EnemyProgressionRole.BasicMelee,
                 0f,
                 new AnimationCurve(
-                    new Keyframe(0f, 100f),
-                    new Keyframe(180f, 100f),
-                    new Keyframe(300f, 90f),
-                    new Keyframe(420f, 80f),
-                    new Keyframe(720f, 75f))),
+                    new Keyframe(0f, 5f),
+                    new Keyframe(180f, 5f),
+                    new Keyframe(300f, 5f),
+                    new Keyframe(420f, 5f),
+                    new Keyframe(720f, 5f))),
             new EnemyProgressionWeightRule(
                 EnemyProgressionRole.ExploderMelee,
-                45f,
+                0f,
                 new AnimationCurve(
-                    new Keyframe(0f, 0f),
+                    new Keyframe(0f, 4f),
                     new Keyframe(45f, 4f),
                     new Keyframe(180f, 8f),
                     new Keyframe(300f, 12f),
@@ -90,9 +90,9 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
                     new Keyframe(720f, 18f))),
             new EnemyProgressionWeightRule(
                 EnemyProgressionRole.Ranged,
-                75f,
+                0f,
                 new AnimationCurve(
-                    new Keyframe(0f, 0f),
+                    new Keyframe(0f, 3f),
                     new Keyframe(75f, 3f),
                     new Keyframe(180f, 5f),
                     new Keyframe(300f, 8f),
@@ -102,32 +102,32 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
 
         private static readonly ProgressionKey[] DefaultSpawnIntervalKeys =
         {
-            new ProgressionKey(0f, 0.10f),
-            new ProgressionKey(60f, 0.09f),
-            new ProgressionKey(180f, 0.08f),
-            new ProgressionKey(300f, 0.07f),
-            new ProgressionKey(420f, 0.06f),
-            new ProgressionKey(720f, 0.06f)
+            new ProgressionKey(0f, 0.25f),
+            new ProgressionKey(60f, 0.23f),
+            new ProgressionKey(180f, 0.20f),
+            new ProgressionKey(300f, 0.18f),
+            new ProgressionKey(420f, 0.16f),
+            new ProgressionKey(720f, 0.14f)
         };
 
         private static readonly ProgressionKey[] DefaultSpawnBatchSizeKeys =
         {
-            new ProgressionKey(0f, 10f),
-            new ProgressionKey(60f, 10f),
-            new ProgressionKey(180f, 10f),
-            new ProgressionKey(300f, 10f),
-            new ProgressionKey(420f, 10f),
-            new ProgressionKey(720f, 15f)
+            new ProgressionKey(0f, 5f),
+            new ProgressionKey(60f, 5f),
+            new ProgressionKey(180f, 5f),
+            new ProgressionKey(300f, 6f),
+            new ProgressionKey(420f, 6f),
+            new ProgressionKey(720f, 7f)
         };
 
         private static readonly ProgressionKey[] DefaultMaxActiveEnemyKeys =
         {
-            new ProgressionKey(0f, 360f),
-            new ProgressionKey(60f, 420f),
-            new ProgressionKey(180f, 520f),
-            new ProgressionKey(300f, 620f),
-            new ProgressionKey(420f, 720f),
-            new ProgressionKey(720f, 800f)
+            new ProgressionKey(0f, 80f),
+            new ProgressionKey(60f, 95f),
+            new ProgressionKey(180f, 120f),
+            new ProgressionKey(300f, 145f),
+            new ProgressionKey(420f, 170f),
+            new ProgressionKey(720f, 220f)
         };
 
         private static readonly ProgressionKey[] DefaultHpMultiplierKeys =
@@ -172,16 +172,16 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
 
         private static readonly ProgressionKey[] DefaultBasicWeightKeys =
         {
-            new ProgressionKey(0f, 100f),
-            new ProgressionKey(180f, 100f),
-            new ProgressionKey(300f, 90f),
-            new ProgressionKey(420f, 80f),
-            new ProgressionKey(720f, 75f)
+            new ProgressionKey(0f, 5f),
+            new ProgressionKey(180f, 5f),
+            new ProgressionKey(300f, 5f),
+            new ProgressionKey(420f, 5f),
+            new ProgressionKey(720f, 5f)
         };
 
         private static readonly ProgressionKey[] DefaultExploderWeightKeys =
         {
-            new ProgressionKey(0f, 0f),
+            new ProgressionKey(0f, 4f),
             new ProgressionKey(45f, 4f),
             new ProgressionKey(180f, 8f),
             new ProgressionKey(300f, 12f),
@@ -191,7 +191,7 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
 
         private static readonly ProgressionKey[] DefaultRangedWeightKeys =
         {
-            new ProgressionKey(0f, 0f),
+            new ProgressionKey(0f, 3f),
             new ProgressionKey(75f, 3f),
             new ProgressionKey(180f, 5f),
             new ProgressionKey(300f, 8f),
@@ -280,8 +280,8 @@ namespace _Project.Scripts.Data.ScriptableObjects.SpawnConfigs
             return role switch
             {
                 EnemyProgressionRole.BasicMelee => 0f,
-                EnemyProgressionRole.ExploderMelee => 45f,
-                EnemyProgressionRole.Ranged => 75f,
+                EnemyProgressionRole.ExploderMelee => 0f,
+                EnemyProgressionRole.Ranged => 0f,
                 _ => Mathf.Max(0f, fallbackUnlockAfterSeconds)
             };
         }

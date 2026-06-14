@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
+using _Project.Scripts.Systems.SaveSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -44,6 +45,8 @@ namespace _Project.Scripts.Systems.UISystem
 
         [Header("Upgrade")]
         [SerializeField] private TextMeshProUGUI upgradeCurrencyText;
+        [SerializeField] private TextMeshProUGUI upgradePowerText;
+        [SerializeField] private TextMeshProUGUI upgradeSquadText;
         [SerializeField] private List<UpgradeRowBinding> upgradeRows = new List<UpgradeRowBinding>();
         [SerializeField] private Button upgradeBackButton;
 
@@ -99,6 +102,8 @@ namespace _Project.Scripts.Systems.UISystem
 
             ValidateRequiredReferences();
             WireButtons();
+            SaveService.Instance.DataChanged -= HandleSaveDataChanged;
+            SaveService.Instance.DataChanged += HandleSaveDataChanged;
             RefreshSettingsControls();
             RefreshMenuStats();
             RefreshUpgradePanel();
@@ -122,6 +127,14 @@ namespace _Project.Scripts.Systems.UISystem
             if (_currentScreen == UIScreen.Gameplay)
             {
                 RefreshHud();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (SaveService.HasInstance)
+            {
+                SaveService.Instance.DataChanged -= HandleSaveDataChanged;
             }
         }
 
@@ -319,31 +332,13 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void TryPurchaseUpgrade(PlayerMetaUpgradeType upgradeType)
         {
-            int cost = PlayerMetaUpgradeService.GetCost(upgradeType);
-            bool purchased = _runStatsTracker != null
-                ? _runStatsTracker.TrySpendWalletCoins(cost)
-                : TrySpendWalletCoinsFallback(cost);
-
-            if (!purchased || !PlayerMetaUpgradeService.TryPurchase(upgradeType, cost))
+            if (!PlayerMetaUpgradeService.TryPurchase(upgradeType))
             {
                 return;
             }
 
             RefreshUpgradePanel();
             RefreshMenuStats();
-        }
-
-        private static bool TrySpendWalletCoinsFallback(int cost)
-        {
-            int walletCoins = PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0);
-            if (walletCoins < cost)
-            {
-                return false;
-            }
-
-            PlayerPrefs.SetInt(RunStatsTracker.WalletCoinsPrefsKey, walletCoins - cost);
-            PlayerPrefs.Save();
-            return true;
         }
 
         private void RefreshSettingsControls()
@@ -373,11 +368,12 @@ namespace _Project.Scripts.Systems.UISystem
         {
             if (_runStatsTracker == null)
             {
-                int walletCoins = PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0);
-                float bestSurvivalTime = PlayerPrefs.GetFloat(RunStatsTracker.BestSurvivalTimePrefsKey, 0f);
-                int bestKillCount = PlayerPrefs.GetInt(RunStatsTracker.BestKillCountPrefsKey, 0);
-                int bestCoinsEarned = PlayerPrefs.GetInt(RunStatsTracker.BestCoinsEarnedPrefsKey, 0);
-                int bestScore = PlayerPrefs.GetInt(RunStatsTracker.BestScorePrefsKey, 0);
+                SaveData saveData = SaveService.Instance.Data;
+                int walletCoins = saveData.walletCoins;
+                float bestSurvivalTime = saveData.bestSurvivalTime;
+                int bestKillCount = saveData.bestKillCount;
+                int bestCoinsEarned = saveData.bestCoinsEarned;
+                int bestScore = saveData.bestScore;
 
                 SetText(bestRunText, $"BEST {FormatTime(bestSurvivalTime)} | KILLS {bestKillCount}");
                 SetText(walletText, $"{walletCoins}");
@@ -417,9 +413,16 @@ namespace _Project.Scripts.Systems.UISystem
         {
             int walletCoins = _runStatsTracker != null
                 ? _runStatsTracker.WalletCoins
-                : PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0);
+                : SaveService.Instance.Data.walletCoins;
 
-            SetText(upgradeCurrencyText, $"CREDITS {walletCoins}");
+            SetText(upgradeCurrencyText, walletCoins.ToString("N0"));
+            SetText(upgradePowerText, PlayerMetaUpgradeService.GetPowerScore().ToString("N0"));
+
+            int currentSquadSize = Mathf.RoundToInt(
+                PlayerMetaUpgradeService.GetCurrentValue(PlayerMetaUpgradeType.SquadSize));
+            int maxSquadSize = Mathf.RoundToInt(
+                PlayerMetaUpgradeService.CalculateMaxValue(PlayerMetaUpgradeType.SquadSize));
+            SetText(upgradeSquadText, $"{currentSquadSize} / {maxSquadSize}");
 
             if (upgradeRows == null)
             {
@@ -434,18 +437,27 @@ namespace _Project.Scripts.Systems.UISystem
                     continue;
                 }
 
-                UpgradeDefinition definition = PlayerMetaUpgradeService.GetDefinition(row.UpgradeType);
                 int level = PlayerMetaUpgradeService.GetLevel(row.UpgradeType);
                 int cost = PlayerMetaUpgradeService.GetCost(row.UpgradeType);
-                float nextValue = definition.ValuePerLevel * (level + 1);
+                bool isMaxLevel = PlayerMetaUpgradeService.IsMaxLevel(row.UpgradeType);
+                float currentValue = PlayerMetaUpgradeService.GetCurrentValue(row.UpgradeType);
+                float nextValue = PlayerMetaUpgradeService.GetNextValue(row.UpgradeType);
 
-                SetText(row.LevelText, $"LV {level}");
-                SetText(row.ValueText, string.Format(definition.ValueFormat, nextValue));
-                SetText(row.CostText, walletCoins >= cost ? $"{cost}" : $"NEED {cost}");
+                SetText(row.LevelText, $"LV. {level}/{PlayerMetaUpgradeService.MaxUpgradeLevel}");
+                SetText(
+                    row.CurrentValueText,
+                    PlayerMetaUpgradeService.FormatValue(row.UpgradeType, currentValue));
+                SetText(
+                    row.NextValueText,
+                    isMaxLevel
+                        ? "MAX"
+                        : PlayerMetaUpgradeService.FormatValue(row.UpgradeType, nextValue));
+                SetText(row.CostText, isMaxLevel ? "MAX" : cost.ToString("N0"));
+                SetText(row.UpgradeButtonText, isMaxLevel ? "MAX" : "UPGRADE");
 
                 if (row.UpgradeButton != null)
                 {
-                    row.UpgradeButton.interactable = walletCoins >= cost;
+                    row.UpgradeButton.interactable = !isMaxLevel && walletCoins >= cost;
                 }
             }
         }
@@ -480,11 +492,11 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(bestTimeText, nameof(bestTimeText), "MainMenuPanel/StatsBar/BESTTIMECell/BestTimeValueText");
             WarnIfMissing(bestEnemiesKilledText, nameof(bestEnemiesKilledText), "MainMenuPanel/StatsBar/ENEMIESKILLEDCell/BestEnemiesKilledValueText");
             WarnIfMissing(bestCoinsText, nameof(bestCoinsText), "MainMenuPanel/StatsBar/BESTCOINSCell/BestCoinsValueText");
-            WarnIfMissing(pauseButton, nameof(pauseButton), "GameplayHUDPanel/HudContentRoot/TopRightHud/PauseButton");
-            WarnIfMissing(timeSurvivalText, nameof(timeSurvivalText), "GameplayHUDPanel/HudContentRoot/TopLeftHud/TimeFrame/TimeText");
-            WarnIfMissing(moneyText, nameof(moneyText), "GameplayHUDPanel/HudContentRoot/TopRightHud/CoinFrame/CoinText");
-            WarnIfMissing(enemyDefeatedCountText, nameof(enemyDefeatedCountText), "GameplayHUDPanel/HudContentRoot/TopLeftHud/KillFrame/KillText");
-            WarnIfMissing(scoreText, nameof(scoreText), "GameplayHUDPanel/HudContentRoot/ScoreFrame/ScoreValueText");
+            WarnIfMissing(pauseButton, nameof(pauseButton), "GameplayHUDPanel/HudContentRoot/HudTopBar/PauseButton");
+            WarnIfMissing(timeSurvivalText, nameof(timeSurvivalText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/TimeMetric/ValueText");
+            WarnIfMissing(moneyText, nameof(moneyText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/CoinsMetric/ValueText");
+            WarnIfMissing(enemyDefeatedCountText, nameof(enemyDefeatedCountText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/KillsMetric/ValueText");
+            WarnIfMissing(scoreText, nameof(scoreText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/ScoreMetric/ValueText");
             WarnIfMissing(retryButton, nameof(retryButton), "GameOverPanel/RetryButton");
         }
 
@@ -534,6 +546,12 @@ namespace _Project.Scripts.Systems.UISystem
             }
         }
 
+        private void HandleSaveDataChanged()
+        {
+            RefreshMenuStats();
+            RefreshUpgradePanel();
+        }
+
         private enum UIScreen
         {
             None,
@@ -551,14 +569,18 @@ namespace _Project.Scripts.Systems.UISystem
     {
         [SerializeField] private PlayerMetaUpgradeType upgradeType;
         [SerializeField] private TextMeshProUGUI levelText;
-        [SerializeField] private TextMeshProUGUI valueText;
+        [SerializeField] private TextMeshProUGUI currentValueText;
+        [SerializeField] private TextMeshProUGUI nextValueText;
         [SerializeField] private TextMeshProUGUI costText;
+        [SerializeField] private TextMeshProUGUI upgradeButtonText;
         [SerializeField] private Button upgradeButton;
 
         public PlayerMetaUpgradeType UpgradeType => upgradeType;
         public TextMeshProUGUI LevelText => levelText;
-        public TextMeshProUGUI ValueText => valueText;
+        public TextMeshProUGUI CurrentValueText => currentValueText;
+        public TextMeshProUGUI NextValueText => nextValueText;
         public TextMeshProUGUI CostText => costText;
+        public TextMeshProUGUI UpgradeButtonText => upgradeButtonText;
         public Button UpgradeButton => upgradeButton;
     }
 }

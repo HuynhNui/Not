@@ -328,11 +328,11 @@ EnemyProjectileSpeed = BaseProjectileSpeed * ProjectileSpeedMultiplierCurve
 SpawnInterval = SpawnIntervalCurve(TimeSurvived)
 MaxActiveEnemies = MaxActiveEnemiesCurve(TimeSurvived)
 
-Enemy mix duoc mo khoa theo moc thoi gian:
+Enemy mix duoc chon bang weight theo thoi gian:
 
-Basic melee: unlock 0s, weight cao tu dau run.
-Chomboom exploder melee: unlock 45s, weight thap roi tang dan.
-Ranged shooter: unlock 75s, weight thap roi tang dan.
+Basic melee: unlock 0s, demo weight 5.
+Chomboom exploder melee: unlock 0s, weight thap tu dau run roi tang dan.
+Ranged shooter: unlock 0s, weight thap tu dau run roi tang dan.
 
 Muc tieu la tang ap luc theo kieu survival auto-shooter: dong hon, nhanh hon, trau hon, nhung van doc duoc tren mobile.
 

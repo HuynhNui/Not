@@ -6,6 +6,7 @@ using _Project.Scripts.Systems.GateSystem;
 using _Project.Scripts.Systems.LevelSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
+using _Project.Scripts.Systems.SaveSystem;
 using _Project.Scripts.Systems.UISystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,9 +30,19 @@ namespace _Project.Scripts.Core.GameLoop
 
         private bool _isGameOver;
         private bool _isRunActive;
+        private static bool _startRunAfterReload;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetSessionState()
+        {
+            _startRunAfterReload = false;
+        }
 
         public void Init()
         {
+            SaveService.Instance.EnsureLoaded();
+            _ = SaveService.Instance.LoadAsync();
+
             if (runStatsTracker == null)
             {
                 runStatsTracker = FindAnyObjectByType<RunStatsTracker>();
@@ -84,9 +95,20 @@ namespace _Project.Scripts.Core.GameLoop
             _isGameOver = false;
             _isRunActive = false;
             playerController?.SetControlsEnabled(false);
+            if (playerController != null)
+            {
+                playerController.gameObject.SetActive(false);
+            }
+
             enemySpawnerSystem?.SetSpawningEnabled(false);
             gameStateMachine?.SetState(GameState.MainMenu);
             uiSystem?.ShowMainMenu();
+
+            if (_startRunAfterReload)
+            {
+                _startRunAfterReload = false;
+                StartRun();
+            }
         }
 
         private void Awake()
@@ -116,6 +138,11 @@ namespace _Project.Scripts.Core.GameLoop
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = true;
+
+            if (playerController != null && !playerController.gameObject.activeSelf)
+            {
+                playerController.gameObject.SetActive(true);
+            }
 
             if (mainPlayerUnit != null)
             {
@@ -161,10 +188,17 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void ReturnHome()
         {
-            RestartCurrentScene();
+            _startRunAfterReload = false;
+            ReloadCurrentScene();
         }
 
         private void RestartCurrentScene()
+        {
+            _startRunAfterReload = true;
+            ReloadCurrentScene();
+        }
+
+        private static void ReloadCurrentScene()
         {
             Time.timeScale = 1f;
             Scene activeScene = SceneManager.GetActiveScene();

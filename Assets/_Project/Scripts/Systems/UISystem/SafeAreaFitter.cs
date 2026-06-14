@@ -11,6 +11,7 @@ namespace _Project.Scripts.Systems.UISystem
 
         private Rect _lastSafeArea;
         private Vector2Int _lastScreenSize;
+        private bool _isApplying;
 
         private void Awake()
         {
@@ -29,6 +30,11 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void OnRectTransformDimensionsChange()
         {
+            if (_isApplying)
+            {
+                return;
+            }
+
             ApplySafeArea(force: true);
         }
 
@@ -42,6 +48,11 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void ApplySafeArea(bool force)
         {
+            if (_isApplying)
+            {
+                return;
+            }
+
             ResolveTarget();
 
             if (target == null || Screen.width <= 0 || Screen.height <= 0)
@@ -67,10 +78,49 @@ namespace _Project.Scripts.Systems.UISystem
             anchorMax.x /= Screen.width;
             anchorMax.y /= Screen.height;
 
-            target.anchorMin = anchorMin;
-            target.anchorMax = anchorMax;
-            target.offsetMin = Vector2.zero;
-            target.offsetMax = Vector2.zero;
+            bool needsAnchorUpdate = !Approximately(target.anchorMin, anchorMin)
+                || !Approximately(target.anchorMax, anchorMax);
+            bool needsOffsetUpdate = !Approximately(target.offsetMin, Vector2.zero)
+                || !Approximately(target.offsetMax, Vector2.zero);
+
+            if (!needsAnchorUpdate && !needsOffsetUpdate)
+            {
+                return;
+            }
+
+            _isApplying = true;
+            try
+            {
+                if (!Approximately(target.anchorMin, anchorMin))
+                {
+                    target.anchorMin = anchorMin;
+                }
+
+                if (!Approximately(target.anchorMax, anchorMax))
+                {
+                    target.anchorMax = anchorMax;
+                }
+
+                if (!Approximately(target.offsetMin, Vector2.zero))
+                {
+                    target.offsetMin = Vector2.zero;
+                }
+
+                if (!Approximately(target.offsetMax, Vector2.zero))
+                {
+                    target.offsetMax = Vector2.zero;
+                }
+            }
+            finally
+            {
+                _isApplying = false;
+            }
+        }
+
+        private static bool Approximately(Vector2 a, Vector2 b)
+        {
+            return Mathf.Approximately(a.x, b.x)
+                && Mathf.Approximately(a.y, b.y);
         }
     }
 }

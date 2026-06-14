@@ -1,53 +1,144 @@
 using System;
 using _Project.Scripts.Gameplay.Player;
+using _Project.Scripts.Systems.SaveSystem;
 using UnityEngine;
 
 namespace _Project.Scripts.Systems.ProgressionSystem
 {
     /// <summary>
-    /// Lightweight PlayerPrefs-backed meta upgrades for the first UI progression pass.
+    /// Defines the five permanent player upgrades shown in the upgrade panel.
     /// </summary>
     public static class PlayerMetaUpgradeService
     {
-        private const string LevelKeyPrefix = "MetaUpgrade.Level.";
+        public const int MaxUpgradeLevel = 5;
+        public const float UpgradeMultiplier = 1.5f;
+
+        private static readonly int[] UpgradeCosts =
+        {
+            100,
+            200,
+            500,
+            1500,
+            5000
+        };
 
         public static readonly UpgradeDefinition[] Definitions =
         {
-            new UpgradeDefinition(PlayerMetaUpgradeType.Damage, "DAMAGE", 25, 1f, "+{0:0} damage"),
-            new UpgradeDefinition(PlayerMetaUpgradeType.FireRate, "FIRE RATE", 30, 0.2f, "+{0:0.0}/s"),
-            new UpgradeDefinition(PlayerMetaUpgradeType.MoveSpeed, "MOVE SPEED", 20, 0.35f, "+{0:0.00} speed"),
-            new UpgradeDefinition(PlayerMetaUpgradeType.MaxHp, "HP", 25, 2f, "+{0:0} hp"),
-            new UpgradeDefinition(PlayerMetaUpgradeType.ProjectileCount, "PROJECTILES", 60, 1f, "+{0:0} projectile")
+            new UpgradeDefinition(
+                PlayerMetaUpgradeType.Damage,
+                "DMG",
+                "Damage",
+                "Increases damage per bullet.",
+                1f,
+                false),
+            new UpgradeDefinition(
+                PlayerMetaUpgradeType.FireRate,
+                "FIRE",
+                "Fire Rate",
+                "Increases shooting speed.",
+                4f,
+                false),
+            new UpgradeDefinition(
+                PlayerMetaUpgradeType.MaxHp,
+                "HP",
+                "Max HP",
+                "Increases maximum health.",
+                10f,
+                false),
+            new UpgradeDefinition(
+                PlayerMetaUpgradeType.ProjectileCount,
+                "BULLET",
+                "Projectile Count",
+                "Increases bullets per shot.",
+                5f,
+                true),
+            new UpgradeDefinition(
+                PlayerMetaUpgradeType.SquadSize,
+                "PLAYER",
+                "Squad Size",
+                "Increases players and followers.",
+                1f,
+                true)
         };
 
         public static int GetLevel(PlayerMetaUpgradeType type)
         {
-            return Mathf.Max(0, PlayerPrefs.GetInt(GetLevelKey(type), 0));
+            return Mathf.Clamp(SaveService.Instance.GetUpgradeLevel(type), 0, MaxUpgradeLevel);
+        }
+
+        public static bool IsMaxLevel(PlayerMetaUpgradeType type)
+        {
+            return GetLevel(type) >= MaxUpgradeLevel;
+        }
+
+        public static bool IsSupportedUpgrade(PlayerMetaUpgradeType type)
+        {
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                if (Definitions[index].Type == type)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static int GetCost(PlayerMetaUpgradeType type)
         {
-            UpgradeDefinition definition = GetDefinition(type);
+            if (!IsSupportedUpgrade(type))
+            {
+                return 0;
+            }
+
             int level = GetLevel(type);
-            return Mathf.Max(1, Mathf.RoundToInt(definition.BaseCost * (level + 1) * (1f + level * 0.35f)));
+            return level >= MaxUpgradeLevel ? 0 : UpgradeCosts[level];
         }
 
-        public static float GetBonus(PlayerMetaUpgradeType type)
+        public static float GetCurrentValue(PlayerMetaUpgradeType type)
         {
-            return GetDefinition(type).ValuePerLevel * GetLevel(type);
+            UpgradeDefinition definition = GetDefinition(type);
+            return CalculateValue(definition.BaseValue, GetLevel(type), definition.UsesWholeNumbers);
         }
 
-        public static bool TryPurchase(PlayerMetaUpgradeType type, int walletCoins)
+        public static float GetNextValue(PlayerMetaUpgradeType type)
         {
-            int cost = GetCost(type);
-            if (walletCoins < cost)
+            UpgradeDefinition definition = GetDefinition(type);
+            int nextLevel = Mathf.Min(MaxUpgradeLevel, GetLevel(type) + 1);
+            return CalculateValue(definition.BaseValue, nextLevel, definition.UsesWholeNumbers);
+        }
+
+        public static float CalculateMaxValue(PlayerMetaUpgradeType type)
+        {
+            UpgradeDefinition definition = GetDefinition(type);
+            return CalculateValue(definition.BaseValue, MaxUpgradeLevel, definition.UsesWholeNumbers);
+        }
+
+        public static string FormatValue(PlayerMetaUpgradeType type, float value)
+        {
+            UpgradeDefinition definition = GetDefinition(type);
+            return definition.UsesWholeNumbers
+                ? Mathf.RoundToInt(value).ToString()
+                : value.ToString("0.##");
+        }
+
+        public static int GetPowerScore()
+        {
+            float damage = GetCurrentValue(PlayerMetaUpgradeType.Damage);
+            float fireRate = GetCurrentValue(PlayerMetaUpgradeType.FireRate);
+            float projectileCount = GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount);
+            float squadSize = GetCurrentValue(PlayerMetaUpgradeType.SquadSize);
+            return Mathf.Max(0, Mathf.RoundToInt(damage * fireRate * projectileCount * squadSize * 100f));
+        }
+
+        public static bool TryPurchase(PlayerMetaUpgradeType type)
+        {
+            if (!IsSupportedUpgrade(type) || IsMaxLevel(type))
             {
                 return false;
             }
 
-            PlayerPrefs.SetInt(GetLevelKey(type), GetLevel(type) + 1);
-            PlayerPrefs.Save();
-            return true;
+            return SaveService.Instance.TryPurchaseUpgrade(type, GetCost(type));
         }
 
         public static void ApplyToPlayer(MainPlayerUnit mainPlayerUnit, PlayerController playerController)
@@ -57,52 +148,24 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 return;
             }
 
-            mainPlayerUnit.SetDamage(mainPlayerUnit.Damage + GetBonus(PlayerMetaUpgradeType.Damage));
-            mainPlayerUnit.SetFireRate(mainPlayerUnit.FireRate + GetBonus(PlayerMetaUpgradeType.FireRate));
-            mainPlayerUnit.SetMaxHp(mainPlayerUnit.MaxHp + GetBonus(PlayerMetaUpgradeType.MaxHp), healByDelta: true);
+            mainPlayerUnit.SetDamage(GetCurrentValue(PlayerMetaUpgradeType.Damage));
+            mainPlayerUnit.SetFireRate(GetCurrentValue(PlayerMetaUpgradeType.FireRate));
+            mainPlayerUnit.SetMaxHp(GetCurrentValue(PlayerMetaUpgradeType.MaxHp), healByDelta: true);
             mainPlayerUnit.RestoreFullHealth();
 
             if (mainPlayerUnit.BulletSpawner != null)
             {
-                int projectileBonus = Mathf.RoundToInt(GetBonus(PlayerMetaUpgradeType.ProjectileCount));
-                mainPlayerUnit.BulletSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount + projectileBonus);
+                mainPlayerUnit.BulletSpawner.SetProjectileCount(
+                    Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount)));
+            }
+
+            if (playerController != null)
+            {
+                playerController.SetSquadCount(
+                    Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize)));
             }
 
             SyncFollowersFromMain(playerController, mainPlayerUnit);
-
-            if (playerController != null && playerController.PlayerMovement != null)
-            {
-                playerController.PlayerMovement.SetMoveSpeed(playerController.PlayerMovement.MoveSpeed + GetBonus(PlayerMetaUpgradeType.MoveSpeed));
-            }
-        }
-
-        private static void SyncFollowersFromMain(PlayerController playerController, MainPlayerUnit mainPlayerUnit)
-        {
-            if (playerController == null || mainPlayerUnit == null)
-            {
-                return;
-            }
-
-            var followers = playerController.Followers;
-            for (int index = 0; index < followers.Count; index++)
-            {
-                FollowerUnit follower = followers[index];
-                if (follower == null || follower.IsDead)
-                {
-                    continue;
-                }
-
-                follower.SetDamage(mainPlayerUnit.Damage);
-                follower.SetFireRate(mainPlayerUnit.FireRate);
-                follower.SetMaxHp(mainPlayerUnit.MaxHp, healByDelta: true);
-                follower.RestoreFullHealth();
-
-                if (follower.BulletSpawner != null && mainPlayerUnit.BulletSpawner != null)
-                {
-                    follower.BulletSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount);
-                    follower.BulletSpawner.SetVisualTierDamage(mainPlayerUnit.Damage);
-                }
-            }
         }
 
         public static UpgradeDefinition GetDefinition(PlayerMetaUpgradeType type)
@@ -115,12 +178,39 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 }
             }
 
-            throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported player upgrade type.");
         }
 
-        private static string GetLevelKey(PlayerMetaUpgradeType type)
+        private static float CalculateValue(float baseValue, int level, bool useWholeNumbers)
         {
-            return LevelKeyPrefix + type;
+            float value = Mathf.Max(0f, baseValue);
+            int safeLevel = Mathf.Clamp(level, 0, MaxUpgradeLevel);
+
+            for (int index = 0; index < safeLevel; index++)
+            {
+                value *= UpgradeMultiplier;
+                if (useWholeNumbers)
+                {
+                    value = Mathf.CeilToInt(value);
+                }
+            }
+
+            return value;
+        }
+
+        private static void SyncFollowersFromMain(PlayerController playerController, MainPlayerUnit mainPlayerUnit)
+        {
+            if (playerController == null || mainPlayerUnit == null)
+            {
+                return;
+            }
+
+            playerController.SyncFollowersFromMain(
+                syncDamage: true,
+                syncFireRate: true,
+                syncMaxHp: true,
+                healMaxHpByDelta: true,
+                syncProjectileCount: true);
         }
     }
 
@@ -130,29 +220,33 @@ namespace _Project.Scripts.Systems.ProgressionSystem
         FireRate,
         MoveSpeed,
         MaxHp,
-        ProjectileCount
+        ProjectileCount,
+        SquadSize
     }
 
     public readonly struct UpgradeDefinition
     {
         public readonly PlayerMetaUpgradeType Type;
         public readonly string DisplayName;
-        public readonly int BaseCost;
-        public readonly float ValuePerLevel;
-        public readonly string ValueFormat;
+        public readonly string StatName;
+        public readonly string Description;
+        public readonly float BaseValue;
+        public readonly bool UsesWholeNumbers;
 
         public UpgradeDefinition(
             PlayerMetaUpgradeType type,
             string displayName,
-            int baseCost,
-            float valuePerLevel,
-            string valueFormat)
+            string statName,
+            string description,
+            float baseValue,
+            bool usesWholeNumbers)
         {
             Type = type;
             DisplayName = displayName;
-            BaseCost = baseCost;
-            ValuePerLevel = valuePerLevel;
-            ValueFormat = valueFormat;
+            StatName = statName;
+            Description = description;
+            BaseValue = baseValue;
+            UsesWholeNumbers = usesWholeNumbers;
         }
     }
 }

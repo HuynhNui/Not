@@ -1,11 +1,12 @@
 using _Project.Scripts.Gameplay.Enemies;
+using _Project.Scripts.Systems.SaveSystem;
 using UnityEngine;
 using RuntimeEnemySpawnerSystem = _Project.Scripts.Systems.EnemySpawnerSystem.EnemySpawnerSystem;
 
 namespace _Project.Scripts.Systems.RunStatsSystem
 {
     /// <summary>
-    /// Tracks run-scoped survival metrics and lightweight persistent best values.
+    /// Tracks run-scoped survival metrics and persists progression through SaveService.
     /// </summary>
     public sealed class RunStatsTracker : MonoBehaviour
     {
@@ -26,11 +27,11 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         public int EnemyKills => _enemyKills;
         public int CoinsEarned => _coinsEarned;
         public int Score => _score;
-        public int WalletCoins => PlayerPrefs.GetInt(WalletCoinsPrefsKey, 0);
-        public float BestSurvivalTime => PlayerPrefs.GetFloat(BestSurvivalTimePrefsKey, 0f);
-        public int BestKillCount => PlayerPrefs.GetInt(BestKillCountPrefsKey, 0);
-        public int BestCoinsEarned => PlayerPrefs.GetInt(BestCoinsEarnedPrefsKey, 0);
-        public int BestScore => PlayerPrefs.GetInt(BestScorePrefsKey, 0);
+        public int WalletCoins => SaveService.Instance.Data.walletCoins;
+        public float BestSurvivalTime => SaveService.Instance.Data.bestSurvivalTime;
+        public int BestKillCount => SaveService.Instance.Data.bestKillCount;
+        public int BestCoinsEarned => SaveService.Instance.Data.bestCoinsEarned;
+        public int BestScore => SaveService.Instance.Data.bestScore;
 
         public void Init(RuntimeEnemySpawnerSystem enemySpawnerSystem)
         {
@@ -102,17 +103,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
 
         public bool TrySpendWalletCoins(int amount)
         {
-            int safeAmount = Mathf.Max(0, amount);
-            int walletCoins = WalletCoins;
-
-            if (walletCoins < safeAmount)
-            {
-                return false;
-            }
-
-            PlayerPrefs.SetInt(WalletCoinsPrefsKey, walletCoins - safeAmount);
-            PlayerPrefs.Save();
-            return true;
+            return SaveService.Instance.TrySpendWalletCoins(amount);
         }
 
         private void HandleEnemyKilled(EnemyController enemy)
@@ -129,28 +120,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
 
         private void SaveBestStats()
         {
-            if (_survivalTime > BestSurvivalTime)
-            {
-                PlayerPrefs.SetFloat(BestSurvivalTimePrefsKey, _survivalTime);
-            }
-
-            if (_enemyKills > BestKillCount)
-            {
-                PlayerPrefs.SetInt(BestKillCountPrefsKey, _enemyKills);
-            }
-
-            if (_coinsEarned > BestCoinsEarned)
-            {
-                PlayerPrefs.SetInt(BestCoinsEarnedPrefsKey, _coinsEarned);
-            }
-
-            if (_score > BestScore)
-            {
-                PlayerPrefs.SetInt(BestScorePrefsKey, _score);
-            }
-
-            PlayerPrefs.SetInt(WalletCoinsPrefsKey, WalletCoins + _coinsEarned);
-            PlayerPrefs.Save();
+            SaveService.Instance.RecordRunResult(_survivalTime, _enemyKills, _coinsEarned, _score);
         }
     }
 

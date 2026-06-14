@@ -1,8 +1,8 @@
-# Progression Balance Report - V3
+# Progression Balance Report - V5 Pool-Capped Demo Density
 
 Target feel: horde mode - dong, de giet, tran man hinh. The field should fill quickly, enemies should die often, and the player should feel strong while fighting a dense crowd instead of a sparse lane.
 
-Performance warning: this target is now roughly 100 raw spawn requests/second from run start, or about 6000/min if cap room exists. Actual enemy count stops at the active cap for mobile safety. Profile on mobile before locking these caps.
+Performance warning: demo tuning is now roughly 20 raw spawn requests/second from run start, or about 1200/min if cap room exists. This replaces the previous 75-100/s stress-test tuning because it was visually overwhelming. Actual enemy count stops at the active cap for mobile safety. Profile on mobile before raising these caps again.
 
 Visibility rule: normal fallback spawn is top-only. The spawner also keeps a floor of 10 visible enemies by spawning top-band enemies inside the camera when the visible count drops too low. Enemies outside the camera viewport do not take player bullet damage.
 
@@ -34,22 +34,22 @@ Enemy density now comes from interval plus batch size. Raw spawn/min is approxim
 
 | Time | Interval | Batch | Raw spawn/min | Max active | Intended feel |
 | ---: | ---: | ---: | ---: | ---: | --- |
-| 0s | 0.10 | 10 | 6000 | 360 | 100 enemies/sec raw from the first wave, capped for mobile. |
-| 60s | 0.09 | 10 | 6667 | 420 | Field should hit cap quickly if player is not clearing fast enough. |
-| 180s | 0.08 | 10 | 7500 | 520 | Chomboom/ranged pressure is visible but horde-first. |
-| 300s | 0.07 | 10 | 8571 | 620 | Active count should often approach cap. |
-| 420s | 0.06 | 10 | 10000 | 720 | Late game becomes a real screen-flood test. |
-| 720s | 0.06 | 15 | 15000 | 800 | Extreme endless pressure; reduce cap first if FPS drops. |
+| 0s | 0.25 | 5 | 1200 | 80 | About 20 enemies/sec raw from the first wave, capped for readable demo play. |
+| 60s | 0.23 | 5 | 1304 | 95 | Field still fills, but the HUD/playfield remains readable. |
+| 180s | 0.20 | 5 | 1500 | 120 | Specials are visible without forming a wall immediately. |
+| 300s | 0.18 | 6 | 2000 | 145 | Active count can approach cap if player clear rate falls behind. |
+| 420s | 0.16 | 6 | 2250 | 170 | Late game keeps horde pressure without the old screen flood. |
+| 720s | 0.14 | 7 | 3000 | 220 | Endless pressure rises, still much lower than the V3/V4 stress test. |
 
 Enemy role mix:
 
 | Time | Basic melee | Chomboom | Ranged | Notes |
 | ---: | ---: | ---: | ---: | --- |
-| 0s | 100% | 0% | 0% | Only basic enemies at run start. |
-| 60s | ~96% | ~4% | 0% | Chomboom unlocks at 45s, still rare. |
-| 180s | ~89% | ~7% | ~4% | Ranged is present but not dominant. |
-| 300s | ~82% | ~11% | ~7% | Mixed pressure, basic still carries the horde. |
-| 420s | ~74% | ~15% | ~11% | Specials matter, but the screen is still mostly melee. |
+| 0s | ~42% | ~33% | ~25% | Basic weight is reduced to 5 for a more varied demo mix. |
+| 60s | ~42% | ~33% | ~25% | Specials are visible from the start. |
+| 180s | ~28% | ~44% | ~28% | Chomboom becomes the main movement-pressure enemy. |
+| 300s | ~20% | ~48% | ~32% | Mixed pressure is special-heavy. |
+| 420s | ~15% | ~48% | ~36% | Late demo mix tests special enemy readability under horde density. |
 
 Enemy durability:
 
@@ -103,13 +103,14 @@ If a local test account already has meta upgrades, the first minute can feel muc
 ## Balance Decisions
 
 - First pass prioritizes density over enemy tankiness.
-- Spawn targets 100 raw enemies/sec from run start, then rises if active cap allows.
+- Spawn targets about 20 raw enemies/sec from run start, then rises if active cap allows.
 - Actual spawn stops at active cap for mobile safety; no far-enemy recycling in this pass.
+- Pool preload is reduced to demo-safe sizes: Enemy 80, Chomboom 32, Vomfy 24, Vomfy projectile 48, Chomboom FX 24.
 - Camera fallback spawn is top-only; side edge spawn was removed because it felt directionally wrong.
 - Visible-floor top-up keeps at least 10 enemies inside the camera when active cap allows.
 - Enemies outside the camera viewport ignore player bullet damage, and offscreen bullet hits do not trigger hit modifiers.
-- Basic melee remains the majority enemy so the game keeps a horde-kill rhythm.
-- Chomboom and ranged enemies add movement pressure after unlocks, not boss-style spikes.
+- Basic melee weight is reduced to 5 for this demo pass, so Chomboom/Vomfy show up much more often.
+- Chomboom and Vomfy now appear from run start at low weight, adding pressure without boss-style spikes.
 - Gate generation no longer offers x2 Damage, x2 Projectile Count, or x2 Player Count from runtime random offers.
 - Ranged enemy now has its own `RangedEnemyUnitData` so its base HP is 5 before scaling.
 
@@ -117,12 +118,12 @@ If a local test account already has meta upgrades, the first minute can feel muc
 
 | Scenario | Expected result |
 | --- | --- |
-| 0-10s | Enemies spawn from top only; roughly 1000 enemies are requested in the first 10 seconds if cap room exists. |
+| 0-10s | Enemies spawn from top only; roughly 200 enemies are requested in the first 10 seconds if cap room exists. |
 | Visible floor | If fewer than 10 active enemies are inside the camera, the spawner fills from the top visible band until 10 or cap. |
 | Offscreen damage | Player bullets do not reduce enemy HP while the enemy is outside the camera viewport. |
-| 0-60s | Raw spawn target is about 6000-6667/min, far above fresh-player no-Gate kill capacity. |
-| 45-90s | Chomboom appears after 45s, ranged appears after 75s, basic remains visually dominant. |
-| 3-5 minutes | Active enemy count often approaches 520-620, but object pooling prevents allocation spikes. |
+| 0-60s | Raw spawn target is about 1200-1304/min, still far above fresh-player no-Gate kill capacity. |
+| 0-90s | Chomboom and Vomfy can appear immediately, with Basic/Chomboom/Vomfy mixing at about 42/33/25. |
+| 3-5 minutes | Active enemy count often approaches 120-145, but object pooling prevents allocation spikes. |
 | Mobile safety | Active enemy count never exceeds the current cap; lower cap first if FPS drops. |
 | Gate choices | Additive upgrades are common; early multiplicative DPS runaway is reduced. |
 
@@ -135,5 +136,5 @@ Add or manually record these values during playtest:
 - Time spent at max active cap.
 - Gate choices taken.
 - Player damage, fire rate, projectile count, and squad count at 60s/180s/300s.
-- FPS when active enemy count is near 360, 520, and 720.
-- GC allocation or visible hitching when active enemy count first exceeds 360.
+- FPS when active enemy count is near 80, 120, and 170.
+- GC allocation or visible hitching when active enemy count first exceeds 80.
