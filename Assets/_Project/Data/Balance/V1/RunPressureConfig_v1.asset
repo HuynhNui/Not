@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f03f2f87f6250e47b9c00c9c90a4271, type: 3}
+  m_Name: RunPressureConfig_v1
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.RunPressureConfig
+  configVersion: balance-v1.0.0
+  nodes:
+  - timeSeconds: 0
+    activeCap: 12
+    minimumVisible: 8
+    threatBudget: 2
+    spawnPerSecond: 3
+    hpMultiplier: 1
+    damageMultiplier: 0.75
+    speedMultiplier: 1
+  - timeSeconds: 60
+    activeCap: 18
+    minimumVisible: 12
+    threatBudget: 4
+    spawnPerSecond: 4
+    hpMultiplier: 1.15
+    damageMultiplier: 0.85
+    speedMultiplier: 1.05
+  - timeSeconds: 180
+    activeCap: 28
+    minimumVisible: 20
+    threatBudget: 7
+    spawnPerSecond: 6
+    hpMultiplier: 1.5
+    damageMultiplier: 1
+    speedMultiplier: 1.12
+  - timeSeconds: 300
+    activeCap: 38
+    minimumVisible: 27
+    threatBudget: 10
+    spawnPerSecond: 8
+    hpMultiplier: 2.1
+    damageMultiplier: 1.2
+    speedMultiplier: 1.18
+  - timeSeconds: 420
+    activeCap: 48
+    minimumVisible: 34
+    threatBudget: 13
+    spawnPerSecond: 10
+    hpMultiplier: 2.9
+    damageMultiplier: 1.45
+    speedMultiplier: 1.24
+  - timeSeconds: 720
+    activeCap: 60
+    minimumVisible: 42
+    threatBudget: 16
+    spawnPerSecond: 12
+    hpMultiplier: 4.5
+    damageMultiplier: 1.9
+    speedMultiplier: 1.32

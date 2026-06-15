@@ -1,0 +1,200 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 357679a4589c94f46a80503d75d8c3df, type: 3}
+  m_Name: GatePoolConfig_v1
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.GatePoolConfig
+  configVersion: balance-v1.0.0
+  gateCadenceSeconds: 15
+  majorGateCadenceSeconds: 60
+  entries:
+  - gateId: stable_damage
+    displayLabel: DAMAGE +10%
+    category: 0
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 1
+    magnitude: 1.1
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: stable_fire_rate
+    displayLabel: FIRE RATE +0.2
+    category: 0
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 2
+    magnitude: 0.2
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: stable_vitality
+    displayLabel: MAX HP +8%
+    category: 0
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 4
+    magnitude: 1.08
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: utility_repair
+    displayLabel: REPAIR 20%
+    category: 1
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 5
+    magnitude: 0.2
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: utility_barrier
+    displayLabel: BARRIER 1 HIT
+    category: 1
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 6
+    magnitude: 1
+    durationSeconds: 15
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: utility_freeze
+    displayLabel: FREEZE 20S
+    category: 1
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 7
+    magnitude: 0.75
+    durationSeconds: 20
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: risky_glass_cannon
+    displayLabel: GLASS CANNON
+    category: 2
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 1
+    magnitude: 1.25
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 10
+    drawbackMagnitude: 1.2
+    drawbackDurationSeconds: 0
+  - gateId: risky_bullet_storm
+    displayLabel: BULLET STORM
+    category: 2
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 8
+    magnitude: 1
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 1
+    drawbackMagnitude: 0.88
+    drawbackDurationSeconds: 0
+  - gateId: risky_reinforcement
+    displayLabel: REINFORCEMENT
+    category: 2
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 9
+    magnitude: 1
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 11
+    drawbackMagnitude: 1.15
+    drawbackDurationSeconds: 0
+  - gateId: risky_bounty
+    displayLabel: BOUNTY 30S
+    category: 2
+    weight: 1
+    minTimeSeconds: 0
+    effectType: 12
+    magnitude: 1.5
+    durationSeconds: 30
+    secondaryEffectType: 7
+    secondaryMagnitude: 1.15
+    secondaryDurationSeconds: 30
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: major_projectile
+    displayLabel: PROJECTILE +1
+    category: 3
+    weight: 1
+    minTimeSeconds: 60
+    effectType: 8
+    magnitude: 1
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: major_recruit
+    displayLabel: RECRUIT +1
+    category: 3
+    weight: 1
+    minTimeSeconds: 60
+    effectType: 9
+    magnitude: 1
+    durationSeconds: 0
+    secondaryEffectType: 0
+    secondaryMagnitude: 0
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0
+  - gateId: major_overclock
+    displayLabel: OVERCLOCK
+    category: 3
+    weight: 1
+    minTimeSeconds: 60
+    effectType: 1
+    magnitude: 1.15
+    durationSeconds: 0
+    secondaryEffectType: 3
+    secondaryMagnitude: 1.08
+    secondaryDurationSeconds: 0
+    drawbackType: 0
+    drawbackMagnitude: 0
+    drawbackDurationSeconds: 0

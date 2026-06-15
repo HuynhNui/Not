@@ -1,3 +1,5 @@
+using _Project.Scripts.Data.Balance;
+using _Project.Scripts.Systems.Balance;
 using _Project.Scripts.Systems.PoolSystem;
 using System;
 using System.Collections.Generic;
@@ -21,18 +23,26 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private bool forceVerticalDirection = true;
         [SerializeField] private PoolSystem poolSystem;
         [SerializeField] private float visualTierDamage;
+        [SerializeField] private CombatScalingConfig combatScalingConfig;
         [SerializeField] private List<BulletVisualTier> visualTiers = new List<BulletVisualTier>();
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
 
         private readonly List<BulletModifierConfig> _runtimeModifierConfigs = new List<BulletModifierConfig>();
         private readonly List<BulletModifierConfig> _activeModifierBuffer = new List<BulletModifierConfig>();
         private float _nextShotTime;
+        private float _shooterDamageScale = 1f;
 
         public float FireRate => fireRate;
+        public float EffectiveFireRate => BalanceV1Math.EffectiveFireRate(fireRate, combatScalingConfig);
         public float Damage => damage;
+        public float DamagePerProjectile => BalanceV1Math.DamagePerMainBullet(
+            damage,
+            projectileCount,
+            combatScalingConfig) * _shooterDamageScale;
         public float BulletSpeed => bulletSpeed;
         public int ProjectileCount => projectileCount;
         public float VisualTierDamage => visualTierDamage;
+        public float ShooterDamageScale => _shooterDamageScale;
 
         public void ConfigureFromTemplate(BulletSpawner template)
         {
@@ -50,6 +60,8 @@ namespace _Project.Scripts.Gameplay.Combat
             forceVerticalDirection = template.forceVerticalDirection;
             poolSystem = template.poolSystem != null ? template.poolSystem : FindAnyObjectByType<PoolSystem>();
             visualTierDamage = template.visualTierDamage;
+            combatScalingConfig = template.combatScalingConfig;
+            _shooterDamageScale = template._shooterDamageScale;
 
             visualTiers.Clear();
             visualTiers.AddRange(template.visualTiers);
@@ -63,6 +75,16 @@ namespace _Project.Scripts.Gameplay.Combat
         public void SetFirePoint(Transform value)
         {
             firePoint = value;
+        }
+
+        public void SetCombatScalingConfig(CombatScalingConfig value)
+        {
+            combatScalingConfig = value;
+        }
+
+        public void SetShooterDamageScale(float value)
+        {
+            _shooterDamageScale = Mathf.Max(0f, value);
         }
 
         public void Initialize(float initialDamage, float initialFireRate)
@@ -136,12 +158,13 @@ namespace _Project.Scripts.Gameplay.Combat
                 : spawnPoint.rotation;
 
             int shots = Mathf.Max(1, projectileCount);
+            float shotDamage = DamagePerProjectile;
             float startOffset = -(shots - 1) * 0.5f * burstSpread;
 
             for (int shotIndex = 0; shotIndex < shots; shotIndex++)
             {
                 Vector3 shotPosition = spawnPoint.position + Vector3.right * (startOffset + shotIndex * burstSpread);
-                SpawnBullet(shotPosition, rotation, damage, bulletSpeed, BuildModifierConfigBuffer());
+                SpawnBullet(shotPosition, rotation, shotDamage, bulletSpeed, BuildModifierConfigBuffer());
             }
 
             _nextShotTime = Time.time + GetShotInterval();
@@ -166,12 +189,15 @@ namespace _Project.Scripts.Gameplay.Combat
 
         private bool CanShoot()
         {
-            return GetBulletPrefabForCurrentTier() != null && fireRate > 0f && Time.time >= _nextShotTime;
+            return GetBulletPrefabForCurrentTier() != null
+                && EffectiveFireRate > 0f
+                && Time.time >= _nextShotTime;
         }
 
         private float GetShotInterval()
         {
-            return fireRate <= 0f ? float.MaxValue : 1f / fireRate;
+            float effectiveFireRate = EffectiveFireRate;
+            return effectiveFireRate <= 0f ? float.MaxValue : 1f / effectiveFireRate;
         }
 
         private Bullet SpawnBullet(

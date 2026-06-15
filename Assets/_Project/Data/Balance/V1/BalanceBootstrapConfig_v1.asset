@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a35169cd1d2c264b865f00ad1455823, type: 3}
+  m_Name: BalanceBootstrapConfig_v1
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.BalanceBootstrapConfig
+  activeBalanceVersion: balance-v1.0.0
+  combatScalingConfig: {fileID: 11400000, guid: 97632166921d03f419d1b4e50faf4dc6, type: 2}
+  playerMetaBalanceConfig: {fileID: 11400000, guid: cbcabcf1abf33d349a3907398d5c2f15, type: 2}
+  gatePoolConfig: {fileID: 11400000, guid: e45b70737a6a01a4e9263864804157fb, type: 2}
+  runPressureConfig: {fileID: 11400000, guid: 2662688e125711f4384660a5e8920386, type: 2}
+  economyConfig: {fileID: 11400000, guid: 9b66f54d30185c74282cb4c4221958bf, type: 2}
+  telemetryConfig: {fileID: 11400000, guid: 04b8e35af88593b4caff2ccdab476ae0, type: 2}
+  enemyRoleConfigs:
+  - {fileID: 11400000, guid: d6f6e923cea695e48888a0d929223c0d, type: 2}
+  - {fileID: 11400000, guid: fb6228f98cfa5ad418c86bc3ae7aaaf9, type: 2}
+  - {fileID: 11400000, guid: b951eeb6b4f09fd409c7df38d90ff7d9, type: 2}
+  - {fileID: 11400000, guid: 203269dd5f0cbce469c3ae38256a8372, type: 2}
+  - {fileID: 11400000, guid: 95feb0ef560881b4e83a91dbef55141b, type: 2}
+  - {fileID: 11400000, guid: f68080d90bb8b5f46a9672416b476305, type: 2}

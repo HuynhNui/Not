@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3236720684ca14d43af51a52ff1d4451, type: 3}
+  m_Name: EnemyRole_Chomboom_v1
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.EnemyRoleConfig
+  configVersion: balance-v1.0.0
+  role: 1
+  enemyId: chomboom
+  baseHp: 6
+  baseSpeed: 2.5
+  baseDamage: 3
+  rewardPoints: 0.75
+  scoreValue: 4
+  unlockTimeSeconds: 30
+  threatCost: 1.5
+  spawnWeightMultiplier: 1
+  poolKey: Chomboom

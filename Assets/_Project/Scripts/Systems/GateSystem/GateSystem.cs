@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Gates;
 using _Project.Scripts.Gameplay.Player;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using RuntimeEnemySpawnerSystem =
+    _Project.Scripts.Systems.EnemySpawnerSystem.EnemySpawnerSystem;
 using RuntimePoolSystem = _Project.Scripts.Systems.PoolSystem.PoolSystem;
 
 namespace _Project.Scripts.Systems.GateSystem
@@ -17,6 +20,8 @@ namespace _Project.Scripts.Systems.GateSystem
         [Header("Spawning")]
         [SerializeField] private GateLogic gatePrefab;
         [SerializeField] private float spawnIntervalSeconds = 20f;
+        [SerializeField] private GatePoolConfig gatePoolConfig;
+        [SerializeField] private bool useLegacyOfferGeneration;
         [SerializeField] private float spawnAboveCameraOffset = 1.25f;
         [SerializeField] private bool useViewportLanes = true;
         [SerializeField] private float viewportLaneMin = 0.12f;
@@ -57,16 +62,48 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private RuntimePoolSystem poolSystem;
+        [SerializeField] private RuntimeEnemySpawnerSystem enemySpawnerSystem;
+        [SerializeField] private GateRuntimeEffectController runtimeEffectController;
 
         [SerializeField] private List<GateLogic> activeGates = new List<GateLogic>();
 
         private float _nextSpawnTime;
+        private float _runElapsedSeconds;
+        private int _gateSetCount;
+        private bool _spawningEnabled;
         private bool _isGateSetActive;
         private bool _choiceLocked;
         private readonly List<GateConfig> _spawnConfigBuffer = new List<GateConfig>();
         private readonly List<GateOfferCandidate> _candidateBuffer = new List<GateOfferCandidate>();
         private readonly List<GateOfferCandidate> _buffCandidateBuffer = new List<GateOfferCandidate>();
         private readonly List<GateOfferCandidate> _neutralCandidateBuffer = new List<GateOfferCandidate>();
+        private readonly List<BalanceGateCategory> _lastSpawnCategories =
+            new List<BalanceGateCategory>();
+        private readonly Dictionary<string, GateConfig> _runtimeConfigCache =
+            new Dictionary<string, GateConfig>();
+
+        public event Action<int, int, GateConfig> GateShown;
+        public event Action<int, GateConfig> GateSelected;
+
+        public float RunElapsedSeconds => _runElapsedSeconds;
+        public int GateSetCount => _gateSetCount;
+        public bool IsGateSetActive => _isGateSetActive;
+        public float GateCadenceSeconds => gatePoolConfig != null
+            ? gatePoolConfig.GateCadenceSeconds
+            : GatePoolConfig.DefaultGateCadenceSeconds;
+        public float MajorGateCadenceSeconds => gatePoolConfig != null
+            ? gatePoolConfig.MajorGateCadenceSeconds
+            : GatePoolConfig.DefaultMajorGateCadenceSeconds;
+        public float CurrentMajorChance => GetMajorChance(_runElapsedSeconds);
+        public IReadOnlyList<BalanceGateCategory> LastSpawnCategories => _lastSpawnCategories;
+
+        public void SetGatePoolConfig(GatePoolConfig value)
+        {
+            if (value != null)
+            {
+                gatePoolConfig = value;
+            }
+        }
 
         private void Awake()
         {
@@ -77,6 +114,7 @@ namespace _Project.Scripts.Systems.GateSystem
         {
             ResolveGameplayCamera();
             poolSystem ??= FindAnyObjectByType<RuntimePoolSystem>();
+            enemySpawnerSystem ??= FindAnyObjectByType<RuntimeEnemySpawnerSystem>();
             EnsureDefaultOfferRules();
 
             if (playerController == null)
@@ -89,28 +127,55 @@ namespace _Project.Scripts.Systems.GateSystem
                 mainPlayerUnit = FindAnyObjectByType<MainPlayerUnit>();
             }
 
-            _nextSpawnTime = Time.time + Mathf.Max(0.01f, spawnIntervalSeconds);
+            runtimeEffectController ??= GetComponent<GateRuntimeEffectController>();
+            if (runtimeEffectController == null)
+            {
+                runtimeEffectController = gameObject.AddComponent<GateRuntimeEffectController>();
+            }
+
+            runtimeEffectController.Configure(mainPlayerUnit, playerController, enemySpawnerSystem);
+            _nextSpawnTime = GateCadenceSeconds;
+            _runElapsedSeconds = 0f;
+            _gateSetCount = 0;
+            _spawningEnabled = false;
             _isGateSetActive = false;
             _choiceLocked = false;
         }
 
         private void Update()
         {
-            if (mainPlayerUnit == null || mainPlayerUnit.IsDead)
+            if (!_spawningEnabled || mainPlayerUnit == null || mainPlayerUnit.IsDead)
             {
                 return;
             }
+
+            _runElapsedSeconds += Time.deltaTime;
 
             if (_isGateSetActive)
             {
                 return;
             }
 
-            if (Time.time >= _nextSpawnTime)
+            if (_runElapsedSeconds >= _nextSpawnTime)
             {
                 Spawn();
-                _nextSpawnTime = Time.time + Mathf.Max(0.01f, spawnIntervalSeconds);
+                _nextSpawnTime += GateCadenceSeconds;
             }
+        }
+
+        public void BeginRun()
+        {
+            ClearActiveGates();
+            _runElapsedSeconds = 0f;
+            _gateSetCount = 0;
+            _nextSpawnTime = GateCadenceSeconds;
+            _spawningEnabled = true;
+            runtimeEffectController?.BeginRun();
+        }
+
+        public void SetSpawningEnabled(bool isEnabled)
+        {
+            _spawningEnabled = isEnabled;
         }
 
         public void Spawn()
@@ -131,7 +196,7 @@ namespace _Project.Scripts.Systems.GateSystem
 
             ResolveGameplayCamera();
 
-            int count = Mathf.Max(1, gateCount);
+            int count = useLegacyOfferGeneration ? Mathf.Max(1, gateCount) : 3;
             BuildSpawnConfigs(count);
 
             if (generateOffersAtRuntime && _spawnConfigBuffer.Count <= 0)
@@ -173,11 +238,13 @@ namespace _Project.Scripts.Systems.GateSystem
                     laneLayout.GateHeight);
                 instance.Spawn();
                 activeGates.Add(instance);
+                GateShown?.Invoke(_gateSetCount, index, config);
             }
         }
 
-        public void ApplyEffect()
+        public void ApplyGateConfig(GateConfig config)
         {
+            runtimeEffectController?.Apply(config);
         }
 
         public void HandleGateChosen(GateLogic chosen)
@@ -188,6 +255,7 @@ namespace _Project.Scripts.Systems.GateSystem
             }
 
             _choiceLocked = true;
+            GateSelected?.Invoke(_gateSetCount, chosen.GateConfig);
             chosen.ApplyEffect();
 
             for (int index = activeGates.Count - 1; index >= 0; index--)
@@ -213,6 +281,21 @@ namespace _Project.Scripts.Systems.GateSystem
 
             activeGates.Clear();
             _isGateSetActive = false;
+        }
+
+        public void HandleGateExpired(GateLogic expired)
+        {
+            if (expired == null)
+            {
+                return;
+            }
+
+            activeGates.Remove(expired);
+            if (activeGates.Count == 0)
+            {
+                _isGateSetActive = false;
+                _choiceLocked = false;
+            }
         }
 
         private GateConfig PickGateConfig(int indexHint)
@@ -268,6 +351,12 @@ namespace _Project.Scripts.Systems.GateSystem
         {
             _spawnConfigBuffer.Clear();
 
+            if (!useLegacyOfferGeneration)
+            {
+                BuildBalanceV1SpawnConfigs();
+                return;
+            }
+
             if (!generateOffersAtRuntime)
             {
                 return;
@@ -315,6 +404,154 @@ namespace _Project.Scripts.Systems.GateSystem
                     break;
                 }
             }
+        }
+
+        private void BuildBalanceV1SpawnConfigs()
+        {
+            _lastSpawnCategories.Clear();
+            _gateSetCount++;
+
+            var categories = new List<BalanceGateCategory>
+            {
+                BalanceGateCategory.Stable,
+                BalanceGateCategory.Utility,
+                BalanceGateCategory.Risky
+            };
+
+            if (ShouldSpawnMajor(
+                    _gateSetCount,
+                    _runElapsedSeconds,
+                    GateCadenceSeconds,
+                    MajorGateCadenceSeconds,
+                    Random.value))
+            {
+                int replaceIndex = Random.value < 0.5f ? 0 : 2;
+                categories[replaceIndex] = BalanceGateCategory.Major;
+            }
+
+            for (int index = 0; index < categories.Count; index++)
+            {
+                BalanceGateCategory category = categories[index];
+                BalanceGateEntry entry = PickBalanceEntry(category, _runElapsedSeconds);
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                _lastSpawnCategories.Add(category);
+                _spawnConfigBuffer.Add(GetOrCreateRuntimeConfig(entry));
+            }
+        }
+
+        private BalanceGateEntry PickBalanceEntry(
+            BalanceGateCategory category,
+            float elapsedSeconds)
+        {
+            IReadOnlyList<BalanceGateEntry> source = gatePoolConfig != null
+                && gatePoolConfig.Entries != null
+                && gatePoolConfig.Entries.Count > 0
+                    ? gatePoolConfig.Entries
+                    : GatePoolConfig.CreateDefaultEntries();
+
+            float totalWeight = 0f;
+            for (int index = 0; index < source.Count; index++)
+            {
+                BalanceGateEntry entry = source[index];
+                if (entry != null
+                    && entry.Category == category
+                    && elapsedSeconds >= entry.MinTimeSeconds)
+                {
+                    totalWeight += entry.Weight;
+                }
+            }
+
+            if (totalWeight <= 0f)
+            {
+                return null;
+            }
+
+            float roll = Random.Range(0f, totalWeight);
+            float accumulated = 0f;
+            for (int index = 0; index < source.Count; index++)
+            {
+                BalanceGateEntry entry = source[index];
+                if (entry == null
+                    || entry.Category != category
+                    || elapsedSeconds < entry.MinTimeSeconds)
+                {
+                    continue;
+                }
+
+                accumulated += entry.Weight;
+                if (roll <= accumulated)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        private GateConfig GetOrCreateRuntimeConfig(BalanceGateEntry entry)
+        {
+            if (_runtimeConfigCache.TryGetValue(entry.GateId, out GateConfig cached)
+                && cached != null)
+            {
+                return cached;
+            }
+
+            GateConfig config = ScriptableObject.CreateInstance<GateConfig>();
+            config.name = $"RuntimeGate_{entry.GateId}";
+            config.ConfigureRuntime(entry);
+            _runtimeConfigCache[entry.GateId] = config;
+            return config;
+        }
+
+        public static bool IsMajorEligibilitySet(
+            int gateSetNumber,
+            float gateCadenceSeconds,
+            float majorCadenceSeconds)
+        {
+            int setsPerMajor = Mathf.Max(
+                1,
+                Mathf.RoundToInt(
+                    Mathf.Max(gateCadenceSeconds, majorCadenceSeconds)
+                    / Mathf.Max(0.01f, gateCadenceSeconds)));
+            return gateSetNumber > 0 && gateSetNumber % setsPerMajor == 0;
+        }
+
+        public static float GetMajorChance(float elapsedSeconds)
+        {
+            if (elapsedSeconds < 60f)
+            {
+                return 0f;
+            }
+
+            if (elapsedSeconds < 180f)
+            {
+                return 0.15f;
+            }
+
+            if (elapsedSeconds < 300f)
+            {
+                return 0.2f;
+            }
+
+            return 0.25f;
+        }
+
+        public static bool ShouldSpawnMajor(
+            int gateSetNumber,
+            float elapsedSeconds,
+            float gateCadenceSeconds,
+            float majorCadenceSeconds,
+            float randomValue)
+        {
+            return IsMajorEligibilitySet(
+                    gateSetNumber,
+                    gateCadenceSeconds,
+                    majorCadenceSeconds)
+                && randomValue < GetMajorChance(elapsedSeconds);
         }
 
         private void BuildCandidateBuffers()
@@ -532,6 +769,19 @@ namespace _Project.Scripts.Systems.GateSystem
             GateConfig config = ScriptableObject.CreateInstance<GateConfig>();
             config.ConfigureRuntime(candidate.StatTarget, candidate.OperationType, candidate.Amount);
             return config;
+        }
+
+        private void OnDestroy()
+        {
+            foreach (GateConfig config in _runtimeConfigCache.Values)
+            {
+                if (config != null)
+                {
+                    Destroy(config);
+                }
+            }
+
+            _runtimeConfigCache.Clear();
         }
 
         private void ResolveGameplayCamera()

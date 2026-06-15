@@ -670,9 +670,7 @@ namespace _Project.Editor
                 fontAsset,
                 PlayerMetaUpgradeService.FormatValue(
                     definition.Type,
-                    definition.UsesWholeNumbers
-                        ? Mathf.CeilToInt(definition.BaseValue * PlayerMetaUpgradeService.UpgradeMultiplier)
-                        : definition.BaseValue * PlayerMetaUpgradeService.UpgradeMultiplier),
+                    PlayerMetaUpgradeService.GetValueForLevel(definition.Type, 1)),
                 52f,
                 Green,
                 TextAlignmentOptions.Center,

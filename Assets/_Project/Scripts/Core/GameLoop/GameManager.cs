@@ -1,4 +1,5 @@
 using _Project.Scripts.Core.StateMachine;
+using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.CombatSystem;
 using _Project.Scripts.Systems.EnemySpawnerSystem;
@@ -7,6 +8,7 @@ using _Project.Scripts.Systems.LevelSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
+using _Project.Scripts.Systems.Telemetry;
 using _Project.Scripts.Systems.UISystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,6 +27,10 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private UISystem uiSystem;
         [SerializeField] private LevelSystem levelSystem;
         [SerializeField] private RunStatsTracker runStatsTracker;
+        [SerializeField] private BalanceBootstrapConfig balanceConfig;
+        [SerializeField] private EconomyConfig economyConfig;
+        [SerializeField] private BalanceTelemetryConfig telemetryConfig;
+        [SerializeField] private BalanceTelemetryService telemetryService;
         [SerializeField] private PlayerController playerController;
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
 
@@ -63,10 +69,31 @@ namespace _Project.Scripts.Core.GameLoop
                 mainPlayerUnit = FindAnyObjectByType<MainPlayerUnit>();
             }
 
+            ApplyBalanceConfiguration();
+
             if (runStatsTracker != null)
             {
+                runStatsTracker.SetEconomyConfig(economyConfig);
                 runStatsTracker.Init(enemySpawnerSystem);
             }
+
+            if (telemetryService == null)
+            {
+                telemetryService = GetComponent<BalanceTelemetryService>();
+            }
+
+            if (telemetryService == null)
+            {
+                telemetryService = gameObject.AddComponent<BalanceTelemetryService>();
+            }
+
+            telemetryService.Configure(
+                telemetryConfig,
+                runStatsTracker,
+                playerController,
+                mainPlayerUnit,
+                enemySpawnerSystem,
+                gateSystem);
 
             if (uiSystem != null)
             {
@@ -101,6 +128,7 @@ namespace _Project.Scripts.Core.GameLoop
             }
 
             enemySpawnerSystem?.SetSpawningEnabled(false);
+            gateSystem?.SetSpawningEnabled(false);
             gameStateMachine?.SetState(GameState.MainMenu);
             uiSystem?.ShowMainMenu();
 
@@ -109,6 +137,39 @@ namespace _Project.Scripts.Core.GameLoop
                 _startRunAfterReload = false;
                 StartRun();
             }
+        }
+
+        private void ApplyBalanceConfiguration()
+        {
+            if (balanceConfig == null)
+            {
+                PlayerMetaUpgradeService.Configure(null, null);
+                return;
+            }
+
+            balanceConfig.ValidateValues();
+
+            CombatScalingConfig combatScalingConfig = balanceConfig.CombatScalingConfig;
+            PlayerMetaUpgradeService.Configure(
+                balanceConfig.PlayerMetaBalanceConfig,
+                combatScalingConfig);
+
+            if (combatScalingConfig != null)
+            {
+                playerController?.SetCombatScalingConfig(combatScalingConfig);
+            }
+
+            enemySpawnerSystem?.SetBalanceConfiguration(
+                balanceConfig.RunPressureConfig,
+                balanceConfig.EnemyRoleConfigs);
+            gateSystem?.SetGatePoolConfig(balanceConfig.GatePoolConfig);
+
+            economyConfig = balanceConfig.EconomyConfig != null
+                ? balanceConfig.EconomyConfig
+                : economyConfig;
+            telemetryConfig = balanceConfig.TelemetryConfig != null
+                ? balanceConfig.TelemetryConfig
+                : telemetryConfig;
         }
 
         private void Awake()
@@ -155,6 +216,8 @@ namespace _Project.Scripts.Core.GameLoop
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.BeginRun();
             enemySpawnerSystem?.SetSpawningEnabled(true);
+            gateSystem?.BeginRun();
+            telemetryService?.BeginRun();
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
         }
@@ -168,6 +231,7 @@ namespace _Project.Scripts.Core.GameLoop
 
             playerController?.SetControlsEnabled(false);
             enemySpawnerSystem?.SetSpawningEnabled(false);
+            gateSystem?.SetSpawningEnabled(false);
             gameStateMachine?.SetState(GameState.Paused);
             uiSystem?.ShowPause();
         }
@@ -182,6 +246,7 @@ namespace _Project.Scripts.Core.GameLoop
             Time.timeScale = 1f;
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.SetSpawningEnabled(true);
+            gateSystem?.SetSpawningEnabled(true);
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
         }
@@ -224,7 +289,13 @@ namespace _Project.Scripts.Core.GameLoop
 
             playerController?.SetControlsEnabled(false);
             enemySpawnerSystem?.SetSpawningEnabled(false);
+            gateSystem?.SetSpawningEnabled(false);
             runStatsTracker?.EndRun();
+            if (runStatsTracker != null)
+            {
+                telemetryService?.EndRun(runStatsTracker.CreateSnapshot());
+            }
+
             gameStateMachine?.SetState(GameState.GameOver);
 
             if (runStatsTracker != null)

@@ -8,9 +8,10 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         public int schemaVersion = CurrentSchemaVersion;
+        public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
         public long revision;
         public long lastUpdatedUnixMs;
         public float bestSurvivalTime;
@@ -36,6 +37,9 @@ namespace _Project.Scripts.Systems.SaveSystem
         public void Normalize(long fallbackTimestampUnixMs)
         {
             schemaVersion = CurrentSchemaVersion;
+            balanceVersionLastPlayed = string.IsNullOrWhiteSpace(balanceVersionLastPlayed)
+                ? _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion
+                : balanceVersionLastPlayed.Trim();
             revision = Math.Max(0, revision);
             lastUpdatedUnixMs = lastUpdatedUnixMs > 0 ? lastUpdatedUnixMs : fallbackTimestampUnixMs;
             bestSurvivalTime = Mathf.Max(0f, bestSurvivalTime);
@@ -76,6 +80,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             var clone = new SaveData
             {
                 schemaVersion = schemaVersion,
+                balanceVersionLastPlayed = balanceVersionLastPlayed,
                 revision = revision,
                 lastUpdatedUnixMs = lastUpdatedUnixMs,
                 bestSurvivalTime = bestSurvivalTime,

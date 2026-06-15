@@ -1,4 +1,5 @@
 using _Project.Scripts.Gameplay.Enemies;
+using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Systems.SaveSystem;
 using UnityEngine;
 using RuntimeEnemySpawnerSystem = _Project.Scripts.Systems.EnemySpawnerSystem.EnemySpawnerSystem;
@@ -21,12 +22,22 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         private float _survivalTime;
         private int _enemyKills;
         private int _coinsEarned;
-        private int _score;
+        private float _coinRewardPoints;
+        private int _killScore;
+        private int _eliteBonusScore;
+        private float _coinRewardMultiplier = 1f;
+        [SerializeField] private EconomyConfig economyConfig;
 
         public float SurvivalTime => _survivalTime;
         public int EnemyKills => _enemyKills;
-        public int CoinsEarned => _coinsEarned;
-        public int Score => _score;
+        public int CoinsEarned => _isTracking
+            ? CalculateFinalCoins()
+            : _coinsEarned;
+        public float CoinRewardPoints => _coinRewardPoints;
+        public int KillScore => _killScore;
+        public int TimeScore => CalculateTimeScore();
+        public int Score => _killScore + CalculateTimeScore() + _eliteBonusScore;
+        public float CoinRewardMultiplier => _coinRewardMultiplier;
         public int WalletCoins => SaveService.Instance.Data.walletCoins;
         public float BestSurvivalTime => SaveService.Instance.Data.bestSurvivalTime;
         public int BestKillCount => SaveService.Instance.Data.bestKillCount;
@@ -47,6 +58,11 @@ namespace _Project.Scripts.Systems.RunStatsSystem
                 _enemySpawnerSystem.EnemyKilled -= HandleEnemyKilled;
                 _enemySpawnerSystem.EnemyKilled += HandleEnemyKilled;
             }
+        }
+
+        public void SetEconomyConfig(EconomyConfig config)
+        {
+            economyConfig = config;
         }
 
         private void OnDestroy()
@@ -72,7 +88,10 @@ namespace _Project.Scripts.Systems.RunStatsSystem
             _survivalTime = 0f;
             _enemyKills = 0;
             _coinsEarned = 0;
-            _score = 0;
+            _coinRewardPoints = 0f;
+            _killScore = 0;
+            _eliteBonusScore = 0;
+            _coinRewardMultiplier = 1f;
             _isTracking = true;
         }
 
@@ -84,6 +103,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
             }
 
             _isTracking = false;
+            _coinsEarned = CalculateFinalCoins();
             SaveBestStats();
         }
 
@@ -92,8 +112,8 @@ namespace _Project.Scripts.Systems.RunStatsSystem
             return new RunStatsSnapshot(
                 _survivalTime,
                 _enemyKills,
-                _coinsEarned,
-                _score,
+                CoinsEarned,
+                Score,
                 WalletCoins,
                 BestSurvivalTime,
                 BestKillCount,
@@ -106,6 +126,11 @@ namespace _Project.Scripts.Systems.RunStatsSystem
             return SaveService.Instance.TrySpendWalletCoins(amount);
         }
 
+        public void SetCoinRewardMultiplier(float multiplier)
+        {
+            _coinRewardMultiplier = Mathf.Max(0f, multiplier);
+        }
+
         private void HandleEnemyKilled(EnemyController enemy)
         {
             if (!_isTracking || enemy == null)
@@ -114,13 +139,33 @@ namespace _Project.Scripts.Systems.RunStatsSystem
             }
 
             _enemyKills++;
-            _coinsEarned += enemy.CoinReward;
-            _score += Mathf.Max(0, enemy.ScoreValue);
+            _coinRewardPoints += Mathf.Max(
+                0f,
+                enemy.RewardPoints * _coinRewardMultiplier);
+            _killScore += Mathf.Max(0, enemy.ScoreValue);
         }
 
         private void SaveBestStats()
         {
-            SaveService.Instance.RecordRunResult(_survivalTime, _enemyKills, _coinsEarned, _score);
+            SaveService.Instance.RecordRunResult(
+                _survivalTime,
+                _enemyKills,
+                _coinsEarned,
+                Score);
+        }
+
+        private int CalculateFinalCoins()
+        {
+            return economyConfig != null
+                ? economyConfig.CalculateFinalCoins(_coinRewardPoints, _survivalTime)
+                : EconomyConfig.CalculateDefaultFinalCoins(_coinRewardPoints, _survivalTime);
+        }
+
+        private int CalculateTimeScore()
+        {
+            return economyConfig != null
+                ? economyConfig.CalculateTimeScore(_survivalTime)
+                : EconomyConfig.CalculateDefaultTimeScore(_survivalTime);
         }
     }
 

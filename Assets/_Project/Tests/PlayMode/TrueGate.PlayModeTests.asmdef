@@ -1,0 +1,6 @@
+{
+  "name": "TrueGate.PlayModeTests",
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.SpawnConfigs;
 using _Project.Scripts.Gameplay.Enemies;
 using _Project.Scripts.Gameplay.Player;
@@ -14,8 +15,11 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
     /// </summary>
     public sealed class EnemySpawnerSystem : MonoBehaviour
     {
+        private const int MaxSpawnBurstPerFrame = 8;
+
         [SerializeField] private EnemySpawnConfig spawnConfig;
         [SerializeField] private RunProgressionConfig runProgressionConfig;
+        [SerializeField] private RunPressureConfig runPressureConfig;
         [SerializeField] private EnemyController enemyPrefab;
         [SerializeField] private List<EnemySpawnEntry> spawnEntries = new List<EnemySpawnEntry>();
         [SerializeField] private Transform[] spawnPoints;
@@ -33,8 +37,14 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
         private float _elapsedTime;
         private float _nextSpawnTime;
+        private float _spawnAccumulator;
+        private float _activeThreat;
+        private float _gateSpeedMultiplier = 1f;
+        private float _gatePressureMultiplier = 1f;
         private bool _spawningEnabled = true;
         private readonly HashSet<EnemyController> _activeEnemies = new HashSet<EnemyController>();
+        private readonly Dictionary<EnemyController, float> _activeThreatCosts =
+            new Dictionary<EnemyController, float>();
         private readonly List<EnemyController> _enemyRemovalBuffer = new List<EnemyController>();
 
         public event Action<EnemyController> EnemyKilled;
@@ -42,14 +52,20 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         public int ActiveEnemyCount => GetActiveEnemyCount();
         public int VisibleEnemyCount => GetVisibleEnemyCount();
         public int CurrentMaxActiveEnemies => GetCurrentMaxActiveEnemies();
-        public float CurrentRawSpawnPerSecond
+        public int CurrentMinimumVisibleEnemies => GetCurrentPressure().MinimumVisible;
+        public float CurrentThreatBudget => GetCurrentPressure().ThreatBudget;
+        public float CurrentActiveThreat
         {
             get
             {
-                float spawnInterval = GetCurrentSpawnInterval();
-                return spawnInterval > 0f ? GetCurrentSpawnBatchSize() / spawnInterval : 0f;
+                GetActiveEnemyCount();
+                return _activeThreat;
             }
         }
+        public float CurrentRawSpawnPerSecond => GetCurrentPressure().SpawnPerSecond;
+        public float ElapsedTime => _elapsedTime;
+        public float GateSpeedMultiplier => _gateSpeedMultiplier;
+        public float GatePressureMultiplier => _gatePressureMultiplier;
 
         public void Init()
         {
@@ -63,7 +79,12 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             _elapsedTime = 0f;
             _nextSpawnTime = 0f;
+            _spawnAccumulator = 0f;
+            _activeThreat = 0f;
+            _gateSpeedMultiplier = 1f;
+            _gatePressureMultiplier = 1f;
             _activeEnemies.Clear();
+            _activeThreatCosts.Clear();
         }
 
         private void Awake()
@@ -79,18 +100,32 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             _elapsedTime += Time.deltaTime;
+            RunPressureSnapshot pressure = GetCurrentPressure();
 
-            TopUpVisibleEnemies();
+            TopUpVisibleEnemies(pressure);
 
-            if (GetActiveEnemyCount() >= GetCurrentMaxActiveEnemies())
+            if (GetActiveEnemyCount() >= pressure.ActiveCap)
             {
                 return;
             }
 
-            if (Time.time >= _nextSpawnTime)
+            _spawnAccumulator = Mathf.Min(
+                MaxSpawnBurstPerFrame,
+                _spawnAccumulator + pressure.SpawnPerSecond * Time.deltaTime);
+
+            int spawnedThisFrame = 0;
+            while (_spawnAccumulator >= 1f
+                && GetActiveEnemyCount() < pressure.ActiveCap
+                && spawnedThisFrame < MaxSpawnBurstPerFrame)
             {
-                Spawn();
-                _nextSpawnTime = Time.time + GetCurrentSpawnInterval();
+                if (!SpawnSingleEnemy(GetSpawnPosition(), false, pressure))
+                {
+                    _spawnAccumulator = 0f;
+                    break;
+                }
+
+                _spawnAccumulator -= 1f;
+                spawnedThisFrame++;
             }
         }
 
@@ -98,7 +133,12 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         {
             _elapsedTime = 0f;
             _nextSpawnTime = Time.time;
+            _spawnAccumulator = 0f;
+            _activeThreat = 0f;
+            _gateSpeedMultiplier = 1f;
+            _gatePressureMultiplier = 1f;
             _activeEnemies.Clear();
+            _activeThreatCosts.Clear();
         }
 
         public void Spawn()
@@ -108,15 +148,16 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
                 return;
             }
 
-            int batchSize = GetCurrentSpawnBatchSize();
+            RunPressureSnapshot pressure = GetCurrentPressure();
+            int batchSize = Mathf.Max(1, GetCurrentSpawnBatchSize());
             for (int spawnIndex = 0; spawnIndex < batchSize; spawnIndex++)
             {
-                if (GetActiveEnemyCount() >= GetCurrentMaxActiveEnemies())
+                if (GetActiveEnemyCount() >= pressure.ActiveCap)
                 {
                     return;
                 }
 
-                SpawnSingleEnemy(GetSpawnPosition(), false);
+                SpawnSingleEnemy(GetSpawnPosition(), false, pressure);
             }
         }
 
@@ -125,19 +166,22 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             _spawningEnabled = isEnabled;
         }
 
-        private void SpawnSingleEnemy(Vector3 spawnPosition, bool basicOnly)
+        private bool SpawnSingleEnemy(
+            Vector3 spawnPosition,
+            bool basicOnly,
+            RunPressureSnapshot pressure)
         {
             if (!_spawningEnabled || playerUnit == null)
             {
-                return;
+                return false;
             }
 
-            EnemySpawnEntry selectedEntry = SelectEnemyEntry(basicOnly);
+            EnemySpawnEntry selectedEntry = SelectEnemyEntry(basicOnly, pressure.ThreatBudget);
             EnemyController selectedPrefab = selectedEntry != null ? selectedEntry.Prefab : enemyPrefab;
 
             if (selectedPrefab == null)
             {
-                return;
+                return false;
             }
 
             EnemyController enemyInstance = poolSystem != null
@@ -146,18 +190,24 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             if (enemyInstance == null)
             {
-                return;
+                return false;
             }
 
             enemyInstance.SetPoolSystem(poolSystem);
             enemyInstance.Init(playerUnit.transform, playerUnit, gameplayCamera);
+            enemyInstance.SetRewardPoints(
+                selectedEntry != null
+                    ? selectedEntry.GetRewardPoints()
+                    : EnemyRoleBalanceDefaults.GetRewardPoints(BalanceEnemyRole.Basic));
+            enemyInstance.SetExternalMoveSpeedMultiplier(_gateSpeedMultiplier);
             ApplyRunProgression(enemyInstance);
             enemyInstance.Killed -= HandleEnemyKilled;
             enemyInstance.Killed += HandleEnemyKilled;
             enemyInstance.Despawned -= HandleEnemyDespawned;
             enemyInstance.Despawned += HandleEnemyDespawned;
             enemyInstance.Spawn();
-            TrackEnemy(enemyInstance);
+            TrackEnemy(enemyInstance, selectedEntry != null ? selectedEntry.GetThreatCost() : 0f);
+            return true;
         }
 
         private float GetCurrentSpawnInterval()
@@ -187,12 +237,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
         private int GetCurrentMaxActiveEnemies()
         {
-            if (runProgressionConfig != null)
-            {
-                return runProgressionConfig.GetMaxActiveEnemies(_elapsedTime);
-            }
-
-            return RunProgressionConfig.GetDefaultMaxActiveEnemies(_elapsedTime);
+            return GetCurrentPressure().ActiveCap;
         }
 
         private int GetCurrentSpawnBatchSize()
@@ -207,12 +252,92 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
         private EnemyRunScaling GetCurrentEnemyRunScaling()
         {
-            if (runProgressionConfig != null)
+            RunPressureSnapshot pressure = GetCurrentPressure();
+            return new EnemyRunScaling(
+                pressure.HpMultiplier,
+                pressure.SpeedMultiplier,
+                pressure.DamageMultiplier,
+                pressure.SpeedMultiplier);
+        }
+
+        private RunPressureSnapshot GetCurrentPressure()
+        {
+            RunPressureSnapshot pressure = runPressureConfig != null
+                ? runPressureConfig.Evaluate(_elapsedTime)
+                : RunPressureConfig.EvaluateDefault(_elapsedTime);
+
+            return ScalePressure(pressure, _gatePressureMultiplier);
+        }
+
+        public void SetBalanceConfiguration(
+            RunPressureConfig pressureConfig,
+            IReadOnlyList<EnemyRoleConfig> roleConfigs)
+        {
+            if (pressureConfig != null)
             {
-                return runProgressionConfig.GetEnemyRunScaling(_elapsedTime);
+                runPressureConfig = pressureConfig;
             }
 
-            return RunProgressionConfig.GetDefaultEnemyRunScaling(_elapsedTime);
+            if (spawnEntries == null || roleConfigs == null)
+            {
+                return;
+            }
+
+            for (int entryIndex = 0; entryIndex < spawnEntries.Count; entryIndex++)
+            {
+                EnemySpawnEntry entry = spawnEntries[entryIndex];
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                BalanceEnemyRole role = entry.ResolveBalanceRole();
+                for (int configIndex = 0; configIndex < roleConfigs.Count; configIndex++)
+                {
+                    EnemyRoleConfig roleConfig = roleConfigs[configIndex];
+                    if (roleConfig != null && roleConfig.Role == role)
+                    {
+                        entry.SetRoleConfig(roleConfig);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void SetGateSpeedMultiplier(float multiplier)
+        {
+            _gateSpeedMultiplier = Mathf.Max(0f, multiplier);
+
+            foreach (EnemyController enemy in _activeEnemies)
+            {
+                enemy?.SetExternalMoveSpeedMultiplier(_gateSpeedMultiplier);
+            }
+        }
+
+        public void SetGatePressureMultiplier(float multiplier)
+        {
+            _gatePressureMultiplier = Mathf.Max(0.1f, multiplier);
+        }
+
+        private static RunPressureSnapshot ScalePressure(
+            RunPressureSnapshot pressure,
+            float multiplier)
+        {
+            float safeMultiplier = Mathf.Max(0.1f, multiplier);
+            int activeCap = Mathf.Max(1, Mathf.CeilToInt(pressure.ActiveCap * safeMultiplier));
+            int minimumVisible = Mathf.Clamp(
+                Mathf.CeilToInt(pressure.MinimumVisible * safeMultiplier),
+                0,
+                activeCap);
+
+            return new RunPressureSnapshot(
+                activeCap,
+                minimumVisible,
+                pressure.ThreatBudget * safeMultiplier,
+                pressure.SpawnPerSecond * safeMultiplier,
+                pressure.HpMultiplier,
+                pressure.DamageMultiplier,
+                pressure.SpeedMultiplier);
         }
 
         private bool HasSpawnableEnemy()
@@ -228,8 +353,8 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
                 if (entry != null
                     && entry.Prefab != null
-                    && entry.GetWeight(_elapsedTime, runProgressionConfig) > 0f
-                    && _elapsedTime >= entry.GetUnlockAfterSeconds(runProgressionConfig))
+                    && entry.GetBalanceWeight() > 0f
+                    && _elapsedTime >= entry.GetBalanceUnlockAfterSeconds())
                 {
                     return true;
                 }
@@ -238,7 +363,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             return false;
         }
 
-        private EnemySpawnEntry SelectEnemyEntry(bool basicOnly = false)
+        private EnemySpawnEntry SelectEnemyEntry(bool basicOnly, float threatBudget)
         {
             if (spawnEntries == null || spawnEntries.Count == 0)
             {
@@ -253,13 +378,17 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
                 if (entry == null
                     || entry.Prefab == null
-                    || (basicOnly && !entry.MatchesProgressionRole(EnemyProgressionRole.BasicMelee))
-                    || _elapsedTime < entry.GetUnlockAfterSeconds(runProgressionConfig))
+                    || (basicOnly && !entry.MatchesBalanceRole(BalanceEnemyRole.Basic))
+                    || _elapsedTime < entry.GetBalanceUnlockAfterSeconds()
+                    || !EnemyRoleBalanceDefaults.CanFitThreat(
+                        _activeThreat,
+                        entry.GetThreatCost(),
+                        threatBudget))
                 {
                     continue;
                 }
 
-                totalWeight += entry.GetWeight(_elapsedTime, runProgressionConfig);
+                totalWeight += entry.GetBalanceWeight();
             }
 
             if (totalWeight <= 0f)
@@ -276,13 +405,17 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
                 if (entry == null
                     || entry.Prefab == null
-                    || (basicOnly && !entry.MatchesProgressionRole(EnemyProgressionRole.BasicMelee))
-                    || _elapsedTime < entry.GetUnlockAfterSeconds(runProgressionConfig))
+                    || (basicOnly && !entry.MatchesBalanceRole(BalanceEnemyRole.Basic))
+                    || _elapsedTime < entry.GetBalanceUnlockAfterSeconds()
+                    || !EnemyRoleBalanceDefaults.CanFitThreat(
+                        _activeThreat,
+                        entry.GetThreatCost(),
+                        threatBudget))
                 {
                     continue;
                 }
 
-                accumulatedWeight += entry.GetWeight(_elapsedTime, runProgressionConfig);
+                accumulatedWeight += entry.GetBalanceWeight();
 
                 if (roll <= accumulatedWeight)
                 {
@@ -304,14 +437,21 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             UntrackEnemy(enemy);
         }
 
-        private void TrackEnemy(EnemyController enemy)
+        private void TrackEnemy(EnemyController enemy, float threatCost)
         {
             if (enemy == null)
             {
                 return;
             }
 
-            _activeEnemies.Add(enemy);
+            if (!_activeEnemies.Add(enemy))
+            {
+                return;
+            }
+
+            float clampedThreatCost = Mathf.Max(0f, threatCost);
+            _activeThreatCosts[enemy] = clampedThreatCost;
+            _activeThreat += clampedThreatCost;
         }
 
         private void UntrackEnemy(EnemyController enemy)
@@ -323,6 +463,13 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             _activeEnemies.Remove(enemy);
+
+            if (_activeThreatCosts.TryGetValue(enemy, out float threatCost))
+            {
+                _activeThreat = Mathf.Max(0f, _activeThreat - threatCost);
+                _activeThreatCosts.Remove(enemy);
+            }
+
             enemy.Killed -= HandleEnemyKilled;
             enemy.Despawned -= HandleEnemyDespawned;
         }
@@ -373,9 +520,12 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             return visibleCount;
         }
 
-        private void TopUpVisibleEnemies()
+        private void TopUpVisibleEnemies(RunPressureSnapshot pressure)
         {
-            int targetVisibleCount = Mathf.Max(0, minimumVisibleEnemies);
+            int targetVisibleCount = Mathf.Clamp(
+                pressure.MinimumVisible,
+                0,
+                pressure.ActiveCap);
 
             if (targetVisibleCount <= 0)
             {
@@ -383,7 +533,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             int activeCount = GetActiveEnemyCount();
-            int maxActiveEnemies = GetCurrentMaxActiveEnemies();
+            int maxActiveEnemies = pressure.ActiveCap;
 
             if (activeCount >= maxActiveEnemies)
             {
@@ -398,13 +548,13 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             int spawnCount = Mathf.Min(missingVisibleEnemies, maxActiveEnemies - activeCount);
-            bool basicOnly = _elapsedTime < RunProgressionConfig.GetDefaultUnlockAfterSeconds(
-                EnemyProgressionRole.ExploderMelee,
-                45f);
 
             for (int spawnIndex = 0; spawnIndex < spawnCount; spawnIndex++)
             {
-                SpawnSingleEnemy(GetVisibleFloorSpawnPosition(), basicOnly);
+                if (!SpawnSingleEnemy(GetVisibleFloorSpawnPosition(), true, pressure))
+                {
+                    return;
+                }
             }
         }
 
@@ -502,8 +652,16 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         [SerializeField] private float spawnWeight = 1f;
         [SerializeField] private float unlockAfterSeconds;
         [SerializeField] private EnemyProgressionRole progressionRole = EnemyProgressionRole.Auto;
+        [SerializeField] private bool overrideBalanceRole;
+        [SerializeField] private BalanceEnemyRole balanceRole = BalanceEnemyRole.Basic;
+        [SerializeField] private EnemyRoleConfig roleConfig;
 
         public EnemyController Prefab => prefab;
+
+        public void SetRoleConfig(EnemyRoleConfig value)
+        {
+            roleConfig = value;
+        }
 
         public float GetUnlockAfterSeconds(RunProgressionConfig progressionConfig)
         {
@@ -532,6 +690,60 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         public bool MatchesProgressionRole(EnemyProgressionRole role)
         {
             return ResolveProgressionRole() == role;
+        }
+
+        public float GetBalanceUnlockAfterSeconds()
+        {
+            return roleConfig != null
+                ? roleConfig.UnlockTimeSeconds
+                : Mathf.Max(
+                    unlockAfterSeconds,
+                    EnemyRoleBalanceDefaults.GetUnlockTimeSeconds(ResolveBalanceRole()));
+        }
+
+        public float GetThreatCost()
+        {
+            return roleConfig != null
+                ? roleConfig.ThreatCost
+                : EnemyRoleBalanceDefaults.GetThreatCost(ResolveBalanceRole());
+        }
+
+        public float GetRewardPoints()
+        {
+            return roleConfig != null
+                ? roleConfig.RewardPoints
+                : EnemyRoleBalanceDefaults.GetRewardPoints(ResolveBalanceRole());
+        }
+
+        public float GetBalanceWeight()
+        {
+            float multiplier = roleConfig != null ? roleConfig.SpawnWeightMultiplier : 1f;
+            return Mathf.Max(0f, spawnWeight) * Mathf.Max(0f, multiplier);
+        }
+
+        public bool MatchesBalanceRole(BalanceEnemyRole role)
+        {
+            return ResolveBalanceRole() == role;
+        }
+
+        public BalanceEnemyRole ResolveBalanceRole()
+        {
+            if (roleConfig != null)
+            {
+                return roleConfig.Role;
+            }
+
+            if (overrideBalanceRole)
+            {
+                return balanceRole;
+            }
+
+            return ResolveProgressionRole() switch
+            {
+                EnemyProgressionRole.ExploderMelee => BalanceEnemyRole.Chomboom,
+                EnemyProgressionRole.Ranged => BalanceEnemyRole.Vomfy,
+                _ => BalanceEnemyRole.Basic
+            };
         }
 
         private EnemyProgressionRole ResolveProgressionRole()

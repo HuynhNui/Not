@@ -1,5 +1,7 @@
 using System;
+using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Gameplay.Player;
+using _Project.Scripts.Systems.Balance;
 using _Project.Scripts.Systems.SaveSystem;
 using UnityEngine;
 
@@ -10,17 +12,11 @@ namespace _Project.Scripts.Systems.ProgressionSystem
     /// </summary>
     public static class PlayerMetaUpgradeService
     {
-        public const int MaxUpgradeLevel = 5;
+        public const int MaxUpgradeLevel = PlayerMetaBalanceConfig.DefaultMaxLevel;
+        [Obsolete("Balance v1 uses explicit level values instead of a shared multiplier.")]
         public const float UpgradeMultiplier = 1.5f;
-
-        private static readonly int[] UpgradeCosts =
-        {
-            100,
-            200,
-            500,
-            1500,
-            5000
-        };
+        private static PlayerMetaBalanceConfig _balanceConfig;
+        private static CombatScalingConfig _combatScalingConfig;
 
         public static readonly UpgradeDefinition[] Definitions =
         {
@@ -92,26 +88,46 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             }
 
             int level = GetLevel(type);
-            return level >= MaxUpgradeLevel ? 0 : UpgradeCosts[level];
+            return level >= MaxUpgradeLevel ? 0 : GetLevelData(level + 1).Cost;
         }
 
         public static float GetCurrentValue(PlayerMetaUpgradeType type)
         {
-            UpgradeDefinition definition = GetDefinition(type);
-            return CalculateValue(definition.BaseValue, GetLevel(type), definition.UsesWholeNumbers);
+            return GetValueForLevel(type, GetLevel(type));
         }
 
         public static float GetNextValue(PlayerMetaUpgradeType type)
         {
-            UpgradeDefinition definition = GetDefinition(type);
             int nextLevel = Mathf.Min(MaxUpgradeLevel, GetLevel(type) + 1);
-            return CalculateValue(definition.BaseValue, nextLevel, definition.UsesWholeNumbers);
+            return GetValueForLevel(type, nextLevel);
         }
 
         public static float CalculateMaxValue(PlayerMetaUpgradeType type)
         {
-            UpgradeDefinition definition = GetDefinition(type);
-            return CalculateValue(definition.BaseValue, MaxUpgradeLevel, definition.UsesWholeNumbers);
+            return GetValueForLevel(type, MaxUpgradeLevel);
+        }
+
+        public static float GetValueForLevel(PlayerMetaUpgradeType type, int level)
+        {
+            PlayerMetaLevelData levelData = GetLevelData(level);
+
+            return type switch
+            {
+                PlayerMetaUpgradeType.Damage => levelData.Damage,
+                PlayerMetaUpgradeType.FireRate => levelData.FireRate,
+                PlayerMetaUpgradeType.MaxHp => levelData.MaxHp,
+                PlayerMetaUpgradeType.ProjectileCount => levelData.ProjectileCount,
+                PlayerMetaUpgradeType.SquadSize => levelData.SquadSize,
+                _ => 0f
+            };
+        }
+
+        public static void Configure(
+            PlayerMetaBalanceConfig balanceConfig,
+            CombatScalingConfig combatScalingConfig)
+        {
+            _balanceConfig = balanceConfig;
+            _combatScalingConfig = combatScalingConfig;
         }
 
         public static string FormatValue(PlayerMetaUpgradeType type, float value)
@@ -126,9 +142,15 @@ namespace _Project.Scripts.Systems.ProgressionSystem
         {
             float damage = GetCurrentValue(PlayerMetaUpgradeType.Damage);
             float fireRate = GetCurrentValue(PlayerMetaUpgradeType.FireRate);
-            float projectileCount = GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount);
-            float squadSize = GetCurrentValue(PlayerMetaUpgradeType.SquadSize);
-            return Mathf.Max(0, Mathf.RoundToInt(damage * fireRate * projectileCount * squadSize * 100f));
+            int projectileCount = Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount));
+            int squadSize = Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize));
+            float effectiveDps = BalanceV1Math.EffectiveDps(
+                damage,
+                fireRate,
+                projectileCount,
+                squadSize,
+                _combatScalingConfig);
+            return Mathf.Max(0, Mathf.RoundToInt(effectiveDps * 100f));
         }
 
         public static bool TryPurchase(PlayerMetaUpgradeType type)
@@ -161,8 +183,14 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
             if (playerController != null)
             {
+                if (_combatScalingConfig != null)
+                {
+                    playerController.SetCombatScalingConfig(_combatScalingConfig);
+                }
+
                 playerController.SetSquadCount(
-                    Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize)));
+                    Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize)),
+                    1f);
             }
 
             SyncFollowersFromMain(playerController, mainPlayerUnit);
@@ -181,21 +209,12 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported player upgrade type.");
         }
 
-        private static float CalculateValue(float baseValue, int level, bool useWholeNumbers)
+        private static PlayerMetaLevelData GetLevelData(int level)
         {
-            float value = Mathf.Max(0f, baseValue);
             int safeLevel = Mathf.Clamp(level, 0, MaxUpgradeLevel);
-
-            for (int index = 0; index < safeLevel; index++)
-            {
-                value *= UpgradeMultiplier;
-                if (useWholeNumbers)
-                {
-                    value = Mathf.CeilToInt(value);
-                }
-            }
-
-            return value;
+            return _balanceConfig != null
+                ? _balanceConfig.GetLevelData(safeLevel)
+                : PlayerMetaBalanceConfig.GetDefaultLevelData(safeLevel);
         }
 
         private static void SyncFollowersFromMain(PlayerController playerController, MainPlayerUnit mainPlayerUnit)

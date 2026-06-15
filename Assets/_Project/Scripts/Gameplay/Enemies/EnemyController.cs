@@ -48,7 +48,10 @@ namespace _Project.Scripts.Gameplay.Enemies
         private float _runtimeContactDamage;
         private int _runtimeScoreValue;
         private int _runtimeCoinReward;
+        private float _runtimeRewardPoints;
+        private bool _hasRuntimeRewardPoints;
         private bool _runtimeDestroyOnPlayerHit;
+        private float _externalMoveSpeedMultiplier = 1f;
 
         public event Action<EnemyController> Killed;
         public event Action<EnemyController> Spawned;
@@ -57,6 +60,9 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         public int ScoreValue => _hasRuntimeStats ? _runtimeScoreValue : scoreValue;
         public int CoinReward => GetCoinReward();
+        public float RewardPoints => _hasRuntimeRewardPoints
+            ? _runtimeRewardPoints
+            : Mathf.Max(0f, GetCoinReward());
         public bool IsActive => _isActive;
         public bool HasArrivedAtHoldPosition => _hasArrivedAtHoldPosition;
         public float CurrentHealth => currentHealth;
@@ -76,6 +82,7 @@ namespace _Project.Scripts.Gameplay.Enemies
             _movementEnabled = true;
             _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
+            _externalMoveSpeedMultiplier = 1f;
             EnsureHealthBar();
             RefreshHealthBar();
         }
@@ -150,9 +157,20 @@ namespace _Project.Scripts.Gameplay.Enemies
             RefreshHealthBar();
         }
 
+        public void SetRewardPoints(float rewardPoints)
+        {
+            _hasRuntimeRewardPoints = true;
+            _runtimeRewardPoints = Mathf.Max(0f, rewardPoints);
+        }
+
         public void SetMovementEnabled(bool isEnabled)
         {
             _movementEnabled = isEnabled;
+        }
+
+        public void SetExternalMoveSpeedMultiplier(float multiplier)
+        {
+            _externalMoveSpeedMultiplier = Mathf.Max(0f, multiplier);
         }
 
         public void SetDamageReceivingEnabled(bool isEnabled)
@@ -332,7 +350,8 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         private float GetMoveSpeed()
         {
-            return _hasRuntimeStats ? _runtimeMoveSpeed : GetBaseMoveSpeed();
+            float baseSpeed = _hasRuntimeStats ? _runtimeMoveSpeed : GetBaseMoveSpeed();
+            return baseSpeed * _externalMoveSpeedMultiplier;
         }
 
         private float GetMaxHealth()
@@ -383,6 +402,8 @@ namespace _Project.Scripts.Gameplay.Enemies
             _runtimeContactDamage = 0f;
             _runtimeScoreValue = 0;
             _runtimeCoinReward = 0;
+            _runtimeRewardPoints = 0f;
+            _hasRuntimeRewardPoints = false;
             _runtimeDestroyOnPlayerHit = false;
         }
 

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3236720684ca14d43af51a52ff1d4451, type: 3}
+  m_Name: EnemyRole_Basic_v1
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.EnemyRoleConfig
+  configVersion: balance-v1.0.0
+  role: 0
+  enemyId: basic
+  baseHp: 2
+  baseSpeed: 2.8
+  baseDamage: 0.5
+  rewardPoints: 0.2
+  scoreValue: 1
+  unlockTimeSeconds: 0
+  threatCost: 0
+  spawnWeightMultiplier: 1
+  poolKey: Enemy

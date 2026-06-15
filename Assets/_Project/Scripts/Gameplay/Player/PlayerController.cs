@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System;
+using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Gates;
 using _Project.Scripts.Gameplay.Combat;
+using _Project.Scripts.Systems.Balance;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -26,19 +28,31 @@ namespace _Project.Scripts.Gameplay.Player
         [SerializeField, Range(30f, 180f)] private float rearArcDegrees = 140f;
         [SerializeField] private float hurtboxRadius = 0.1f;
         [SerializeField] private bool autoFire = true;
+        [SerializeField] private CombatScalingConfig combatScalingConfig;
         private bool _controlsEnabled = true;
+        private float _gateIncomingDamageMultiplier = 1f;
 
         public event Action<PlayerController> SquadDefeated;
+        public event Action<FollowerUnit> FollowerDied;
+        public event Action<FollowerUnit> FollowerPromoted;
 
         public MainPlayerUnit MainPlayerUnit => mainPlayerUnit;
         public PlayerMovement PlayerMovement => playerMovement;
         public IReadOnlyList<FollowerUnit> Followers => followers;
         public int CurrentSquadCount => GetAliveMainCount() + GetActiveFollowerCount();
         public int MaxSquadCount => Mathf.Max(1, maxSquadCount);
+        public float FollowerHpRatio => combatScalingConfig != null
+            ? combatScalingConfig.FollowerHpRatio
+            : 0.25f;
+        public float RecruitSpawnHpRatio => combatScalingConfig != null
+            ? combatScalingConfig.RecruitSpawnHpRatio
+            : 0.5f;
+        public float GateIncomingDamageMultiplier => _gateIncomingDamageMultiplier;
 
         private void Awake()
         {
             ConfigureSquadUnitPhysics(mainPlayerUnit != null ? mainPlayerUnit.gameObject : null);
+            ConfigureMainSpawner();
 
             if (playerMovement != null)
             {
@@ -70,10 +84,12 @@ namespace _Project.Scripts.Gameplay.Player
         {
             if (!_controlsEnabled || !autoFire)
             {
+                TickGateEffects();
                 return;
             }
 
             ShootSquad();
+            TickGateEffects();
         }
 
         public void SetMainPlayerUnit(MainPlayerUnit unit)
@@ -85,6 +101,7 @@ namespace _Project.Scripts.Gameplay.Player
             {
                 ConfigureSquadUnitPhysics(mainPlayerUnit.gameObject);
                 mainPlayerUnit.Initialize();
+                ConfigureMainSpawner();
                 SubscribeToUnit(mainPlayerUnit);
             }
 
@@ -92,6 +109,18 @@ namespace _Project.Scripts.Gameplay.Player
         }
 
         public void AddFollower(FollowerUnit follower)
+        {
+            AddFollower(follower, 1f);
+        }
+
+        public void SetCombatScalingConfig(CombatScalingConfig value)
+        {
+            combatScalingConfig = value;
+            ConfigureMainSpawner();
+            RefreshFollowerFormation();
+        }
+
+        private void AddFollower(FollowerUnit follower, float startingHealthRatio)
         {
             if (follower == null || followers.Contains(follower))
             {
@@ -102,6 +131,7 @@ namespace _Project.Scripts.Gameplay.Player
             follower.Initialize();
             ConfigureSquadUnitPhysics(follower.gameObject);
             ConfigureFollower(follower, followers.Count - 1, restoreFullHealth: true);
+            follower.SetCurrentHp(follower.MaxHp * Mathf.Clamp01(startingHealthRatio));
             SubscribeToUnit(follower);
             RefreshFollowerFormation();
         }
@@ -120,6 +150,11 @@ namespace _Project.Scripts.Gameplay.Player
 
         public void SetSquadCount(int targetCount)
         {
+            SetSquadCount(targetCount, 1f);
+        }
+
+        public void SetSquadCount(int targetCount, float newFollowerStartingHealthRatio)
+        {
             if (mainPlayerUnit == null)
             {
                 return;
@@ -136,7 +171,7 @@ namespace _Project.Scripts.Gameplay.Player
                     break;
                 }
 
-                AddFollower(follower);
+                AddFollower(follower, newFollowerStartingHealthRatio);
             }
 
             while (CurrentSquadCount > clampedTarget && followers.Count > 0)
@@ -209,6 +244,37 @@ namespace _Project.Scripts.Gameplay.Player
             GateEffectApplier.Apply(config, mainPlayerUnit, this);
         }
 
+        public void SetGateIncomingDamageMultiplier(float multiplier)
+        {
+            _gateIncomingDamageMultiplier = Mathf.Max(0f, multiplier);
+            mainPlayerUnit?.SetIncomingDamageMultiplier(_gateIncomingDamageMultiplier);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                followers[index]?.SetIncomingDamageMultiplier(_gateIncomingDamageMultiplier);
+            }
+        }
+
+        public void HealSquadMissingHealth(float missingHealthRatio)
+        {
+            mainPlayerUnit?.HealMissingHealth(missingHealthRatio);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                followers[index]?.HealMissingHealth(missingHealthRatio);
+            }
+        }
+
+        public void AddSquadBarrier(int hitCount, float durationSeconds)
+        {
+            mainPlayerUnit?.AddBarrierHits(hitCount, durationSeconds);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                followers[index]?.AddBarrierHits(hitCount, durationSeconds);
+            }
+        }
+
         public void SyncFollowersFromMain(
             bool syncDamage,
             bool syncFireRate,
@@ -246,7 +312,9 @@ namespace _Project.Scripts.Gameplay.Player
 
                 if (syncMaxHp)
                 {
-                    follower.SetMaxHp(mainPlayerUnit.MaxHp, healByDelta: healMaxHpByDelta);
+                    follower.SetMaxHp(
+                        mainPlayerUnit.MaxHp * FollowerHpRatio,
+                        healByDelta: healMaxHpByDelta);
                 }
 
                 if (syncProjectileCount && follower.BulletSpawner != null)
@@ -254,6 +322,8 @@ namespace _Project.Scripts.Gameplay.Player
                     follower.BulletSpawner.SetProjectileCount(projectileCount);
                 }
             }
+
+            RefreshSquadCombatScaling();
         }
 
         private FollowerUnit CreateFollower(int followerIndex)
@@ -377,10 +447,15 @@ namespace _Project.Scripts.Gameplay.Player
             follower.transform.SetParent(transform, true);
             follower.SetFollowTarget(mainPlayerUnit);
             follower.SetFollowOffset(GetRearArcOffset(followerIndex));
-            follower.ConfigureRuntimeFrom(mainPlayerUnit, restoreFullHealth);
+            follower.ConfigureRuntimeFrom(
+                mainPlayerUnit,
+                restoreFullHealth,
+                FollowerHpRatio);
+            follower.SetIncomingDamageMultiplier(_gateIncomingDamageMultiplier);
 
             if (mainPlayerUnit.BulletSpawner != null && follower.BulletSpawner != null)
             {
+                follower.BulletSpawner.SetCombatScalingConfig(combatScalingConfig);
                 follower.BulletSpawner.SetVisualTierDamage(mainPlayerUnit.Damage);
                 follower.BulletSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount);
             }
@@ -404,6 +479,50 @@ namespace _Project.Scripts.Gameplay.Player
                 {
                     follower.transform.position = mainPlayerUnit.transform.position + GetRearArcOffset(index);
                 }
+            }
+
+            RefreshSquadCombatScaling();
+        }
+
+        private void ConfigureMainSpawner()
+        {
+            if (mainPlayerUnit == null || mainPlayerUnit.BulletSpawner == null)
+            {
+                return;
+            }
+
+            mainPlayerUnit.BulletSpawner.SetCombatScalingConfig(combatScalingConfig);
+            mainPlayerUnit.BulletSpawner.SetShooterDamageScale(1f);
+        }
+
+        private void RefreshSquadCombatScaling()
+        {
+            ConfigureMainSpawner();
+            float followerDamageScale = BalanceV1Math.FollowerDamageScale(
+                Mathf.Max(1, CurrentSquadCount),
+                combatScalingConfig);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                FollowerUnit follower = followers[index];
+                if (follower == null || follower.BulletSpawner == null)
+                {
+                    continue;
+                }
+
+                follower.BulletSpawner.SetCombatScalingConfig(combatScalingConfig);
+                follower.BulletSpawner.SetShooterDamageScale(followerDamageScale);
+            }
+        }
+
+        private void TickGateEffects()
+        {
+            float deltaTime = Time.deltaTime;
+            mainPlayerUnit?.TickGateEffects(deltaTime);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                followers[index]?.TickGateEffects(deltaTime);
             }
         }
 
@@ -534,6 +653,7 @@ namespace _Project.Scripts.Gameplay.Player
             FollowerUnit deadFollower = deadUnit as FollowerUnit;
             if (deadFollower != null)
             {
+                FollowerDied?.Invoke(deadFollower);
                 RemoveDeadFollower(deadFollower);
             }
 
@@ -554,6 +674,8 @@ namespace _Project.Scripts.Gameplay.Player
             }
 
             mainPlayerUnit.ReviveWithStateFrom(promotedFollower);
+            mainPlayerUnit.SetIncomingDamageMultiplier(_gateIncomingDamageMultiplier);
+            FollowerPromoted?.Invoke(promotedFollower);
             UnsubscribeFromUnit(promotedFollower);
             followers.Remove(promotedFollower);
             Destroy(promotedFollower.gameObject);

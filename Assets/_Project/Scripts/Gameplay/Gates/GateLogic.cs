@@ -110,6 +110,12 @@ namespace _Project.Scripts.Gameplay.Gates
                 return;
             }
 
+            if (_gateSystem != null)
+            {
+                _gateSystem.ApplyGateConfig(gateConfig);
+                return;
+            }
+
             if (_playerController != null)
             {
                 _playerController.ApplyGateEffect(gateConfig);
@@ -229,6 +235,7 @@ namespace _Project.Scripts.Gameplay.Gates
 
             if (transform.position.y < bottomLimit)
             {
+                _gateSystem?.HandleGateExpired(this);
                 Despawn();
             }
         }

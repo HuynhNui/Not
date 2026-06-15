@@ -1,0 +1,18 @@
+{
+  "balanceVersion": "balance-v1.0.0",
+  "metaLevels": 6,
+  "pressureSamples": 49,
+  "gateSets": 48,
+  "projectedBasicOnlyCoinsByRunMinutes": {
+    "2": 99.0,
+    "5": 337.5,
+    "10": 939.9
+  },
+  "fullMetaCumulativeCost": 4200,
+  "fullMetaRunsByDuration": {
+    "runsAt2Min": 43,
+    "runsAt5Min": 13,
+    "runsAt10Min": 5
+  },
+  "note": "Economy projection is a basic-enemy-only sensitivity estimate. Use telemetry distributions for production tuning."
+}

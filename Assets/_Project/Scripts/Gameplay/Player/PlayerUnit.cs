@@ -24,11 +24,15 @@ namespace _Project.Scripts.Gameplay.Player
 
         private float _currentHp;
         private bool _isDead;
+        private int _barrierHits;
+        private float _barrierRemainingSeconds;
+        private float _incomingDamageMultiplier = 1f;
         private WorldHealthBarView _healthBarInstance;
 
         protected bool IsInitialized { get; private set; }
 
         public event Action<PlayerUnit> Died;
+        public event Action<PlayerUnit, float> Damaged;
 
         public float Damage => damage;
         public float FireRate => fireRate;
@@ -36,6 +40,8 @@ namespace _Project.Scripts.Gameplay.Player
         public float CurrentHp => _currentHp;
         public float MaxHp => maxHp;
         public bool IsDead => _isDead;
+        public int BarrierHits => _barrierHits;
+        public float IncomingDamageMultiplier => _incomingDamageMultiplier;
 
         protected virtual void Awake()
         {
@@ -100,8 +106,21 @@ namespace _Project.Scripts.Gameplay.Player
                 return;
             }
 
-            _currentHp = Mathf.Max(0f, _currentHp - Mathf.Max(0f, value));
+            if (_barrierHits > 0 && _barrierRemainingSeconds > 0f)
+            {
+                _barrierHits--;
+                return;
+            }
+
+            float appliedDamage = Mathf.Max(0f, value) * _incomingDamageMultiplier;
+            if (appliedDamage <= 0f)
+            {
+                return;
+            }
+
+            _currentHp = Mathf.Max(0f, _currentHp - appliedDamage);
             RefreshHealthBar();
+            Damaged?.Invoke(this, appliedDamage);
 
             if (_currentHp <= 0f)
             {
@@ -112,6 +131,43 @@ namespace _Project.Scripts.Gameplay.Player
         public void RestoreFullHealth()
         {
             SetCurrentHp(maxHp);
+        }
+
+        public void HealMissingHealth(float missingHealthRatio)
+        {
+            float missingHealth = Mathf.Max(0f, maxHp - _currentHp);
+            SetCurrentHp(_currentHp + missingHealth * Mathf.Clamp01(missingHealthRatio));
+        }
+
+        public void AddBarrierHits(int hitCount, float durationSeconds)
+        {
+            _barrierHits += Mathf.Max(0, hitCount);
+            _barrierRemainingSeconds = Mathf.Max(
+                _barrierRemainingSeconds,
+                Mathf.Max(0f, durationSeconds));
+        }
+
+        public void SetIncomingDamageMultiplier(float multiplier)
+        {
+            _incomingDamageMultiplier = Mathf.Max(0f, multiplier);
+        }
+
+        public void TickGateEffects(float deltaTime)
+        {
+            if (_barrierRemainingSeconds <= 0f)
+            {
+                _barrierHits = 0;
+                return;
+            }
+
+            _barrierRemainingSeconds = Mathf.Max(
+                0f,
+                _barrierRemainingSeconds - Mathf.Max(0f, deltaTime));
+
+            if (_barrierRemainingSeconds <= 0f)
+            {
+                _barrierHits = 0;
+            }
         }
 
         public void SetCurrentHp(float value)
@@ -157,8 +213,10 @@ namespace _Project.Scripts.Gameplay.Player
             transform.position = source.transform.position;
             SetDamage(source.Damage);
             SetFireRate(source.FireRate);
-            SetMaxHp(source.MaxHp);
             _isDead = false;
+            _barrierHits = 0;
+            _barrierRemainingSeconds = 0f;
+            _incomingDamageMultiplier = 1f;
             _currentHp = Mathf.Clamp(source.CurrentHp, 1f, maxHp);
 
             if (bulletSpawner != null && source.BulletSpawner != null)
@@ -171,7 +229,10 @@ namespace _Project.Scripts.Gameplay.Player
             RefreshHealthBar();
         }
 
-        public void ConfigureRuntimeFrom(PlayerUnit template, bool restoreFullHealth)
+        public void ConfigureRuntimeFrom(
+            PlayerUnit template,
+            bool restoreFullHealth,
+            float maxHpMultiplier = 1f)
         {
             if (template == null)
             {
@@ -183,7 +244,7 @@ namespace _Project.Scripts.Gameplay.Player
             healthBarAnchor = null;
             SetDamage(template.Damage);
             SetFireRate(template.FireRate);
-            SetMaxHp(template.MaxHp);
+            SetMaxHp(template.MaxHp * Mathf.Max(0f, maxHpMultiplier));
 
             if (restoreFullHealth)
             {

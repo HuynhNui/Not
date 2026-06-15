@@ -60,6 +60,13 @@ namespace _Project.Scripts.Systems.SaveSystem
                 new NoOpCloudSaveProvider());
         }
 
+        public static SaveService CreateForTests(string directoryPath)
+        {
+            return new SaveService(
+                new LocalSaveRepository(directoryPath),
+                new NoOpCloudSaveProvider());
+        }
+
         public static void SetInstanceForTests(SaveService saveService)
         {
             _instance = saveService;
@@ -416,6 +423,8 @@ namespace _Project.Scripts.Systems.SaveSystem
         {
             _data.revision = Math.Max(0, _data.revision) + 1;
             _data.lastUpdatedUnixMs = GetCurrentUnixMs();
+            _data.balanceVersionLastPlayed =
+                _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
             _data.Normalize(_data.lastUpdatedUnixMs);
         }
 

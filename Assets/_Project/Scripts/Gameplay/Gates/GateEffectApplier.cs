@@ -115,7 +115,10 @@ namespace _Project.Scripts.Gameplay.Gates
 
             int current = Mathf.Max(1, squad.CurrentSquadCount);
             int next = Mathf.RoundToInt(ApplyOperation(current, config.OperationType, config.Amount));
-            squad.SetSquadCount(Mathf.Clamp(next, 1, MaxPlayerCount));
+            int clampedNext = Mathf.Clamp(next, 1, MaxPlayerCount);
+            squad.SetSquadCount(
+                clampedNext,
+                clampedNext > current ? squad.RecruitSpawnHpRatio : 1f);
         }
 
         private static float ApplyOperation(float baseValue, GateOperationType operationType, float amount)
