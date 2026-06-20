@@ -253,7 +253,7 @@ namespace _Project.Editor
                 new Vector2(0f, 1f),
                 new Vector2(1f, 1f),
                 new Vector2(0.5f, 1f),
-                new Vector2(0f, -22f),
+                new Vector2(0f, -6f),
                 new Vector2(-40f, 132f));
 
             HorizontalLayoutGroup topLayout = topBar.gameObject.AddComponent<HorizontalLayoutGroup>();
