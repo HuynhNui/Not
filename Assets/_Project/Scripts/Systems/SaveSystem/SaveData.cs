@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -19,7 +19,10 @@ namespace _Project.Scripts.Systems.SaveSystem
         public int bestCoinsEarned;
         public int bestScore;
         public int walletCoins;
+        public int totalRunsCompleted;
+        public int storyStage;
         public List<UpgradeLevelSaveEntry> upgradeLevels = new List<UpgradeLevelSaveEntry>();
+        public List<string> seenCutsceneIds = new List<string>();
 
         public static SaveData CreateNew(long timestampUnixMs)
         {
@@ -47,14 +50,22 @@ namespace _Project.Scripts.Systems.SaveSystem
             bestCoinsEarned = Mathf.Max(0, bestCoinsEarned);
             bestScore = Mathf.Max(0, bestScore);
             walletCoins = Mathf.Max(0, walletCoins);
+            totalRunsCompleted = Mathf.Max(0, totalRunsCompleted);
+            storyStage = Mathf.Max(0, storyStage);
 
             if (upgradeLevels == null)
             {
                 upgradeLevels = new List<UpgradeLevelSaveEntry>();
             }
 
+            if (seenCutsceneIds == null)
+            {
+                seenCutsceneIds = new List<string>();
+            }
+
             RemoveDuplicateOrInvalidUpgradeEntries();
             EnsureAllUpgradeEntries();
+            NormalizeSeenCutsceneIds();
         }
 
         public int GetUpgradeLevel(PlayerMetaUpgradeType type)
@@ -75,6 +86,45 @@ namespace _Project.Scripts.Systems.SaveSystem
             entry.level = Mathf.Max(0, level);
         }
 
+        public bool HasSeenCutscene(string cutsceneId)
+        {
+            string safeId = NormalizeCutsceneId(cutsceneId);
+            if (string.IsNullOrEmpty(safeId) || seenCutsceneIds == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < seenCutsceneIds.Count; index++)
+            {
+                if (string.Equals(seenCutsceneIds[index], safeId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool MarkCutsceneSeen(string cutsceneId)
+        {
+            string safeId = NormalizeCutsceneId(cutsceneId);
+            if (string.IsNullOrEmpty(safeId))
+            {
+                return false;
+            }
+
+            seenCutsceneIds ??= new List<string>();
+
+            if (HasSeenCutscene(safeId))
+            {
+                return false;
+            }
+
+            seenCutsceneIds.Add(safeId);
+            storyStage = Mathf.Max(storyStage, seenCutsceneIds.Count);
+            return true;
+        }
+
         public SaveData Clone()
         {
             var clone = new SaveData
@@ -88,7 +138,10 @@ namespace _Project.Scripts.Systems.SaveSystem
                 bestCoinsEarned = bestCoinsEarned,
                 bestScore = bestScore,
                 walletCoins = walletCoins,
-                upgradeLevels = new List<UpgradeLevelSaveEntry>()
+                totalRunsCompleted = totalRunsCompleted,
+                storyStage = storyStage,
+                upgradeLevels = new List<UpgradeLevelSaveEntry>(),
+                seenCutsceneIds = new List<string>()
             };
 
             if (upgradeLevels != null)
@@ -102,6 +155,18 @@ namespace _Project.Scripts.Systems.SaveSystem
                     }
 
                     clone.upgradeLevels.Add(new UpgradeLevelSaveEntry(entry.upgradeType, entry.level));
+                }
+            }
+
+            if (seenCutsceneIds != null)
+            {
+                for (int index = 0; index < seenCutsceneIds.Count; index++)
+                {
+                    string safeId = NormalizeCutsceneId(seenCutsceneIds[index]);
+                    if (!string.IsNullOrEmpty(safeId))
+                    {
+                        clone.seenCutsceneIds.Add(safeId);
+                    }
                 }
             }
 
@@ -141,6 +206,33 @@ namespace _Project.Scripts.Systems.SaveSystem
 
                 entry.level = Mathf.Clamp(entry.level, 0, PlayerMetaUpgradeService.MaxUpgradeLevel);
             }
+        }
+
+        private void NormalizeSeenCutsceneIds()
+        {
+            var cleanedIds = new List<string>();
+            var seenIds = new HashSet<string>(StringComparer.Ordinal);
+
+            for (int index = 0; index < seenCutsceneIds.Count; index++)
+            {
+                string safeId = NormalizeCutsceneId(seenCutsceneIds[index]);
+                if (string.IsNullOrEmpty(safeId) || !seenIds.Add(safeId))
+                {
+                    continue;
+                }
+
+                cleanedIds.Add(safeId);
+            }
+
+            seenCutsceneIds = cleanedIds;
+            storyStage = Mathf.Max(storyStage, seenCutsceneIds.Count);
+        }
+
+        private static string NormalizeCutsceneId(string cutsceneId)
+        {
+            return string.IsNullOrWhiteSpace(cutsceneId)
+                ? string.Empty
+                : cutsceneId.Trim();
         }
 
         private UpgradeLevelSaveEntry FindUpgradeEntry(PlayerMetaUpgradeType type)

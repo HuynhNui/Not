@@ -126,11 +126,13 @@ namespace _Project.Scripts.Systems.SaveSystem
         {
             EnsureLoaded();
 
-            bool changed = false;
+            bool changed = true;
             float safeSurvivalTime = Mathf.Max(0f, survivalTime);
             int safeEnemyKills = Mathf.Max(0, enemyKills);
             int safeCoinsEarned = Mathf.Max(0, coinsEarned);
             int safeScore = Mathf.Max(0, score);
+
+            _data.totalRunsCompleted = Mathf.Max(0, _data.totalRunsCompleted) + 1;
 
             if (safeSurvivalTime > _data.bestSurvivalTime)
             {
@@ -166,6 +168,25 @@ namespace _Project.Scripts.Systems.SaveSystem
             {
                 CommitAndQueueCloudUpload();
             }
+        }
+
+        public bool HasSeenCutscene(string cutsceneId)
+        {
+            EnsureLoaded();
+            return _data.HasSeenCutscene(cutsceneId);
+        }
+
+        public bool RecordCutsceneSeen(string cutsceneId)
+        {
+            EnsureLoaded();
+
+            if (!_data.MarkCutsceneSeen(cutsceneId))
+            {
+                return false;
+            }
+
+            CommitAndQueueCloudUpload();
+            return true;
         }
 
         public bool TrySpendWalletCoins(int amount)
@@ -392,7 +413,10 @@ namespace _Project.Scripts.Systems.SaveSystem
                 || saveData.bestSurvivalTime > 0f
                 || saveData.bestKillCount > 0
                 || saveData.bestCoinsEarned > 0
-                || saveData.bestScore > 0)
+                || saveData.bestScore > 0
+                || saveData.totalRunsCompleted > 0
+                || saveData.storyStage > 0
+                || (saveData.seenCutsceneIds != null && saveData.seenCutsceneIds.Count > 0))
             {
                 return false;
             }

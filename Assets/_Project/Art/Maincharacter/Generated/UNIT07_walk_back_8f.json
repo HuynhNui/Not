@@ -1,0 +1,16 @@
+{
+  "source": "C:\\Users\\Artermis\\My project\\Assets\\_Project\\Art\\Maincharacter\\UNIT07.aseprite",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "frames": 8,
+  "durationMs": 90,
+  "layout": "horizontal",
+  "animations": {
+    "walk_back": {
+      "from": 0,
+      "to": 7,
+      "loop": true
+    }
+  },
+  "notes": "Non-destructive generated back-view walk cycle draft for UNIT-07."
+}

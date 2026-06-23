@@ -39,6 +39,7 @@ namespace _Project.Scripts.Core.StateMachine
         Bootstrap,
         MainMenu,
         Playing,
+        Cutscene,
         Paused,
         GameOver
     }

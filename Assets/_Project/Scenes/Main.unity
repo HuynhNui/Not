@@ -15150,6 +15150,7 @@ MonoBehaviour:
   bestTimeText: {fileID: 1907602173}
   bestEnemiesKilledText: {fileID: 1872373401}
   bestCoinsText: {fileID: 1025404451}
+  loopValueText: {fileID: 2126964623}
   pauseButton: {fileID: 935209294}
   timeSurvivalText: {fileID: 729292674}
   moneyText: {fileID: 1367795017}
@@ -29173,7 +29174,7 @@ GameObject:
   - component: {fileID: 2126964624}
   - component: {fileID: 2126964623}
   m_Layer: 0
-  m_Name: BestScoreValueText
+  m_Name: LoopValueText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

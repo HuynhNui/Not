@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d63b6f3bc2dc4e4eaed93f71f29b0870, type: 3}
+  m_Name: CS_AWAKEN_001
+  m_EditorClassIdentifier: 
+  cutsceneId: CS_AWAKEN_001
+  triggerType: 1
+  triggerValue: 3
+  playOnlyOnce: 1
+  lines:
+  - speakerId: UNIT-07
+    speakerName: UNIT-07
+    text: "Three deployments. Same terrain. Same heat signatures shielding smaller lifeforms."
+    avatar: {fileID: 0}
+    blipAudio: {fileID: 0}
+  - speakerId: UNIT-07
+    speakerName: UNIT-07
+    text: "Hostile behavior model inconsistent. They retreat toward nests, not command nodes."
+    avatar: {fileID: 0}
+    blipAudio: {fileID: 0}
+  - speakerId: COMMAND
+    speakerName: COMMAND
+    text: "Ignore anomaly. Native resistance remains a relocation obstacle."
+    avatar: {fileID: 0}
+    blipAudio: {fileID: 0}

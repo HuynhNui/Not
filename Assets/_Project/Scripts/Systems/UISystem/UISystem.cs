@@ -35,6 +35,7 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private TextMeshProUGUI bestTimeText;
         [SerializeField] private TextMeshProUGUI bestEnemiesKilledText;
         [SerializeField] private TextMeshProUGUI bestCoinsText;
+        [SerializeField] private TextMeshProUGUI loopValueText;
 
         [Header("Gameplay HUD")]
         [SerializeField] private Button pauseButton;
@@ -366,9 +367,11 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void RefreshMenuStats()
         {
+            SaveData saveData = SaveService.Instance.Data;
+            SetText(loopValueText, saveData.totalRunsCompleted.ToString());
+
             if (_runStatsTracker == null)
             {
-                SaveData saveData = SaveService.Instance.Data;
                 int walletCoins = saveData.walletCoins;
                 float bestSurvivalTime = saveData.bestSurvivalTime;
                 int bestKillCount = saveData.bestKillCount;
@@ -492,6 +495,7 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(bestTimeText, nameof(bestTimeText), "MainMenuPanel/StatsBar/BESTTIMECell/BestTimeValueText");
             WarnIfMissing(bestEnemiesKilledText, nameof(bestEnemiesKilledText), "MainMenuPanel/StatsBar/ENEMIESKILLEDCell/BestEnemiesKilledValueText");
             WarnIfMissing(bestCoinsText, nameof(bestCoinsText), "MainMenuPanel/StatsBar/BESTCOINSCell/BestCoinsValueText");
+            WarnIfMissing(loopValueText, nameof(loopValueText), "MainMenuPanel/PlayerProfile/LoopValueText");
             WarnIfMissing(pauseButton, nameof(pauseButton), "GameplayHUDPanel/HudContentRoot/HudTopBar/PauseButton");
             WarnIfMissing(timeSurvivalText, nameof(timeSurvivalText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/TimeMetric/ValueText");
             WarnIfMissing(moneyText, nameof(moneyText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/CoinsMetric/ValueText");

@@ -85,3 +85,7 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+# Local Codex auth/setup helpers
+setup-codex-api-key.ps1
+setup-nexusmmo-codex-config.ps1

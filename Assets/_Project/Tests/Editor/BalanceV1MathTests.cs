@@ -1,9 +1,11 @@
 using _Project.Scripts.Data.Balance;
+using _Project.Scripts.Data.ScriptableObjects.CutsceneConfigs;
 using _Project.Scripts.Gameplay.Combat;
 using _Project.Scripts.Gameplay.Enemies;
 using _Project.Scripts.Gameplay.Gates;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.Balance;
+using _Project.Scripts.Systems.CutsceneSystem;
 using _Project.Scripts.Systems.GateSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.SaveSystem;
@@ -397,6 +399,179 @@ namespace _Project.Tests.Editor
             Assert.That(saveData.bestCoinsEarned, Is.EqualTo(123));
             Assert.That(saveData.bestScore, Is.EqualTo(456));
             Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(3));
+        }
+
+        [Test]
+        public void SaveData_V2JsonMigratesToV3WithStoryDefaults()
+        {
+            const string legacyJson =
+                "{\"schemaVersion\":2,\"revision\":3,\"lastUpdatedUnixMs\":1234,"
+                + "\"bestSurvivalTime\":99,\"bestKillCount\":5,"
+                + "\"bestCoinsEarned\":10,\"bestScore\":20,\"walletCoins\":30,"
+                + "\"upgradeLevels\":[{\"upgradeType\":\"Damage\",\"level\":1}]}";
+            SaveData saveData = JsonUtility.FromJson<SaveData>(legacyJson);
+
+            saveData.Normalize(9999);
+
+            Assert.That(saveData.schemaVersion, Is.EqualTo(SaveData.CurrentSchemaVersion));
+            Assert.That(saveData.totalRunsCompleted, Is.EqualTo(0));
+            Assert.That(saveData.storyStage, Is.EqualTo(0));
+            Assert.That(saveData.seenCutsceneIds, Is.Not.Null);
+            Assert.That(saveData.seenCutsceneIds, Is.Empty);
+            Assert.That(saveData.walletCoins, Is.EqualTo(30));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SaveData_NormalizesSeenCutsceneIds()
+        {
+            SaveData saveData = SaveData.CreateNew(1000);
+            saveData.seenCutsceneIds = new System.Collections.Generic.List<string>
+            {
+                " CS_BOOT_001 ",
+                "",
+                null,
+                "CS_BOOT_001",
+                "CS_RECYCLE_001"
+            };
+
+            saveData.Normalize(2000);
+
+            Assert.That(saveData.seenCutsceneIds, Has.Count.EqualTo(2));
+            Assert.That(saveData.seenCutsceneIds[0], Is.EqualTo("CS_BOOT_001"));
+            Assert.That(saveData.seenCutsceneIds[1], Is.EqualTo("CS_RECYCLE_001"));
+            Assert.That(saveData.storyStage, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void RecordRunResult_IncrementsCompletedRunsWithoutNewBest()
+        {
+            string directoryPath = Path.Combine(
+                Path.GetTempPath(),
+                $"true-gate-run-count-test-{System.Guid.NewGuid():N}");
+            SaveService service = SaveService.CreateForTests(directoryPath);
+
+            try
+            {
+                service.EnsureLoaded();
+                service.RecordRunResult(120f, 10, 2, 30);
+                int runCountAfterFirstRun = service.Data.totalRunsCompleted;
+
+                service.RecordRunResult(1f, 0, 0, 0);
+
+                Assert.That(runCountAfterFirstRun, Is.EqualTo(1));
+                Assert.That(service.Data.totalRunsCompleted, Is.EqualTo(2));
+                Assert.That(service.Data.bestSurvivalTime, Is.EqualTo(120f).Within(0.0001f));
+            }
+            finally
+            {
+                SaveService.SetInstanceForTests(null);
+                if (Directory.Exists(directoryPath))
+                {
+                    Directory.Delete(directoryPath, recursive: true);
+                }
+            }
+        }
+
+        [Test]
+        public void StoryProgression_SelectsExpectedCutscenesAndSkipsSeen()
+        {
+            string directoryPath = Path.Combine(
+                Path.GetTempPath(),
+                $"true-gate-story-test-{System.Guid.NewGuid():N}");
+            SaveService service = SaveService.CreateForTests(directoryPath);
+            SaveService.SetInstanceForTests(service);
+            GameObject serviceObject = new GameObject("StoryProgressionTest");
+            StoryProgressionService story = serviceObject.AddComponent<StoryProgressionService>();
+
+            CutsceneDefinition boot = CreateCutscene(
+                "CS_BOOT_001",
+                CutsceneTriggerType.BeforeFirstRun,
+                0);
+            CutsceneDefinition recycle = CreateCutscene(
+                "CS_RECYCLE_001",
+                CutsceneTriggerType.AfterCompletedRun,
+                1);
+            CutsceneDefinition awaken = CreateCutscene(
+                "CS_AWAKEN_001",
+                CutsceneTriggerType.AfterCompletedRun,
+                3);
+
+            try
+            {
+                story.ConfigureDefinitionsForTests(
+                    new[] { awaken, recycle, boot },
+                    loadResources: false,
+                    includeBuiltIns: false);
+
+                Assert.That(
+                    story.TryGetNextCutscene(
+                        CutsceneTriggerType.BeforeFirstRun,
+                        0,
+                        out CutsceneDefinition selectedBoot),
+                    Is.True);
+                Assert.That(selectedBoot.Id, Is.EqualTo("CS_BOOT_001"));
+
+                service.RecordCutsceneSeen("CS_BOOT_001");
+                Assert.That(
+                    story.TryGetNextCutscene(
+                        CutsceneTriggerType.BeforeFirstRun,
+                        0,
+                        out _),
+                    Is.False);
+
+                Assert.That(
+                    story.TryGetNextCutscene(
+                        CutsceneTriggerType.AfterCompletedRun,
+                        1,
+                        out CutsceneDefinition selectedRecycle),
+                    Is.True);
+                Assert.That(selectedRecycle.Id, Is.EqualTo("CS_RECYCLE_001"));
+
+                service.RecordCutsceneSeen("CS_RECYCLE_001");
+                Assert.That(
+                    story.TryGetNextCutscene(
+                        CutsceneTriggerType.AfterCompletedRun,
+                        3,
+                        out CutsceneDefinition selectedAwaken),
+                    Is.True);
+                Assert.That(selectedAwaken.Id, Is.EqualTo("CS_AWAKEN_001"));
+
+                service.RecordCutsceneSeen("CS_AWAKEN_001");
+                Assert.That(
+                    story.TryGetNextCutscene(
+                        CutsceneTriggerType.AfterCompletedRun,
+                        3,
+                        out _),
+                    Is.False);
+            }
+            finally
+            {
+                SaveService.SetInstanceForTests(null);
+                Object.DestroyImmediate(boot);
+                Object.DestroyImmediate(recycle);
+                Object.DestroyImmediate(awaken);
+                Object.DestroyImmediate(serviceObject);
+                if (Directory.Exists(directoryPath))
+                {
+                    Directory.Delete(directoryPath, recursive: true);
+                }
+            }
+        }
+
+        private static CutsceneDefinition CreateCutscene(
+            string id,
+            CutsceneTriggerType triggerType,
+            int triggerValue)
+        {
+            CutsceneDefinition definition = ScriptableObject.CreateInstance<CutsceneDefinition>();
+            definition.ConfigureRuntime(
+                id,
+                triggerType,
+                triggerValue,
+                runtimePlayOnlyOnce: true,
+                runtimeLines: new[] { new DialogueLine("TEST", "TEST", "Line") });
+            return definition;
         }
 
         [Test]
