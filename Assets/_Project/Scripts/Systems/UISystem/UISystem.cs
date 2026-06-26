@@ -65,9 +65,13 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private Button pauseHomeButton;
 
         [Header("Game Over")]
+        [SerializeField] private GameOverPanelUI gameOverPanelUI;
         [SerializeField] private TextMeshProUGUI finalTimeText;
+        [SerializeField] private TextMeshProUGUI finalScoreText;
         [SerializeField] private TextMeshProUGUI finalKillText;
         [SerializeField] private TextMeshProUGUI moneyEarnedText;
+        [SerializeField] private TextMeshProUGUI coinRewardText;
+        [SerializeField] private TextMeshProUGUI gameOverBestScoreText;
         [FormerlySerializedAs("bestTimeText")]
         [SerializeField] private TextMeshProUGUI gameOverBestTimeText;
         [FormerlySerializedAs("bestKillText")]
@@ -101,6 +105,7 @@ namespace _Project.Scripts.Systems.UISystem
                 _runStatsTracker = runStatsTracker;
             }
 
+            ResolveGameOverReferences();
             ValidateRequiredReferences();
             WireButtons();
             SaveService.Instance.DataChanged -= HandleSaveDataChanged;
@@ -203,11 +208,18 @@ namespace _Project.Scripts.Systems.UISystem
         {
             Time.timeScale = 0f;
             SetPrimaryPanel(UIScreen.GameOver);
-            SetText(finalTimeText, FormatTime(snapshot.SurvivalTime));
-            SetText(finalKillText, snapshot.EnemyKills.ToString());
-            SetText(moneyEarnedText, snapshot.CoinsEarned.ToString());
-            SetText(gameOverBestTimeText, FormatTime(Mathf.Max(snapshot.BestSurvivalTime, snapshot.SurvivalTime)));
-            SetText(gameOverBestKillText, Mathf.Max(snapshot.BestKillCount, snapshot.EnemyKills).ToString());
+            ResolveGameOverReferences();
+
+            GameResultData resultData = CreateGameResultData(snapshot);
+            if (gameOverPanelUI != null)
+            {
+                gameOverPanelUI.Show(resultData);
+            }
+            else
+            {
+                ApplyGameOverText(resultData);
+            }
+
             RefreshMenuStats();
         }
 
@@ -227,6 +239,7 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void WireButtons()
         {
+            ResolveGameOverReferences();
             WireButton(playButton, nameof(playButton), () => PlayRequested?.Invoke());
             WireButton(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), ShowUpgrade);
             WireButton(mainMenuSettingsButton, nameof(mainMenuSettingsButton), ShowSettingsFromMainMenu);
@@ -243,6 +256,23 @@ namespace _Project.Scripts.Systems.UISystem
 
             WireSettingsControls();
             WireUpgradeRows();
+        }
+
+        private void ResolveGameOverReferences()
+        {
+            if (gameOverPanelUI == null && gameOverPanel != null)
+            {
+                gameOverPanelUI = gameOverPanel.GetComponent<GameOverPanelUI>();
+            }
+
+            if (gameOverPanelUI == null)
+            {
+                return;
+            }
+
+            retryButton ??= gameOverPanelUI.RetryButton;
+            gameOverUpgradeButton ??= gameOverPanelUI.UpgradeButton;
+            gameOverHomeButton ??= gameOverPanelUI.HomeButton;
         }
 
         private void WireSettingsControls()
@@ -476,6 +506,7 @@ namespace _Project.Scripts.Systems.UISystem
             SetActive(gameOverPanel, screen == UIScreen.GameOver);
             SetActive(gameplayHudPanel, screen == UIScreen.Gameplay
                 || screen == UIScreen.Pause
+                || screen == UIScreen.GameOver
                 || (_settingsReturnScreen == UIScreen.Pause && screen == UIScreen.Settings));
         }
 
@@ -487,6 +518,7 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(settingsPanel, nameof(settingsPanel), "GameCanvas/UIRoot/SafeAreaRoot/SettingsPanel");
             WarnIfMissing(pausePanel, nameof(pausePanel), "GameCanvas/UIRoot/SafeAreaRoot/PausePanel");
             WarnIfMissing(gameOverPanel, nameof(gameOverPanel), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
+            WarnIfMissing(gameOverPanelUI, nameof(gameOverPanelUI), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
             WarnIfMissing(playButton, nameof(playButton), "MainMenuPanel/StartRunButton");
             WarnIfMissing(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), "MainMenuPanel/BottomNavigationBar/UPDATEButton");
             WarnIfMissing(mainMenuSettingsButton, nameof(mainMenuSettingsButton), "MainMenuPanel/BottomNavigationBar/SETTINGButton");
@@ -501,7 +533,17 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(moneyText, nameof(moneyText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/CoinsMetric/ValueText");
             WarnIfMissing(enemyDefeatedCountText, nameof(enemyDefeatedCountText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/KillsMetric/ValueText");
             WarnIfMissing(scoreText, nameof(scoreText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/ScoreMetric/ValueText");
-            WarnIfMissing(retryButton, nameof(retryButton), "GameOverPanel/RetryButton");
+            WarnIfMissing(finalTimeText, nameof(finalTimeText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/StatsSection/StatsGrid/TimeStat/FinalTimeText");
+            WarnIfMissing(finalScoreText, nameof(finalScoreText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/StatsSection/StatsGrid/ScoreStat/FinalScoreText");
+            WarnIfMissing(moneyEarnedText, nameof(moneyEarnedText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/StatsSection/StatsGrid/CoinsStat/MoneyEarnedText");
+            WarnIfMissing(coinRewardText, nameof(coinRewardText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/RewardSection/CoinRewardPanel/CoinRewardValueText");
+            WarnIfMissing(finalKillText, nameof(finalKillText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/StatsSection/StatsGrid/KillsStat/FinalKillText");
+            WarnIfMissing(gameOverBestScoreText, nameof(gameOverBestScoreText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/FooterSection/BestRecordRow/BestScoreGroup/GameOverBestScoreText");
+            WarnIfMissing(gameOverBestTimeText, nameof(gameOverBestTimeText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/FooterSection/BestRecordRow/BestTimeGroup/GameOverBestTimeText");
+            WarnIfMissing(gameOverBestKillText, nameof(gameOverBestKillText), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/FooterSection/BestRecordRow/BestKillsGroup/GameOverBestKillText");
+            WarnIfMissing(retryButton, nameof(retryButton), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/ButtonsSection/ButtonsStack/RetryButton");
+            WarnIfMissing(gameOverUpgradeButton, nameof(gameOverUpgradeButton), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/ButtonsSection/ButtonsStack/GameOverUpgradeButton");
+            WarnIfMissing(gameOverHomeButton, nameof(gameOverHomeButton), "GameOverPanel/GameOverContentFrame/PanelCard/ContentRoot/ButtonsSection/ButtonsStack/GameOverHomeButton");
         }
 
         private void WarnIfMissing(UnityEngine.Object reference, string fieldName, string expectedObject)
@@ -540,6 +582,31 @@ namespace _Project.Scripts.Systems.UISystem
         {
             int safeSeconds = Mathf.Max(0, Mathf.FloorToInt(seconds));
             return $"{safeSeconds / 60:00}:{safeSeconds % 60:00}";
+        }
+
+        private static GameResultData CreateGameResultData(RunStatsSnapshot snapshot)
+        {
+            return new GameResultData(
+                snapshot.SurvivalTime,
+                snapshot.Score,
+                snapshot.CoinsEarned,
+                snapshot.EnemyKills,
+                snapshot.CoinsEarned,
+                Mathf.Max(snapshot.BestScore, snapshot.Score),
+                Mathf.Max(snapshot.BestSurvivalTime, snapshot.SurvivalTime),
+                Mathf.Max(snapshot.BestKillCount, snapshot.EnemyKills));
+        }
+
+        private void ApplyGameOverText(GameResultData resultData)
+        {
+            SetText(finalTimeText, FormatTime(resultData.SurvivalTime));
+            SetText(finalScoreText, resultData.Score.ToString("N0"));
+            SetText(finalKillText, resultData.Kills.ToString("N0"));
+            SetText(moneyEarnedText, resultData.CoinsEarned.ToString("N0"));
+            SetText(coinRewardText, $"+{resultData.RewardCoins:N0}");
+            SetText(gameOverBestScoreText, resultData.BestScore.ToString("N0"));
+            SetText(gameOverBestTimeText, FormatTime(resultData.BestSurvivalTime));
+            SetText(gameOverBestKillText, resultData.BestKills.ToString("N0"));
         }
 
         private static void SetText(TextMeshProUGUI target, string value)
