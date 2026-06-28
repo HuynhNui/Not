@@ -13,6 +13,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
     public static class PlayerMetaUpgradeService
     {
         public const int MaxUpgradeLevel = PlayerMetaBalanceConfig.DefaultMaxLevel;
+        public const int RuntimeProjectileCount = 1;
         [Obsolete("Balance v1 uses explicit level values instead of a shared multiplier.")]
         public const float UpgradeMultiplier = 1.5f;
         private static PlayerMetaBalanceConfig _balanceConfig;
@@ -177,8 +178,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
             if (mainPlayerUnit.BulletSpawner != null)
             {
-                mainPlayerUnit.BulletSpawner.SetProjectileCount(
-                    Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount)));
+                mainPlayerUnit.BulletSpawner.SetProjectileCount(RuntimeProjectileCount);
             }
 
             if (playerController != null)

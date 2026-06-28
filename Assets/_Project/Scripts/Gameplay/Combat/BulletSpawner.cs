@@ -24,6 +24,7 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private PoolSystem poolSystem;
         [SerializeField] private float visualTierDamage;
         [SerializeField] private CombatScalingConfig combatScalingConfig;
+        [SerializeField] private int projectileSortingOrderOffset = 500;
         [SerializeField] private List<BulletVisualTier> visualTiers = new List<BulletVisualTier>();
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
 
@@ -61,6 +62,7 @@ namespace _Project.Scripts.Gameplay.Combat
             poolSystem = template.poolSystem != null ? template.poolSystem : FindAnyObjectByType<PoolSystem>();
             visualTierDamage = template.visualTierDamage;
             combatScalingConfig = template.combatScalingConfig;
+            projectileSortingOrderOffset = template.projectileSortingOrderOffset;
             _shooterDamageScale = template._shooterDamageScale;
 
             visualTiers.Clear();
@@ -226,8 +228,36 @@ namespace _Project.Scripts.Gameplay.Combat
             spawnedBullet.SetPoolSystem(poolSystem);
             spawnedBullet.Init(bulletDamage, projectileSpeed);
             spawnedBullet.Configure(this, modifierConfigs);
+            ApplyProjectileSorting(spawnedBullet);
             spawnedBullet.Spawn();
             return spawnedBullet;
+        }
+
+        private void ApplyProjectileSorting(Bullet spawnedBullet)
+        {
+            if (spawnedBullet == null)
+            {
+                return;
+            }
+
+            SpriteRenderer shooterRenderer = GetComponent<SpriteRenderer>();
+            if (shooterRenderer == null)
+            {
+                return;
+            }
+
+            SpriteRenderer[] projectileRenderers = spawnedBullet.GetComponentsInChildren<SpriteRenderer>(true);
+            for (int index = 0; index < projectileRenderers.Length; index++)
+            {
+                SpriteRenderer projectileRenderer = projectileRenderers[index];
+                if (projectileRenderer == null)
+                {
+                    continue;
+                }
+
+                projectileRenderer.sortingLayerID = shooterRenderer.sortingLayerID;
+                projectileRenderer.sortingOrder = shooterRenderer.sortingOrder + projectileSortingOrderOffset;
+            }
         }
 
         private Bullet GetBulletPrefabForCurrentTier()

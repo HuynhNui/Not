@@ -1,10 +1,7 @@
-using System;
 using _Project.Scripts.Core.StateMachine;
 using _Project.Scripts.Data.Balance;
-using _Project.Scripts.Data.ScriptableObjects.CutsceneConfigs;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.CombatSystem;
-using _Project.Scripts.Systems.CutsceneSystem;
 using _Project.Scripts.Systems.EnemySpawnerSystem;
 using _Project.Scripts.Systems.GateSystem;
 using _Project.Scripts.Systems.LevelSystem;
@@ -27,8 +24,6 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private CombatSystem combatSystem;
         [SerializeField] private EnemySpawnerSystem enemySpawnerSystem;
         [SerializeField] private GateSystem gateSystem;
-        [SerializeField] private CutsceneManager cutsceneManager;
-        [SerializeField] private StoryProgressionService storyProgressionService;
         [SerializeField] private UISystem uiSystem;
         [SerializeField] private LevelSystem levelSystem;
         [SerializeField] private RunStatsTracker runStatsTracker;
@@ -73,8 +68,6 @@ namespace _Project.Scripts.Core.GameLoop
             {
                 mainPlayerUnit = FindAnyObjectByType<MainPlayerUnit>();
             }
-
-            ResolveCutsceneSystems();
 
             ApplyBalanceConfiguration();
 
@@ -146,33 +139,6 @@ namespace _Project.Scripts.Core.GameLoop
             }
         }
 
-        private void ResolveCutsceneSystems()
-        {
-            if (storyProgressionService == null)
-            {
-                storyProgressionService = FindAnyObjectByType<StoryProgressionService>();
-            }
-
-            if (storyProgressionService == null)
-            {
-                storyProgressionService = gameObject.AddComponent<StoryProgressionService>();
-            }
-
-            storyProgressionService.Init();
-
-            if (cutsceneManager == null)
-            {
-                cutsceneManager = FindAnyObjectByType<CutsceneManager>();
-            }
-
-            if (cutsceneManager == null)
-            {
-                cutsceneManager = gameObject.AddComponent<CutsceneManager>();
-            }
-
-            cutsceneManager.Init();
-        }
-
         private void ApplyBalanceConfiguration()
         {
             if (balanceConfig == null)
@@ -230,15 +196,6 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void RequestStartRun()
         {
-            int completedRuns = SaveService.Instance.Data.totalRunsCompleted;
-            if (TryPlayStoryCutscene(
-                CutsceneTriggerType.BeforeFirstRun,
-                completedRuns,
-                StartRun))
-            {
-                return;
-            }
-
             StartRun();
         }
 
@@ -268,32 +225,6 @@ namespace _Project.Scripts.Core.GameLoop
             telemetryService?.BeginRun();
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
-        }
-
-        private bool TryPlayStoryCutscene(
-            CutsceneTriggerType triggerType,
-            int triggerValue,
-            Action continuation)
-        {
-            ResolveCutsceneSystems();
-
-            if (cutsceneManager == null
-                || storyProgressionService == null
-                || !storyProgressionService.TryGetNextCutscene(
-                    triggerType,
-                    triggerValue,
-                    out CutsceneDefinition definition))
-            {
-                return false;
-            }
-
-            Time.timeScale = 0f;
-            playerController?.SetControlsEnabled(false);
-            enemySpawnerSystem?.SetSpawningEnabled(false);
-            gateSystem?.SetSpawningEnabled(false);
-            gameStateMachine?.SetState(GameState.Cutscene);
-            cutsceneManager.Play(definition, continuation);
-            return true;
         }
 
         private void PauseRun()
@@ -375,29 +306,15 @@ namespace _Project.Scripts.Core.GameLoop
                 telemetryService?.EndRun(snapshot);
             }
 
-            void ShowGameOverAfterStory()
+            gameStateMachine?.SetState(GameState.GameOver);
+
+            if (runStatsTracker != null)
             {
-                gameStateMachine?.SetState(GameState.GameOver);
-
-                if (runStatsTracker != null)
-                {
-                    uiSystem?.ShowGameOver(snapshot);
-                    return;
-                }
-
-                uiSystem?.ShowGameOver();
-            }
-
-            int completedRuns = SaveService.Instance.Data.totalRunsCompleted;
-            if (TryPlayStoryCutscene(
-                CutsceneTriggerType.AfterCompletedRun,
-                completedRuns,
-                ShowGameOverAfterStory))
-            {
+                uiSystem?.ShowGameOver(snapshot);
                 return;
             }
 
-            ShowGameOverAfterStory();
+            uiSystem?.ShowGameOver();
         }
     }
 }

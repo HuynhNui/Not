@@ -31,6 +31,9 @@ namespace _Project.Scripts.Gameplay.Player
         [SerializeField] private CombatScalingConfig combatScalingConfig;
         private bool _controlsEnabled = true;
         private float _gateIncomingDamageMultiplier = 1f;
+        private const int SortingOrderUnitsPerWorldUnit = 100;
+        private const float FollowerShotLaneLocalSpacing = 0.1f;
+        private const float RightFollowerShotLaneLocalOffset = -0.116f;
 
         public event Action<PlayerController> SquadDefeated;
         public event Action<FollowerUnit> FollowerDied;
@@ -78,6 +81,11 @@ namespace _Project.Scripts.Gameplay.Player
             }
 
             RefreshFollowerFormation();
+        }
+
+        private void LateUpdate()
+        {
+            RefreshSquadSorting();
         }
 
         private void Update()
@@ -299,10 +307,12 @@ namespace _Project.Scripts.Gameplay.Player
                     continue;
                 }
 
+                BulletSpawner followerSpawner = ConfigureFollowerShooter(follower, index);
+
                 if (syncDamage)
                 {
                     follower.SetDamage(mainPlayerUnit.Damage);
-                    follower.BulletSpawner?.SetVisualTierDamage(mainPlayerUnit.Damage);
+                    followerSpawner?.SetVisualTierDamage(mainPlayerUnit.Damage);
                 }
 
                 if (syncFireRate)
@@ -317,9 +327,9 @@ namespace _Project.Scripts.Gameplay.Player
                         healByDelta: healMaxHpByDelta);
                 }
 
-                if (syncProjectileCount && follower.BulletSpawner != null)
+                if (syncProjectileCount && followerSpawner != null)
                 {
-                    follower.BulletSpawner.SetProjectileCount(projectileCount);
+                    followerSpawner.SetProjectileCount(projectileCount);
                 }
             }
 
@@ -334,10 +344,10 @@ namespace _Project.Scripts.Gameplay.Player
                 return Instantiate(followerPrefab, spawnPosition, Quaternion.identity, transform);
             }
 
-            return CreateRuntimeFollower(spawnPosition);
+            return CreateRuntimeFollower(spawnPosition, followerIndex);
         }
 
-        private FollowerUnit CreateRuntimeFollower(Vector3 spawnPosition)
+        private FollowerUnit CreateRuntimeFollower(Vector3 spawnPosition, int followerIndex)
         {
             GameObject followerObject = new GameObject($"Follower_{followers.Count + 1}");
             followerObject.transform.SetParent(transform, true);
@@ -347,21 +357,82 @@ namespace _Project.Scripts.Gameplay.Player
             CopyMainVisual(followerObject);
             ConfigureSquadUnitPhysics(followerObject);
 
-            Transform firePoint = new GameObject("FirePoint").transform;
-            firePoint.SetParent(followerObject.transform, false);
-            firePoint.localPosition = Vector3.zero;
-            firePoint.localRotation = Quaternion.identity;
-            firePoint.localScale = Vector3.one;
+            followerObject.AddComponent<BulletSpawner>();
+            FollowerUnit follower = followerObject.AddComponent<FollowerUnit>();
+            ConfigureFollowerShooter(follower, followerIndex);
+            return follower;
+        }
 
-            BulletSpawner followerSpawner = followerObject.AddComponent<BulletSpawner>();
+        private BulletSpawner ConfigureFollowerShooter(FollowerUnit follower, int followerIndex)
+        {
+            if (follower == null)
+            {
+                return null;
+            }
+
+            BulletSpawner followerSpawner = follower.GetComponent<BulletSpawner>();
+            if (followerSpawner == null)
+            {
+                followerSpawner = follower.gameObject.AddComponent<BulletSpawner>();
+            }
+
+            Transform firePoint = ConfigureFollowerFirePoint(follower.transform, followerIndex);
+
             if (mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null)
             {
                 followerSpawner.ConfigureFromTemplate(mainPlayerUnit.BulletSpawner);
+                followerSpawner.SetCombatScalingConfig(combatScalingConfig);
+                followerSpawner.SetVisualTierDamage(mainPlayerUnit.Damage);
+                followerSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount);
             }
 
             followerSpawner.SetFirePoint(firePoint);
-            FollowerUnit follower = followerObject.AddComponent<FollowerUnit>();
-            return follower;
+
+            if (follower.BulletSpawner == null)
+            {
+                follower.Initialize();
+            }
+
+            return follower.BulletSpawner != null ? follower.BulletSpawner : followerSpawner;
+        }
+
+        private Transform ConfigureFollowerFirePoint(Transform followerTransform, int followerIndex)
+        {
+            Transform firePoint = followerTransform.Find("FirePoint");
+            if (firePoint == null)
+            {
+                firePoint = new GameObject("FirePoint").transform;
+                firePoint.SetParent(followerTransform, false);
+            }
+
+            Transform mainFirePoint = mainPlayerUnit != null ? mainPlayerUnit.transform.Find("FirePoint") : null;
+            if (mainFirePoint == null)
+            {
+                firePoint.localPosition = Vector3.zero;
+                firePoint.localRotation = Quaternion.identity;
+                firePoint.localScale = Vector3.one;
+                return firePoint;
+            }
+
+            Vector3 lanePosition = mainFirePoint.localPosition;
+            lanePosition.x += GetFollowerShotLaneOffset(followerIndex);
+            firePoint.localPosition = lanePosition;
+            firePoint.localRotation = mainFirePoint.localRotation;
+            firePoint.localScale = mainFirePoint.localScale;
+            return firePoint;
+        }
+
+        private float GetFollowerShotLaneOffset(int followerIndex)
+        {
+            Vector3 formationOffset = GetRearArcOffset(followerIndex);
+            if (Mathf.Abs(formationOffset.x) <= 0.001f)
+            {
+                return -FollowerShotLaneLocalSpacing;
+            }
+
+            return formationOffset.x > 0f
+                ? RightFollowerShotLaneLocalOffset
+                : -FollowerShotLaneLocalSpacing;
         }
 
         private void CopyMainVisual(GameObject followerObject)
@@ -388,12 +459,25 @@ namespace _Project.Scripts.Gameplay.Player
             followerRenderer.drawMode = mainRenderer.drawMode;
             followerRenderer.size = mainRenderer.size;
             followerRenderer.sortingLayerID = mainRenderer.sortingLayerID;
-            followerRenderer.sortingOrder = mainRenderer.sortingOrder - 1;
+            followerRenderer.sortingOrder = mainRenderer.sortingOrder;
 
             if (mainRenderer.sharedMaterial != null)
             {
                 followerRenderer.sharedMaterial = mainRenderer.sharedMaterial;
             }
+
+            Animator mainAnimator = mainPlayerUnit.GetComponent<Animator>();
+            if (mainAnimator == null || mainAnimator.runtimeAnimatorController == null)
+            {
+                return;
+            }
+
+            Animator followerAnimator = followerObject.AddComponent<Animator>();
+            followerAnimator.runtimeAnimatorController = mainAnimator.runtimeAnimatorController;
+            followerAnimator.avatar = mainAnimator.avatar;
+            followerAnimator.applyRootMotion = mainAnimator.applyRootMotion;
+            followerAnimator.updateMode = mainAnimator.updateMode;
+            followerAnimator.cullingMode = mainAnimator.cullingMode;
         }
 
         private void ConfigureSquadUnitPhysics(GameObject unitObject)
@@ -453,11 +537,12 @@ namespace _Project.Scripts.Gameplay.Player
                 FollowerHpRatio);
             follower.SetIncomingDamageMultiplier(_gateIncomingDamageMultiplier);
 
-            if (mainPlayerUnit.BulletSpawner != null && follower.BulletSpawner != null)
+            BulletSpawner followerSpawner = ConfigureFollowerShooter(follower, followerIndex);
+            if (mainPlayerUnit.BulletSpawner != null && followerSpawner != null)
             {
-                follower.BulletSpawner.SetCombatScalingConfig(combatScalingConfig);
-                follower.BulletSpawner.SetVisualTierDamage(mainPlayerUnit.Damage);
-                follower.BulletSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount);
+                followerSpawner.SetCombatScalingConfig(combatScalingConfig);
+                followerSpawner.SetVisualTierDamage(mainPlayerUnit.Damage);
+                followerSpawner.SetProjectileCount(mainPlayerUnit.BulletSpawner.ProjectileCount);
             }
         }
 
@@ -482,6 +567,43 @@ namespace _Project.Scripts.Gameplay.Player
             }
 
             RefreshSquadCombatScaling();
+            RefreshSquadSorting();
+        }
+
+        private void RefreshSquadSorting()
+        {
+            if (mainPlayerUnit == null)
+            {
+                return;
+            }
+
+            SpriteRenderer mainRenderer = mainPlayerUnit.GetComponent<SpriteRenderer>();
+            if (mainRenderer == null)
+            {
+                return;
+            }
+
+            int baseSortingOrder = mainRenderer.sortingOrder;
+            float mainY = mainPlayerUnit.transform.position.y;
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                FollowerUnit follower = followers[index];
+                if (follower == null)
+                {
+                    continue;
+                }
+
+                SpriteRenderer followerRenderer = follower.GetComponent<SpriteRenderer>();
+                if (followerRenderer == null)
+                {
+                    continue;
+                }
+
+                float yOffsetFromMain = mainY - follower.transform.position.y;
+                int ySortingOffset = Mathf.RoundToInt(yOffsetFromMain * SortingOrderUnitsPerWorldUnit);
+                followerRenderer.sortingOrder = baseSortingOrder + ySortingOffset + index + 1;
+            }
         }
 
         private void ConfigureMainSpawner()
@@ -505,13 +627,14 @@ namespace _Project.Scripts.Gameplay.Player
             for (int index = 0; index < followers.Count; index++)
             {
                 FollowerUnit follower = followers[index];
-                if (follower == null || follower.BulletSpawner == null)
+                BulletSpawner followerSpawner = ConfigureFollowerShooter(follower, index);
+                if (follower == null || followerSpawner == null)
                 {
                     continue;
                 }
 
-                follower.BulletSpawner.SetCombatScalingConfig(combatScalingConfig);
-                follower.BulletSpawner.SetShooterDamageScale(followerDamageScale);
+                followerSpawner.SetCombatScalingConfig(combatScalingConfig);
+                followerSpawner.SetShooterDamageScale(followerDamageScale);
             }
         }
 

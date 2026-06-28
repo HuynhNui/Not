@@ -12,6 +12,8 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private Transform fillTransform;
         [SerializeField] private SpriteRenderer fillRenderer;
         [SerializeField] private Image fillImage;
+        [SerializeField] private Canvas canvas;
+        [SerializeField] private int sortingOrderOffset = 1000;
         [SerializeField] private bool compensateParentScale = true;
         [SerializeField] private bool alignToWorld = true;
         [SerializeField] private Color fullColor = new Color(0.19f, 0.86f, 0.33f, 1f);
@@ -28,6 +30,11 @@ namespace _Project.Scripts.Systems.UISystem
             {
                 fillImage = FindFillImage();
             }
+
+            if (canvas == null)
+            {
+                canvas = GetComponent<Canvas>();
+            }
         }
 
         private void LateUpdate()
@@ -43,6 +50,8 @@ namespace _Project.Scripts.Systems.UISystem
             {
                 ApplyCompensatedScale();
             }
+
+            RefreshSorting();
         }
 
         public void Configure(Vector3 localOffset)
@@ -85,6 +94,24 @@ namespace _Project.Scripts.Systems.UISystem
                 _baseLocalScale.x * InverseScale(parentScale.x),
                 _baseLocalScale.y * InverseScale(parentScale.y),
                 _baseLocalScale.z);
+        }
+
+        private void RefreshSorting()
+        {
+            if (canvas == null || transform.parent == null)
+            {
+                return;
+            }
+
+            SpriteRenderer parentRenderer = transform.parent.GetComponentInParent<SpriteRenderer>();
+            if (parentRenderer == null)
+            {
+                return;
+            }
+
+            canvas.overrideSorting = true;
+            canvas.sortingLayerID = parentRenderer.sortingLayerID;
+            canvas.sortingOrder = parentRenderer.sortingOrder + sortingOrderOffset;
         }
 
         private static float InverseScale(float value)

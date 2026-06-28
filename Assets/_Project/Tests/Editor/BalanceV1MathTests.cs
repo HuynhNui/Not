@@ -1,11 +1,9 @@
 using _Project.Scripts.Data.Balance;
-using _Project.Scripts.Data.ScriptableObjects.CutsceneConfigs;
 using _Project.Scripts.Gameplay.Combat;
 using _Project.Scripts.Gameplay.Enemies;
 using _Project.Scripts.Gameplay.Gates;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.Balance;
-using _Project.Scripts.Systems.CutsceneSystem;
 using _Project.Scripts.Systems.GateSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.SaveSystem;
@@ -471,107 +469,6 @@ namespace _Project.Tests.Editor
                     Directory.Delete(directoryPath, recursive: true);
                 }
             }
-        }
-
-        [Test]
-        public void StoryProgression_SelectsExpectedCutscenesAndSkipsSeen()
-        {
-            string directoryPath = Path.Combine(
-                Path.GetTempPath(),
-                $"true-gate-story-test-{System.Guid.NewGuid():N}");
-            SaveService service = SaveService.CreateForTests(directoryPath);
-            SaveService.SetInstanceForTests(service);
-            GameObject serviceObject = new GameObject("StoryProgressionTest");
-            StoryProgressionService story = serviceObject.AddComponent<StoryProgressionService>();
-
-            CutsceneDefinition boot = CreateCutscene(
-                "CS_BOOT_001",
-                CutsceneTriggerType.BeforeFirstRun,
-                0);
-            CutsceneDefinition recycle = CreateCutscene(
-                "CS_RECYCLE_001",
-                CutsceneTriggerType.AfterCompletedRun,
-                1);
-            CutsceneDefinition awaken = CreateCutscene(
-                "CS_AWAKEN_001",
-                CutsceneTriggerType.AfterCompletedRun,
-                3);
-
-            try
-            {
-                story.ConfigureDefinitionsForTests(
-                    new[] { awaken, recycle, boot },
-                    loadResources: false,
-                    includeBuiltIns: false);
-
-                Assert.That(
-                    story.TryGetNextCutscene(
-                        CutsceneTriggerType.BeforeFirstRun,
-                        0,
-                        out CutsceneDefinition selectedBoot),
-                    Is.True);
-                Assert.That(selectedBoot.Id, Is.EqualTo("CS_BOOT_001"));
-
-                service.RecordCutsceneSeen("CS_BOOT_001");
-                Assert.That(
-                    story.TryGetNextCutscene(
-                        CutsceneTriggerType.BeforeFirstRun,
-                        0,
-                        out _),
-                    Is.False);
-
-                Assert.That(
-                    story.TryGetNextCutscene(
-                        CutsceneTriggerType.AfterCompletedRun,
-                        1,
-                        out CutsceneDefinition selectedRecycle),
-                    Is.True);
-                Assert.That(selectedRecycle.Id, Is.EqualTo("CS_RECYCLE_001"));
-
-                service.RecordCutsceneSeen("CS_RECYCLE_001");
-                Assert.That(
-                    story.TryGetNextCutscene(
-                        CutsceneTriggerType.AfterCompletedRun,
-                        3,
-                        out CutsceneDefinition selectedAwaken),
-                    Is.True);
-                Assert.That(selectedAwaken.Id, Is.EqualTo("CS_AWAKEN_001"));
-
-                service.RecordCutsceneSeen("CS_AWAKEN_001");
-                Assert.That(
-                    story.TryGetNextCutscene(
-                        CutsceneTriggerType.AfterCompletedRun,
-                        3,
-                        out _),
-                    Is.False);
-            }
-            finally
-            {
-                SaveService.SetInstanceForTests(null);
-                Object.DestroyImmediate(boot);
-                Object.DestroyImmediate(recycle);
-                Object.DestroyImmediate(awaken);
-                Object.DestroyImmediate(serviceObject);
-                if (Directory.Exists(directoryPath))
-                {
-                    Directory.Delete(directoryPath, recursive: true);
-                }
-            }
-        }
-
-        private static CutsceneDefinition CreateCutscene(
-            string id,
-            CutsceneTriggerType triggerType,
-            int triggerValue)
-        {
-            CutsceneDefinition definition = ScriptableObject.CreateInstance<CutsceneDefinition>();
-            definition.ConfigureRuntime(
-                id,
-                triggerType,
-                triggerValue,
-                runtimePlayOnlyOnce: true,
-                runtimeLines: new[] { new DialogueLine("TEST", "TEST", "Line") });
-            return definition;
         }
 
         [Test]
