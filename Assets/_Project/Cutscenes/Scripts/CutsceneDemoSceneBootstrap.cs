@@ -12,7 +12,7 @@ namespace _Project.Cutscenes
 {
     public sealed class CutsceneDemoSceneBootstrap : MonoBehaviour
     {
-        private const string Unit07SpritePath = "Assets/_Project/Art/Maincharacter/UNIX07.aseprite";
+        private const string Unit07SpritePath = "Assets/_Project/Art/Maincharacter/UNIX07ForDialogue.png";
         private const string SystemSpritePath = "Assets/Easy Cutscene/Assets/Sprites/Characters/SampleTwo_Idle.png";
 
         private static readonly string[] ButtonLabels =
@@ -408,7 +408,7 @@ namespace _Project.Cutscenes
         private static void AssignDemoSprites(Image unitPortrait, Image systemPortrait)
         {
 #if UNITY_EDITOR
-            Sprite unitSprite = LoadSpriteAsset(Unit07SpritePath, "Frame_0");
+            Sprite unitSprite = LoadSpriteAsset(Unit07SpritePath, "UNIX07ForDialogue_0");
             if (unitSprite != null)
             {
                 unitPortrait.sprite = unitSprite;
@@ -416,7 +416,7 @@ namespace _Project.Cutscenes
             }
             else
             {
-                Debug.LogWarning($"Could not load UNIT-07 demo sprite '{Unit07SpritePath}' Frame_0.");
+                Debug.LogWarning($"Could not load UNIT-07 demo sprite '{Unit07SpritePath}' UNIX07ForDialogue_0.");
             }
 
             Sprite systemSprite = AssetDatabase.LoadAssetAtPath<Sprite>(SystemSpritePath);

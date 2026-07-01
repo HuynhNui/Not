@@ -10284,7 +10284,7 @@ RectTransform:
   m_GameObject: {fileID: 608041769}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9231385, y: 0.9231385, z: 0.9231385}
+  m_LocalScale: {x: 0.62, y: 0.62, z: 0.62}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1014810352}
@@ -35805,8 +35805,8 @@ MonoBehaviour:
   laneSpacing: 2.2
   gateCount: 3
   laneGapWorld: 0.08
-  gateHeightToWidth: 1.35
-  maxGateHeightViewport: 0.18
+  gateHeightToWidth: 0.833333
+  maxGateHeightViewport: 0.27
   minGateWorldWidth: 0.55
   topReservedViewport: 0.18
   bottomReservedViewport: 0.16

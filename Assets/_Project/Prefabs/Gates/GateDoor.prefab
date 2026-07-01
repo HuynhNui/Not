@@ -91,7 +91,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 1
-  m_Size: {x: 1.6, y: 2.4}
+  m_Size: {x: 1.92, y: 1.6}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -135,12 +135,12 @@ BoxCollider2D:
     border: {x: 0.049999997, y: 0.049999997, z: 0.049999997, w: 0.049999997}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 0.16, y: 0.16}
-    newSize: {x: 1.6, y: 2.4}
+    newSize: {x: 1.92, y: 1.6}
     adaptiveTilingThreshold: 0.5
     drawMode: 1
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.4, y: 2.2}
+  m_Size: {x: 1.55, y: 1.35}
   m_EdgeRadius: 0
 --- !u!50 &4468739185120289754
 Rigidbody2D:
@@ -214,14 +214,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Gameplay.Gates.DoorView
   frameRenderer: {fileID: 330197624208655506}
+  gateSpriteLibrary: {fileID: 11400000, guid: a0f51b81b68e2704d877eb0847661c7e, type: 2}
   worldLabelText: {fileID: 0}
   legacyLabelText: {fileID: 0}
   positiveColor: {r: 0.2, g: 0.85, b: 0.45, a: 0.95}
   negativeColor: {r: 0.95, g: 0.3, b: 0.25, a: 0.95}
   neutralColor: {r: 0.35, g: 0.65, b: 1, a: 0.95}
   useCompactLabel: 1
-  minFontSize: 0.08
-  maxFontSize: 3.36
-  worldLabelPadding: {x: 0.06, y: 0.14}
+  minFontSize: 0.09
+  maxFontSize: 0.45
+  worldLabelPadding: {x: 0.02, y: 0.02}
+  worldLabelRectMin: {x: 0.3, y: 0.12}
+  worldLabelRectMax: {x: 0.7, y: 0.43}
   worldLabelZOffset: -0.1
   labelSortingOrderOffset: 5

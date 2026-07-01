@@ -55,6 +55,61 @@ namespace TrueGate.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator ProjectileGateRuntimeEffect_IncrementsMainAndFollowerProjectileCount()
+        {
+            GameObject squadObject = new GameObject("ProjectileGateRuntimeTest");
+            ScriptableObject gateConfig = null;
+
+            try
+            {
+                Component bulletSpawner = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Combat.BulletSpawner"));
+                Component main = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Player.MainPlayerUnit"));
+                Component controller = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
+                Invoke(controller, "SetMainPlayerUnit", main);
+                Invoke(main, "SetMaxHp", 20f, false);
+                Invoke(main, "RestoreFullHealth");
+                Invoke(controller, "SetSquadCount", 2, 0.5f);
+
+                Component runtimeController = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Gates.GateRuntimeEffectController"));
+                Invoke(runtimeController, "Configure", main, controller, null);
+
+                gateConfig = ScriptableObject.CreateInstance(
+                    RuntimeType("_Project.Scripts.Data.ScriptableObjects.GateConfigs.GateConfig"));
+                Invoke(
+                    gateConfig,
+                    "ConfigureRuntime",
+                    FindDefaultGateEntryById("major_projectile"));
+
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(1));
+
+                var followers = (IList)GetProperty(controller, "Followers");
+                Assert.That(followers.Count, Is.EqualTo(1));
+
+                Invoke(runtimeController, "Apply", gateConfig);
+
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(2));
+
+                Component follower = (Component)followers[0];
+                Component followerSpawner = (Component)GetProperty(follower, "BulletSpawner");
+                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(2));
+                yield return null;
+            }
+            finally
+            {
+                if (gateConfig != null)
+                {
+                    UnityEngine.Object.Destroy(gateConfig);
+                }
+
+                UnityEngine.Object.Destroy(squadObject);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator RecruitAndPromotion_PreserveExpectedHealthRatios()
         {
             GameObject squadObject = new GameObject("SquadHealthPlayModeTest");
@@ -217,6 +272,25 @@ namespace TrueGate.PlayModeTests
         {
             Invoke(unit, "SetMaxHp", 10f, false);
             Invoke(unit, "RestoreFullHealth");
+        }
+
+        private static object FindDefaultGateEntryById(string gateId)
+        {
+            Type gatePoolType = RuntimeType("_Project.Scripts.Data.Balance.GatePoolConfig");
+            IEnumerable entries = (IEnumerable)gatePoolType.GetMethod(
+                "CreateDefaultEntries",
+                BindingFlags.Public | BindingFlags.Static)
+                .Invoke(null, null);
+
+            foreach (object entry in entries)
+            {
+                if ((string)GetProperty(entry, "GateId") == gateId)
+                {
+                    return entry;
+                }
+            }
+
+            throw new AssertionException($"Missing default gate entry '{gateId}'.");
         }
 
         private static Type RuntimeType(string fullName)

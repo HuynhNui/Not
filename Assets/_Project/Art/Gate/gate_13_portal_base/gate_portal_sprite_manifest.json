@@ -1,0 +1,223 @@
+[
+  {
+    "index": 0,
+    "group": "stable",
+    "slug": "damage",
+    "display_text": "DAMAGE +10%",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "stable_01_damage_portal_base_192x160.png",
+    "individual_full_res": "stable_01_damage_portal_base.png",
+    "source_sheet": "stable_portal_sheet_alpha.png",
+    "source_crop_box": [
+      76,
+      68,
+      654,
+      684
+    ]
+  },
+  {
+    "index": 1,
+    "group": "stable",
+    "slug": "fire_rate",
+    "display_text": "FIRE RATE +0.2",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "stable_02_fire_rate_portal_base_192x160.png",
+    "individual_full_res": "stable_02_fire_rate_portal_base.png",
+    "source_sheet": "stable_portal_sheet_alpha.png",
+    "source_crop_box": [
+      705,
+      68,
+      1281,
+      683
+    ]
+  },
+  {
+    "index": 2,
+    "group": "stable",
+    "slug": "max_hp",
+    "display_text": "MAX HP +8%",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "stable_03_max_hp_portal_base_192x160.png",
+    "individual_full_res": "stable_03_max_hp_portal_base.png",
+    "source_sheet": "stable_portal_sheet_alpha.png",
+    "source_crop_box": [
+      1328,
+      68,
+      1905,
+      683
+    ]
+  },
+  {
+    "index": 3,
+    "group": "utility",
+    "slug": "repair",
+    "display_text": "REPAIR 20%",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "utility_01_repair_portal_base_192x160.png",
+    "individual_full_res": "utility_01_repair_portal_base.png",
+    "source_sheet": "utility_portal_sheet_alpha.png",
+    "source_crop_box": [
+      63,
+      82,
+      679,
+      683
+    ]
+  },
+  {
+    "index": 4,
+    "group": "utility",
+    "slug": "barrier",
+    "display_text": "BARRIER 1 HIT",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "utility_02_barrier_portal_base_192x160.png",
+    "individual_full_res": "utility_02_barrier_portal_base.png",
+    "source_sheet": "utility_portal_sheet_alpha.png",
+    "source_crop_box": [
+      702,
+      77,
+      1292,
+      683
+    ]
+  },
+  {
+    "index": 5,
+    "group": "utility",
+    "slug": "freeze",
+    "display_text": "FREEZE 20S",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "utility_03_freeze_portal_base_192x160.png",
+    "individual_full_res": "utility_03_freeze_portal_base.png",
+    "source_sheet": "utility_portal_sheet_alpha.png",
+    "source_crop_box": [
+      1316,
+      69,
+      1922,
+      684
+    ]
+  },
+  {
+    "index": 6,
+    "group": "risky",
+    "slug": "glass_cannon",
+    "display_text": "GLASS CANNON",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "risky_01_glass_cannon_portal_base_192x160.png",
+    "individual_full_res": "risky_01_glass_cannon_portal_base.png",
+    "source_sheet": "risky_portal_sheet_alpha.png",
+    "source_crop_box": [
+      29,
+      89,
+      507,
+      685
+    ]
+  },
+  {
+    "index": 7,
+    "group": "risky",
+    "slug": "bullet_storm",
+    "display_text": "BULLET STORM",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "risky_02_bullet_storm_portal_base_192x160.png",
+    "individual_full_res": "risky_02_bullet_storm_portal_base.png",
+    "source_sheet": "risky_portal_sheet_alpha.png",
+    "source_crop_box": [
+      516,
+      89,
+      988,
+      686
+    ]
+  },
+  {
+    "index": 8,
+    "group": "risky",
+    "slug": "reinforcement",
+    "display_text": "REINFORCEMENT",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "risky_03_reinforcement_portal_base_192x160.png",
+    "individual_full_res": "risky_03_reinforcement_portal_base.png",
+    "source_sheet": "risky_portal_sheet_alpha.png",
+    "source_crop_box": [
+      997,
+      89,
+      1463,
+      686
+    ]
+  },
+  {
+    "index": 9,
+    "group": "risky",
+    "slug": "bounty",
+    "display_text": "BOUNTY 30S",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "risky_04_bounty_portal_base_192x160.png",
+    "individual_full_res": "risky_04_bounty_portal_base.png",
+    "source_sheet": "risky_portal_sheet_alpha.png",
+    "source_crop_box": [
+      1472,
+      89,
+      1943,
+      686
+    ]
+  },
+  {
+    "index": 10,
+    "group": "major",
+    "slug": "projectile",
+    "display_text": "PROJECTILE +1",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "major_01_projectile_portal_base_192x160.png",
+    "individual_full_res": "major_01_projectile_portal_base.png",
+    "source_sheet": "major_portal_sheet_alpha.png",
+    "source_crop_box": [
+      94,
+      9,
+      693,
+      674
+    ]
+  },
+  {
+    "index": 11,
+    "group": "major",
+    "slug": "recruit",
+    "display_text": "RECRUIT +1",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "major_02_recruit_portal_base_192x160.png",
+    "individual_full_res": "major_02_recruit_portal_base.png",
+    "source_sheet": "major_portal_sheet_alpha.png",
+    "source_crop_box": [
+      787,
+      9,
+      1386,
+      674
+    ]
+  },
+  {
+    "index": 12,
+    "group": "major",
+    "slug": "overclock",
+    "display_text": "OVERCLOCK",
+    "cell_width": 192,
+    "cell_height": 160,
+    "individual_192x160": "major_03_overclock_portal_base_192x160.png",
+    "individual_full_res": "major_03_overclock_portal_base.png",
+    "source_sheet": "major_portal_sheet_alpha.png",
+    "source_crop_box": [
+      1482,
+      9,
+      2079,
+      674
+    ]
+  }
+]

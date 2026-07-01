@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6db7f277e99ab54eb0b7c20c34b495b, type: 3}
+  m_Name: GateSpriteLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.ScriptableObjects.GateConfigs.GateSpriteLibrary
+  entries:
+  - gateId: stable_damage
+    sprite: {fileID: 7869737316896374285, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: stable_fire_rate
+    sprite: {fileID: -4227187797848984054, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: stable_vitality
+    sprite: {fileID: -4223262568120390362, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: utility_repair
+    sprite: {fileID: 220840082169912048, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: utility_barrier
+    sprite: {fileID: 1325130045217690283, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: utility_freeze
+    sprite: {fileID: -8913587293687782959, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: risky_glass_cannon
+    sprite: {fileID: -374570315821106087, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: risky_bullet_storm
+    sprite: {fileID: 5726344100236503188, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: risky_reinforcement
+    sprite: {fileID: 8465645317090053340, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: risky_bounty
+    sprite: {fileID: 5689031935608091516, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: major_projectile
+    sprite: {fileID: -4597980477835966250, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: major_recruit
+    sprite: {fileID: -486376660477758822, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - gateId: major_overclock
+    sprite: {fileID: -3765403085917980190, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}

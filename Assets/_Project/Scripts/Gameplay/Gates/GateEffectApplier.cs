@@ -1,7 +1,6 @@
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Combat;
 using _Project.Scripts.Gameplay.Player;
-using _Project.Scripts.Systems.ProgressionSystem;
 using UnityEngine;
 
 namespace _Project.Scripts.Gameplay.Gates
@@ -95,7 +94,14 @@ namespace _Project.Scripts.Gameplay.Gates
                 return;
             }
 
-            spawner.SetProjectileCount(PlayerMetaUpgradeService.RuntimeProjectileCount);
+            int nextProjectileCount = Mathf.Clamp(
+                Mathf.RoundToInt(ApplyOperation(
+                    spawner.ProjectileCount,
+                    config.OperationType,
+                    config.Amount)),
+                1,
+                MaxProjectileCount);
+            spawner.SetProjectileCount(nextProjectileCount);
             squad?.SyncFollowersFromMain(
                 syncDamage: false,
                 syncFireRate: false,

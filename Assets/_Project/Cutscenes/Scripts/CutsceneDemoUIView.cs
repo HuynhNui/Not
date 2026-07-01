@@ -117,6 +117,9 @@ namespace _Project.Cutscenes
                 return;
             }
 
+            string actorKey = NormalizeActorId(line.Speaker);
+            ApplyDialogueAlignment(actorKey);
+
             if (speakerNameText != null)
             {
                 speakerNameText.text = line.Speaker;
@@ -133,7 +136,7 @@ namespace _Project.Cutscenes
             }
 
             HideAllActors();
-            SetActorVisible(line.Speaker, true);
+            SetActorVisible(actorKey, true);
         }
 
         public void HideAllActors()
@@ -181,6 +184,25 @@ namespace _Project.Cutscenes
             }
 
             _actors[actorId] = actor;
+        }
+
+        private void ApplyDialogueAlignment(string actorId)
+        {
+            bool alignRight = actorId == ActorSystem;
+
+            if (speakerNameText != null)
+            {
+                speakerNameText.alignment = alignRight
+                    ? TextAlignmentOptions.Right
+                    : TextAlignmentOptions.Left;
+            }
+
+            if (dialogueText != null)
+            {
+                dialogueText.alignment = alignRight
+                    ? TextAlignmentOptions.TopRight
+                    : TextAlignmentOptions.TopLeft;
+            }
         }
 
         private static string NormalizeActorId(string actorId)

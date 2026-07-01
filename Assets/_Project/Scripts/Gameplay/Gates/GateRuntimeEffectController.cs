@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Player;
-using _Project.Scripts.Systems.ProgressionSystem;
 using UnityEngine;
 using RuntimeEnemySpawnerSystem =
     _Project.Scripts.Systems.EnemySpawnerSystem.EnemySpawnerSystem;
@@ -152,7 +151,11 @@ namespace _Project.Scripts.Gameplay.Gates
                 return;
             }
 
-            _mainPlayerUnit.BulletSpawner.SetProjectileCount(PlayerMetaUpgradeService.RuntimeProjectileCount);
+            int nextProjectileCount = Mathf.Clamp(
+                _mainPlayerUnit.BulletSpawner.ProjectileCount + Mathf.RoundToInt(amount),
+                1,
+                MaxProjectileCount);
+            _mainPlayerUnit.BulletSpawner.SetProjectileCount(nextProjectileCount);
             SyncFollowers(false, false, false, false, true);
         }
 

@@ -245,17 +245,46 @@ namespace _Project.Tests.Editor
         public void DefaultGatePool_ContainsRequiredCategoriesAndNoLegacyDoubleOperations()
         {
             var categoryCounts = new System.Collections.Generic.Dictionary<BalanceGateCategory, int>();
+            var entriesById = new System.Collections.Generic.Dictionary<string, BalanceGateEntry>();
+            string[] expectedGateIds =
+            {
+                "stable_damage",
+                "stable_fire_rate",
+                "stable_vitality",
+                "utility_repair",
+                "utility_barrier",
+                "utility_freeze",
+                "risky_glass_cannon",
+                "risky_bullet_storm",
+                "risky_reinforcement",
+                "risky_bounty",
+                "major_projectile",
+                "major_recruit",
+                "major_overclock"
+            };
 
             foreach (BalanceGateEntry entry in GatePoolConfig.CreateDefaultEntries())
             {
                 categoryCounts.TryGetValue(entry.Category, out int count);
                 categoryCounts[entry.Category] = count + 1;
+                Assert.That(entriesById.ContainsKey(entry.GateId), Is.False);
+                entriesById.Add(entry.GateId, entry);
 
                 Assert.That(entry.Magnitude, Is.Not.EqualTo(2f));
                 Assert.That(entry.SecondaryMagnitude, Is.Not.EqualTo(2f));
                 Assert.That(entry.DrawbackMagnitude, Is.Not.EqualTo(2f));
             }
 
+            Assert.That(entriesById.Count, Is.EqualTo(13));
+            CollectionAssert.AreEquivalent(expectedGateIds, entriesById.Keys);
+            Assert.That(
+                entriesById["risky_bullet_storm"].EffectType,
+                Is.EqualTo(BalanceEffectType.ProjectileFlat));
+            Assert.That(entriesById["risky_bullet_storm"].Magnitude, Is.EqualTo(1f));
+            Assert.That(
+                entriesById["major_projectile"].EffectType,
+                Is.EqualTo(BalanceEffectType.ProjectileFlat));
+            Assert.That(entriesById["major_projectile"].Magnitude, Is.EqualTo(1f));
             Assert.That(categoryCounts[BalanceGateCategory.Stable], Is.GreaterThanOrEqualTo(3));
             Assert.That(categoryCounts[BalanceGateCategory.Utility], Is.GreaterThanOrEqualTo(3));
             Assert.That(categoryCounts[BalanceGateCategory.Risky], Is.GreaterThanOrEqualTo(3));
