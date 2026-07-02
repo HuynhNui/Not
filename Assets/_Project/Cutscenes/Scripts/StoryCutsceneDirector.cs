@@ -14,6 +14,7 @@ namespace _Project.Cutscenes
 
         [SerializeField] private EcCutsceneManager easyCutsceneManager;
         [SerializeField] private CutsceneDemoUIView view;
+        [SerializeField] private bool warnWhenUsingFallback = true;
         [SerializeField] private CutsceneEvent cutsceneStarted = new CutsceneEvent();
         [SerializeField] private CutsceneEvent cutsceneFinished = new CutsceneEvent();
 
@@ -30,6 +31,11 @@ namespace _Project.Cutscenes
             view = demoView;
             WireButtons();
             view?.ShowMenu();
+        }
+
+        public void SetFallbackWarningsEnabled(bool isEnabled)
+        {
+            warnWhenUsingFallback = isEnabled;
         }
 
         private void Awake()
@@ -109,13 +115,21 @@ namespace _Project.Cutscenes
         {
             if (easyCutsceneManager == null)
             {
-                Debug.LogWarning("Easy Cutscene manager is not assigned. Using demo fallback dialogue UI.");
+                if (warnWhenUsingFallback)
+                {
+                    Debug.LogWarning("Easy Cutscene manager is not assigned. Using demo fallback dialogue UI.");
+                }
+
                 return false;
             }
 
             if (easyCutsceneManager.getCutscenesObject(cutsceneId) == null)
             {
-                Debug.LogWarning($"Easy Cutscene entry '{cutsceneId}' is not wired. Using demo fallback dialogue UI.");
+                if (warnWhenUsingFallback)
+                {
+                    Debug.LogWarning($"Easy Cutscene entry '{cutsceneId}' is not wired. Using demo fallback dialogue UI.");
+                }
+
                 return false;
             }
 

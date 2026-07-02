@@ -31,7 +31,8 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField] private int gateCount = 3;
         [SerializeField] private float laneGapWorld = 0.08f;
         [SerializeField] private float gateHeightToWidth = 1.35f;
-        [SerializeField, Range(0.05f, 0.3f)] private float maxGateHeightViewport = 0.18f;
+        [SerializeField, Range(0.25f, 2f)] private float gateSizeMultiplier = 1f;
+        [SerializeField, Range(0.05f, 0.6f)] private float maxGateHeightViewport = 0.18f;
         [SerializeField] private float minGateWorldWidth = 0.55f;
 
         [Header("Viewport Safe Zone")]
@@ -824,7 +825,13 @@ namespace _Project.Scripts.Systems.GateSystem
                 ? gameplayCamera.transform.position.x
                 : 0f;
 
-            float width = Mathf.Max(minGateWorldWidth, gateHalfWidth * 2f);
+            float sizeMultiplier = Mathf.Max(0.25f, gateSizeMultiplier);
+            float width = Mathf.Max(minGateWorldWidth, gateHalfWidth * 2f) * sizeMultiplier;
+            if (totalLanes > 1)
+            {
+                width = Mathf.Min(width, Mathf.Max(0.1f, laneSpacing - Mathf.Max(0f, laneGapWorld)));
+            }
+
             return new GateLaneLayout(
                 centerX + GetLaneOffsetX(laneIndex, totalLanes),
                 width,
@@ -859,8 +866,13 @@ namespace _Project.Scripts.Systems.GateSystem
                 ? 0f
                 : Mathf.Clamp(laneGapWorld, 0f, availableWidth * 0.12f);
             float laneWidth = Mathf.Max(0.1f, (availableWidth - gap * (totalLanes - 1)) / totalLanes);
-            float gateWidth = Mathf.Max(0.1f, laneWidth);
-            float maxHeight = GetPlayfieldWorldHeight() * Mathf.Clamp(maxGateHeightViewport, 0.05f, 0.3f);
+            float sizeMultiplier = Mathf.Max(0.25f, gateSizeMultiplier);
+            float desiredGateWidth = Mathf.Max(0.1f, laneWidth * sizeMultiplier);
+            float maxGateWidthWithoutOverlap = totalLanes <= 1
+                ? desiredGateWidth
+                : laneWidth;
+            float gateWidth = Mathf.Min(desiredGateWidth, maxGateWidthWithoutOverlap);
+            float maxHeight = GetPlayfieldWorldHeight() * Mathf.Clamp(maxGateHeightViewport, 0.05f, 0.6f);
             float gateHeight = Mathf.Min(gateWidth * Mathf.Max(0.5f, gateHeightToWidth), maxHeight);
             float centerX = left + laneWidth * 0.5f + laneIndex * (laneWidth + gap);
 

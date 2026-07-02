@@ -133,6 +133,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             int safeScore = Mathf.Max(0, score);
 
             _data.totalRunsCompleted = Mathf.Max(0, _data.totalRunsCompleted) + 1;
+            _data.totalEnemyKills = Mathf.Max(0, _data.totalEnemyKills) + safeEnemyKills;
 
             if (safeSurvivalTime > _data.bestSurvivalTime)
             {
@@ -279,6 +280,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             saveData.bestKillCount = PlayerPrefs.GetInt(RunStatsTracker.BestKillCountPrefsKey, 0);
             saveData.bestCoinsEarned = PlayerPrefs.GetInt(RunStatsTracker.BestCoinsEarnedPrefsKey, 0);
             saveData.bestScore = PlayerPrefs.GetInt(RunStatsTracker.BestScorePrefsKey, 0);
+            saveData.totalEnemyKills = saveData.bestKillCount;
             saveData.walletCoins = PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0);
 
             PlayerMetaUpgradeType[] upgradeTypes =
@@ -414,6 +416,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 || saveData.bestKillCount > 0
                 || saveData.bestCoinsEarned > 0
                 || saveData.bestScore > 0
+                || saveData.totalEnemyKills > 0
                 || saveData.totalRunsCompleted > 0
                 || saveData.storyStage > 0
                 || (saveData.seenCutsceneIds != null && saveData.seenCutsceneIds.Count > 0))

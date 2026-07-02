@@ -21,10 +21,10 @@ namespace _Project.Scripts.Gameplay.Gates
         [SerializeField] private Color neutralColor = new Color(0.35f, 0.65f, 1f, 0.95f);
         [SerializeField] private bool useCompactLabel = true;
         [SerializeField] private float minFontSize = 0.12f;
-        [SerializeField] private float maxFontSize = 1.35f;
-        [SerializeField] private Vector2 worldLabelPadding = new Vector2(0.03f, 0.03f);
-        [SerializeField] private Vector2 worldLabelRectMin = new Vector2(0.15f, 0.16f);
-        [SerializeField] private Vector2 worldLabelRectMax = new Vector2(0.85f, 0.48f);
+        [SerializeField] private float maxFontSize = 1.2f;
+        [SerializeField] private Vector2 worldLabelPadding = new Vector2(0.015f, 0.015f);
+        [SerializeField] private Vector2 worldLabelRectMin = new Vector2(0.28f, 0.12f);
+        [SerializeField] private Vector2 worldLabelRectMax = new Vector2(0.72f, 0.44f);
         [SerializeField] private float worldLabelZOffset = -0.1f;
         [SerializeField] private int labelSortingOrderOffset = 5;
 

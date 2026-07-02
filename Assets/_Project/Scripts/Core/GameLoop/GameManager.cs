@@ -1,3 +1,4 @@
+using _Project.Cutscenes;
 using _Project.Scripts.Core.StateMachine;
 using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Gameplay.Player;
@@ -33,6 +34,7 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private BalanceTelemetryService telemetryService;
         [SerializeField] private PlayerController playerController;
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
+        [SerializeField] private StoryCutsceneRuntimeController storyCutsceneRuntime;
 
         private bool _isGameOver;
         private bool _isRunActive;
@@ -68,6 +70,13 @@ namespace _Project.Scripts.Core.GameLoop
             {
                 mainPlayerUnit = FindAnyObjectByType<MainPlayerUnit>();
             }
+
+            if (storyCutsceneRuntime == null)
+            {
+                storyCutsceneRuntime = FindAnyObjectByType<StoryCutsceneRuntimeController>(FindObjectsInactive.Include);
+            }
+
+            storyCutsceneRuntime?.Init();
 
             ApplyBalanceConfiguration();
 
@@ -132,9 +141,16 @@ namespace _Project.Scripts.Core.GameLoop
             gameStateMachine?.SetState(GameState.MainMenu);
             uiSystem?.ShowMainMenu();
 
-            if (_startRunAfterReload)
+            bool shouldStartRunAfterReload = _startRunAfterReload;
+            _startRunAfterReload = false;
+
+            if (TryPlayInitialStoryCutscene(shouldStartRunAfterReload))
             {
-                _startRunAfterReload = false;
+                return;
+            }
+
+            if (shouldStartRunAfterReload)
+            {
                 RequestStartRun();
             }
         }
@@ -306,9 +322,68 @@ namespace _Project.Scripts.Core.GameLoop
                 telemetryService?.EndRun(snapshot);
             }
 
+            if (TryPlayPostRunStoryCutscene(snapshot, runStatsTracker != null))
+            {
+                return;
+            }
+
+            ShowGameOverScreen(snapshot, runStatsTracker != null);
+        }
+
+        private bool TryPlayInitialStoryCutscene(bool startRunAfterCutscene)
+        {
+            if (storyCutsceneRuntime == null)
+            {
+                return false;
+            }
+
+            bool started = storyCutsceneRuntime.TryPlayInitialCutscene(() =>
+            {
+                gameStateMachine?.SetState(GameState.MainMenu);
+                uiSystem?.ShowMainMenu();
+
+                if (startRunAfterCutscene)
+                {
+                    RequestStartRun();
+                }
+            });
+
+            if (!started)
+            {
+                return false;
+            }
+
+            Time.timeScale = 0f;
+            gameStateMachine?.SetState(GameState.Cutscene);
+            return true;
+        }
+
+        private bool TryPlayPostRunStoryCutscene(RunStatsSnapshot snapshot, bool hasSnapshot)
+        {
+            if (!hasSnapshot || storyCutsceneRuntime == null)
+            {
+                return false;
+            }
+
+            bool started = storyCutsceneRuntime.TryPlayPostRunCutscene(
+                snapshot,
+                () => ShowGameOverScreen(snapshot, true));
+
+            if (!started)
+            {
+                return false;
+            }
+
+            Time.timeScale = 0f;
+            gameStateMachine?.SetState(GameState.Cutscene);
+            return true;
+        }
+
+        private void ShowGameOverScreen(RunStatsSnapshot snapshot, bool hasSnapshot)
+        {
             gameStateMachine?.SetState(GameState.GameOver);
 
-            if (runStatsTracker != null)
+            if (hasSnapshot)
             {
                 uiSystem?.ShowGameOver(snapshot);
                 return;

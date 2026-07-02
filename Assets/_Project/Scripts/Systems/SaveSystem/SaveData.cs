@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 3;
+        public const int CurrentSchemaVersion = 4;
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -18,6 +18,7 @@ namespace _Project.Scripts.Systems.SaveSystem
         public int bestKillCount;
         public int bestCoinsEarned;
         public int bestScore;
+        public int totalEnemyKills;
         public int walletCoins;
         public int totalRunsCompleted;
         public int storyStage;
@@ -49,6 +50,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             bestKillCount = Mathf.Max(0, bestKillCount);
             bestCoinsEarned = Mathf.Max(0, bestCoinsEarned);
             bestScore = Mathf.Max(0, bestScore);
+            totalEnemyKills = Mathf.Max(Mathf.Max(0, totalEnemyKills), bestKillCount);
             walletCoins = Mathf.Max(0, walletCoins);
             totalRunsCompleted = Mathf.Max(0, totalRunsCompleted);
             storyStage = Mathf.Max(0, storyStage);
@@ -137,6 +139,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 bestKillCount = bestKillCount,
                 bestCoinsEarned = bestCoinsEarned,
                 bestScore = bestScore,
+                totalEnemyKills = totalEnemyKills,
                 walletCoins = walletCoins,
                 totalRunsCompleted = totalRunsCompleted,
                 storyStage = storyStage,

@@ -1,3 +1,4 @@
+using _Project.Cutscenes;
 using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Gameplay.Combat;
 using _Project.Scripts.Gameplay.Enemies;
@@ -425,11 +426,12 @@ namespace _Project.Tests.Editor
             Assert.That(saveData.bestKillCount, Is.EqualTo(42));
             Assert.That(saveData.bestCoinsEarned, Is.EqualTo(123));
             Assert.That(saveData.bestScore, Is.EqualTo(456));
+            Assert.That(saveData.totalEnemyKills, Is.EqualTo(42));
             Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(3));
         }
 
         [Test]
-        public void SaveData_V2JsonMigratesToV3WithStoryDefaults()
+        public void SaveData_V2JsonMigratesToCurrentSchemaWithStoryDefaults()
         {
             const string legacyJson =
                 "{\"schemaVersion\":2,\"revision\":3,\"lastUpdatedUnixMs\":1234,"
@@ -442,6 +444,7 @@ namespace _Project.Tests.Editor
 
             Assert.That(saveData.schemaVersion, Is.EqualTo(SaveData.CurrentSchemaVersion));
             Assert.That(saveData.totalRunsCompleted, Is.EqualTo(0));
+            Assert.That(saveData.totalEnemyKills, Is.EqualTo(5));
             Assert.That(saveData.storyStage, Is.EqualTo(0));
             Assert.That(saveData.seenCutsceneIds, Is.Not.Null);
             Assert.That(saveData.seenCutsceneIds, Is.Empty);
@@ -481,6 +484,7 @@ namespace _Project.Tests.Editor
             try
             {
                 service.EnsureLoaded();
+                int initialTotalEnemyKills = service.Data.totalEnemyKills;
                 service.RecordRunResult(120f, 10, 2, 30);
                 int runCountAfterFirstRun = service.Data.totalRunsCompleted;
 
@@ -488,6 +492,7 @@ namespace _Project.Tests.Editor
 
                 Assert.That(runCountAfterFirstRun, Is.EqualTo(1));
                 Assert.That(service.Data.totalRunsCompleted, Is.EqualTo(2));
+                Assert.That(service.Data.totalEnemyKills, Is.EqualTo(initialTotalEnemyKills + 10));
                 Assert.That(service.Data.bestSurvivalTime, Is.EqualTo(120f).Within(0.0001f));
             }
             finally
@@ -498,6 +503,83 @@ namespace _Project.Tests.Editor
                     Directory.Delete(directoryPath, recursive: true);
                 }
             }
+        }
+
+        [Test]
+        public void StoryCutsceneUnlockRules_RequirePreviousCutscenesAndExactThresholds()
+        {
+            SaveData saveData = SaveData.CreateNew(1000);
+            var context = new StoryCutsceneProgressContext(3, 180f, 100, 100);
+
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.EnemyDoesNotCharge,
+                    saveData,
+                    context),
+                Is.False);
+
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.BootSequence);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.FirstDeathRecovery);
+
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.EnemyDoesNotCharge,
+                    saveData,
+                    context),
+                Is.True);
+        }
+
+        [Test]
+        public void StoryCutsceneUnlockRules_ReturnFirstEligibleCutsceneInStoryOrder()
+        {
+            SaveData saveData = SaveData.CreateNew(1000);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.BootSequence);
+
+            var context = new StoryCutsceneProgressContext(80, 999f, 999, 9999);
+
+            Assert.That(
+                StoryCutsceneUnlockRules.TryGetFirstEligible(saveData, context, out string cutsceneId),
+                Is.True);
+            Assert.That(cutsceneId, Is.EqualTo(StoryCutsceneIds.FirstDeathRecovery));
+        }
+
+        [Test]
+        public void StoryCutsceneUnlockRules_HumanCommandUsesLifetimeKills()
+        {
+            SaveData saveData = SaveData.CreateNew(1000);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.BootSequence);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.FirstDeathRecovery);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.EnemyDoesNotCharge);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.GateMemoryLeak);
+            saveData.bestKillCount = 5000;
+
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.HumanCommand,
+                    saveData,
+                    new StoryCutsceneProgressContext(35, 300f, 0, 999)),
+                Is.False);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.HumanCommand,
+                    saveData,
+                    new StoryCutsceneProgressContext(35, 300f, 0, 1000)),
+                Is.True);
+        }
+
+        [Test]
+        public void StoryCutsceneUnlockRules_FinalChoiceMapsAliasAndExposesBranches()
+        {
+            Assert.That(
+                StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(StoryCutsceneIds.FinalChoice),
+                Is.EqualTo(StoryCutsceneIds.FinalChoicePreChoice));
+            Assert.That(
+                StoryCutsceneUnlockRules.FinalChoiceBranchIds,
+                Is.EquivalentTo(new[]
+                {
+                    StoryCutsceneIds.FinalChoiceContinueProtocol,
+                    StoryCutsceneIds.FinalChoiceShutDownCore
+                }));
         }
 
         [Test]

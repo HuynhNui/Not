@@ -5865,6 +5865,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 365020328}
+  - component: {fileID: 365020330}
+  - component: {fileID: 365020329}
   m_Layer: 0
   m_Name: CutsceneManager
   m_TagString: Untagged
@@ -5887,6 +5889,45 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &365020329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365020327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d9b7b8d3264b0ebf1342a43ce14c25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Cutscenes.StoryCutsceneDirector
+  easyCutsceneManager: {fileID: 0}
+  view: {fileID: 0}
+  warnWhenUsingFallback: 0
+  cutsceneStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  cutsceneFinished:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &365020330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365020327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2b69e874e8f7b04aaae92755896bddc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Cutscenes.StoryCutsceneRuntimeController
+  director: {fileID: 365020329}
+  view: {fileID: 0}
+  runtimeCanvas: {fileID: 0}
+  unit07Portrait: {fileID: -4301312914953370118, guid: 0b33e8c8253823443ba5bb343babfa7c, type: 3}
+  systemPortrait: {fileID: 21300000, guid: decbaadb5743f794f986bc7cac7b9c3c, type: 3}
+  buildRuntimeUiIfMissing: 1
 --- !u!1 &366999698
 GameObject:
   m_ObjectHideFlags: 0
@@ -10284,7 +10325,7 @@ RectTransform:
   m_GameObject: {fileID: 608041769}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.62, y: 0.62, z: 0.62}
+  m_LocalScale: {x: 0.9231385, y: 0.9231385, z: 0.9231385}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1014810352}
@@ -35781,6 +35822,7 @@ MonoBehaviour:
   telemetryService: {fileID: 0}
   playerController: {fileID: 479990533}
   mainPlayerUnit: {fileID: 289232676}
+  storyCutsceneRuntime: {fileID: 365020330}
 --- !u!114 &2200000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35799,18 +35841,19 @@ MonoBehaviour:
   useLegacyOfferGeneration: 0
   spawnAboveCameraOffset: 1.25
   useViewportLanes: 1
-  viewportLaneMin: 0.12
-  viewportLaneMax: 0.88
+  viewportLaneMin: 0.02
+  viewportLaneMax: 0.98
   gateHalfWidth: 0.75
   laneSpacing: 2.2
   gateCount: 3
   laneGapWorld: 0.08
   gateHeightToWidth: 0.833333
-  maxGateHeightViewport: 0.27
+  gateSizeMultiplier: 2
+  maxGateHeightViewport: 0.54
   minGateWorldWidth: 0.55
   topReservedViewport: 0.18
   bottomReservedViewport: 0.16
-  horizontalViewportPadding: 0.1
+  horizontalViewportPadding: 0.02
   topSpawnMarginPixels: 12
   availableGateConfigs:
   - {fileID: 11400000, guid: 9ac366587069b1c48895e867014e7e07, type: 2}
