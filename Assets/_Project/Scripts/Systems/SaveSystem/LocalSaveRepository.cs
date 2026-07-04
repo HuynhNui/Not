@@ -61,6 +61,13 @@ namespace _Project.Scripts.Systems.SaveSystem
             File.Move(tempPath, SavePath);
         }
 
+        public void DeleteSaveFiles()
+        {
+            DeleteIfExists(SavePath);
+            DeleteIfExists(BackupPath);
+            DeleteIfExists(Path.Combine(_directoryPath, TempFileName));
+        }
+
         private static bool TryReadFile(string path, out SaveData saveData)
         {
             saveData = null;
@@ -79,6 +86,14 @@ namespace _Project.Scripts.Systems.SaveSystem
             {
                 Debug.LogWarning($"Failed to read save file '{path}': {exception.Message}");
                 return false;
+            }
+        }
+
+        private static void DeleteIfExists(string path)
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
             }
         }
     }

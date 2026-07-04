@@ -122,6 +122,32 @@ namespace _Project.Scripts.Systems.SaveSystem
             await TryUploadCloudSaveAsync();
         }
 
+        public void ResetPlayerProgression()
+        {
+            long now = GetCurrentUnixMs();
+            _data = SaveData.CreateNew(now);
+            _data.revision = 1;
+            _data.lastUpdatedUnixMs = now;
+            _data.Normalize(now);
+            _isLoaded = true;
+            PendingConflict = null;
+
+            ClearLegacyProgressionPrefs();
+
+            try
+            {
+                _localRepository.DeleteSaveFiles();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"Failed to delete old local save files: {exception.Message}");
+            }
+
+            SaveLocal();
+            DataChanged?.Invoke();
+            QueueCloudUpload();
+        }
+
         public void RecordRunResult(float survivalTime, int enemyKills, int coinsEarned, int score)
         {
             EnsureLoaded();
@@ -327,6 +353,25 @@ namespace _Project.Scripts.Systems.SaveSystem
         private static string GetLegacyUpgradeLevelKey(PlayerMetaUpgradeType type)
         {
             return LegacyUpgradeLevelKeyPrefix + type;
+        }
+
+        private static void ClearLegacyProgressionPrefs()
+        {
+            PlayerPrefs.DeleteKey(RunStatsTracker.BestSurvivalTimePrefsKey);
+            PlayerPrefs.DeleteKey(RunStatsTracker.BestKillCountPrefsKey);
+            PlayerPrefs.DeleteKey(RunStatsTracker.BestCoinsEarnedPrefsKey);
+            PlayerPrefs.DeleteKey(RunStatsTracker.BestScorePrefsKey);
+            PlayerPrefs.DeleteKey(RunStatsTracker.WalletCoinsPrefsKey);
+
+            PlayerMetaUpgradeType[] upgradeTypes =
+                (PlayerMetaUpgradeType[])Enum.GetValues(typeof(PlayerMetaUpgradeType));
+
+            for (int index = 0; index < upgradeTypes.Length; index++)
+            {
+                PlayerPrefs.DeleteKey(GetLegacyUpgradeLevelKey(upgradeTypes[index]));
+            }
+
+            PlayerPrefs.Save();
         }
 
         private async Task TryMergeCloudSaveAsync()

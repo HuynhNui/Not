@@ -7,6 +7,7 @@ using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.Balance;
 using _Project.Scripts.Systems.GateSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
+using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
 using _Project.Scripts.Systems.Telemetry;
 using NUnit.Framework;
@@ -504,6 +505,115 @@ namespace _Project.Tests.Editor
                     Directory.Delete(directoryPath, recursive: true);
                 }
             }
+        }
+
+        [Test]
+        public void ResetPlayerProgression_ClearsProgressionButKeepsSettings()
+        {
+            string directoryPath = Path.Combine(
+                Path.GetTempPath(),
+                $"true-gate-reset-progress-test-{System.Guid.NewGuid():N}");
+            SaveService service = SaveService.CreateForTests(directoryPath);
+
+            const string musicEnabledKey = "Settings.MusicEnabled";
+            const string sfxEnabledKey = "Settings.SfxEnabled";
+            const string vibrationKey = "Settings.Vibration";
+            const string damageTextKey = "Settings.DamageText";
+
+            bool hadLegacyBestSurvivalTime = PlayerPrefs.HasKey(RunStatsTracker.BestSurvivalTimePrefsKey);
+            bool hadLegacyBestKillCount = PlayerPrefs.HasKey(RunStatsTracker.BestKillCountPrefsKey);
+            bool hadLegacyBestCoinsEarned = PlayerPrefs.HasKey(RunStatsTracker.BestCoinsEarnedPrefsKey);
+            bool hadLegacyBestScore = PlayerPrefs.HasKey(RunStatsTracker.BestScorePrefsKey);
+            bool hadLegacyWalletCoins = PlayerPrefs.HasKey(RunStatsTracker.WalletCoinsPrefsKey);
+            float legacyBestSurvivalTime = PlayerPrefs.GetFloat(RunStatsTracker.BestSurvivalTimePrefsKey);
+            int legacyBestKillCount = PlayerPrefs.GetInt(RunStatsTracker.BestKillCountPrefsKey);
+            int legacyBestCoinsEarned = PlayerPrefs.GetInt(RunStatsTracker.BestCoinsEarnedPrefsKey);
+            int legacyBestScore = PlayerPrefs.GetInt(RunStatsTracker.BestScorePrefsKey);
+            int legacyWalletCoins = PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey);
+            var hadLegacyUpgradeLevels = new System.Collections.Generic.Dictionary<PlayerMetaUpgradeType, bool>();
+            var legacyUpgradeLevels = new System.Collections.Generic.Dictionary<PlayerMetaUpgradeType, int>();
+
+            foreach (PlayerMetaUpgradeType upgradeType in
+                (PlayerMetaUpgradeType[])System.Enum.GetValues(typeof(PlayerMetaUpgradeType)))
+            {
+                string key = "MetaUpgrade.Level." + upgradeType;
+                hadLegacyUpgradeLevels[upgradeType] = PlayerPrefs.HasKey(key);
+                legacyUpgradeLevels[upgradeType] = PlayerPrefs.GetInt(key);
+            }
+
+            try
+            {
+                PlayerPrefs.SetInt(musicEnabledKey, 0);
+                PlayerPrefs.SetInt(sfxEnabledKey, 1);
+                PlayerPrefs.SetInt(vibrationKey, 0);
+                PlayerPrefs.SetInt(damageTextKey, 1);
+                PlayerPrefs.Save();
+
+                service.EnsureLoaded();
+                int initialWalletCoins = service.Data.walletCoins;
+                service.RecordRunResult(120f, 10, 25, 300);
+                Assert.That(service.Data.walletCoins, Is.EqualTo(initialWalletCoins + 25));
+                Assert.That(service.Data.totalRunsCompleted, Is.EqualTo(1));
+
+                service.ResetPlayerProgression();
+
+                Assert.That(service.Data.walletCoins, Is.EqualTo(0));
+                Assert.That(service.Data.totalRunsCompleted, Is.EqualTo(0));
+                Assert.That(service.Data.bestSurvivalTime, Is.EqualTo(0f));
+                Assert.That(service.Data.bestKillCount, Is.EqualTo(0));
+                Assert.That(PlayerPrefs.GetInt(musicEnabledKey), Is.EqualTo(0));
+                Assert.That(PlayerPrefs.GetInt(sfxEnabledKey), Is.EqualTo(1));
+                Assert.That(PlayerPrefs.GetInt(vibrationKey), Is.EqualTo(0));
+                Assert.That(PlayerPrefs.GetInt(damageTextKey), Is.EqualTo(1));
+            }
+            finally
+            {
+                PlayerPrefs.DeleteKey(musicEnabledKey);
+                PlayerPrefs.DeleteKey(sfxEnabledKey);
+                PlayerPrefs.DeleteKey(vibrationKey);
+                PlayerPrefs.DeleteKey(damageTextKey);
+                RestoreFloatPrefsKey(RunStatsTracker.BestSurvivalTimePrefsKey, hadLegacyBestSurvivalTime, legacyBestSurvivalTime);
+                RestoreIntPrefsKey(RunStatsTracker.BestKillCountPrefsKey, hadLegacyBestKillCount, legacyBestKillCount);
+                RestoreIntPrefsKey(RunStatsTracker.BestCoinsEarnedPrefsKey, hadLegacyBestCoinsEarned, legacyBestCoinsEarned);
+                RestoreIntPrefsKey(RunStatsTracker.BestScorePrefsKey, hadLegacyBestScore, legacyBestScore);
+                RestoreIntPrefsKey(RunStatsTracker.WalletCoinsPrefsKey, hadLegacyWalletCoins, legacyWalletCoins);
+
+                foreach (PlayerMetaUpgradeType upgradeType in
+                    (PlayerMetaUpgradeType[])System.Enum.GetValues(typeof(PlayerMetaUpgradeType)))
+                {
+                    string key = "MetaUpgrade.Level." + upgradeType;
+                    RestoreIntPrefsKey(key, hadLegacyUpgradeLevels[upgradeType], legacyUpgradeLevels[upgradeType]);
+                }
+
+                PlayerPrefs.Save();
+                SaveService.SetInstanceForTests(null);
+                if (Directory.Exists(directoryPath))
+                {
+                    Directory.Delete(directoryPath, recursive: true);
+                }
+            }
+        }
+
+        private static void RestoreFloatPrefsKey(string key, bool hadValue, float value)
+        {
+            if (hadValue)
+            {
+                PlayerPrefs.SetFloat(key, value);
+                return;
+            }
+
+            PlayerPrefs.DeleteKey(key);
+        }
+
+        private static void RestoreIntPrefsKey(string key, bool hadValue, int value)
+        {
+            if (hadValue)
+            {
+                PlayerPrefs.SetInt(key, value);
+                return;
+            }
+
+            PlayerPrefs.DeleteKey(key);
         }
 
         [Test]

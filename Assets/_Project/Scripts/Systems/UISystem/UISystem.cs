@@ -52,11 +52,18 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private Button upgradeBackButton;
 
         [Header("Settings")]
-        [SerializeField] private Slider musicVolumeSlider;
-        [SerializeField] private Slider sfxVolumeSlider;
+        [SerializeField] private Toggle musicToggle;
+        [SerializeField] private Toggle sfxToggle;
         [SerializeField] private Toggle vibrationToggle;
-        [SerializeField] private Toggle performanceModeToggle;
+        [FormerlySerializedAs("performanceModeToggle")]
+        [SerializeField] private Toggle damageTextToggle;
         [SerializeField] private Button settingsBackButton;
+        [SerializeField] private Button resetDataButton;
+        [SerializeField] private GameObject resetConfirmPopup;
+        [SerializeField] private Button resetConfirmCancelButton;
+        [SerializeField] private Button resetConfirmButton;
+        [SerializeField] private Sprite settingsToggleOnSprite;
+        [SerializeField] private Sprite settingsToggleOffSprite;
 
         [Header("Pause")]
         [SerializeField] private Button resumeButton;
@@ -83,8 +90,10 @@ namespace _Project.Scripts.Systems.UISystem
 
         private const string MusicVolumePrefsKey = "Settings.MusicVolume";
         private const string SfxVolumePrefsKey = "Settings.SfxVolume";
+        private const string MusicEnabledPrefsKey = "Settings.MusicEnabled";
+        private const string SfxEnabledPrefsKey = "Settings.SfxEnabled";
         private const string VibrationPrefsKey = "Settings.Vibration";
-        private const string PerformanceModePrefsKey = "Settings.PerformanceMode";
+        private const string DamageTextPrefsKey = "Settings.DamageText";
 
         private RunStatsTracker _runStatsTracker;
         private UIScreen _currentScreen = UIScreen.None;
@@ -107,6 +116,7 @@ namespace _Project.Scripts.Systems.UISystem
 
             ResolveGameOverReferences();
             ValidateRequiredReferences();
+            EnsureSettingsPrefsInitialized();
             WireButtons();
             SaveService.Instance.DataChanged -= HandleSaveDataChanged;
             SaveService.Instance.DataChanged += HandleSaveDataChanged;
@@ -181,6 +191,7 @@ namespace _Project.Scripts.Systems.UISystem
         {
             _settingsReturnScreen = UIScreen.MainMenu;
             SetPrimaryPanel(UIScreen.Settings);
+            HideResetConfirmPopup();
             RefreshSettingsControls();
         }
 
@@ -188,6 +199,7 @@ namespace _Project.Scripts.Systems.UISystem
         {
             _settingsReturnScreen = UIScreen.Pause;
             SetPrimaryPanel(UIScreen.Settings);
+            HideResetConfirmPopup();
             RefreshSettingsControls();
         }
 
@@ -246,6 +258,9 @@ namespace _Project.Scripts.Systems.UISystem
             WireButton(pauseButton, nameof(pauseButton), () => PauseRequested?.Invoke());
             WireButton(upgradeBackButton, nameof(upgradeBackButton), ShowMainMenu);
             WireButton(settingsBackButton, nameof(settingsBackButton), HandleSettingsBack);
+            WireButton(resetDataButton, nameof(resetDataButton), ShowResetConfirmPopup);
+            WireButton(resetConfirmCancelButton, nameof(resetConfirmCancelButton), HideResetConfirmPopup);
+            WireButton(resetConfirmButton, nameof(resetConfirmButton), ConfirmResetPlayerProgression);
             WireButton(resumeButton, nameof(resumeButton), () => ResumeRequested?.Invoke());
             WireButton(pauseRestartButton, nameof(pauseRestartButton), () => RestartRequested?.Invoke());
             WireButton(pauseSettingsButton, nameof(pauseSettingsButton), ShowSettingsFromPause);
@@ -277,10 +292,10 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void WireSettingsControls()
         {
-            WireSlider(musicVolumeSlider, MusicVolumePrefsKey, 1f, nameof(musicVolumeSlider));
-            WireSlider(sfxVolumeSlider, SfxVolumePrefsKey, 1f, nameof(sfxVolumeSlider));
-            WireToggle(vibrationToggle, VibrationPrefsKey, true, nameof(vibrationToggle));
-            WireToggle(performanceModeToggle, PerformanceModePrefsKey, false, nameof(performanceModeToggle));
+            WireSettingToggle(musicToggle, MusicEnabledPrefsKey, true, nameof(musicToggle));
+            WireSettingToggle(sfxToggle, SfxEnabledPrefsKey, true, nameof(sfxToggle));
+            WireSettingToggle(vibrationToggle, VibrationPrefsKey, true, nameof(vibrationToggle));
+            WireSettingToggle(damageTextToggle, DamageTextPrefsKey, true, nameof(damageTextToggle));
         }
 
         private void WireUpgradeRows()
@@ -316,24 +331,7 @@ namespace _Project.Scripts.Systems.UISystem
             button.onClick.AddListener(() => action?.Invoke());
         }
 
-        private void WireSlider(Slider slider, string prefsKey, float defaultValue, string fieldName)
-        {
-            if (slider == null)
-            {
-                WarnMissing(fieldName);
-                return;
-            }
-
-            slider.onValueChanged.RemoveAllListeners();
-            slider.value = PlayerPrefs.GetFloat(prefsKey, defaultValue);
-            slider.onValueChanged.AddListener(value =>
-            {
-                PlayerPrefs.SetFloat(prefsKey, value);
-                PlayerPrefs.Save();
-            });
-        }
-
-        private void WireToggle(Toggle toggle, string prefsKey, bool defaultValue, string fieldName)
+        private void WireSettingToggle(Toggle toggle, string prefsKey, bool defaultValue, string fieldName)
         {
             if (toggle == null)
             {
@@ -341,17 +339,22 @@ namespace _Project.Scripts.Systems.UISystem
                 return;
             }
 
+            bool initialValue = GetBoolSetting(prefsKey, defaultValue);
             toggle.onValueChanged.RemoveAllListeners();
-            toggle.isOn = PlayerPrefs.GetInt(prefsKey, defaultValue ? 1 : 0) != 0;
+            toggle.isOn = initialValue;
+            SetToggleSprite(toggle, initialValue);
             toggle.onValueChanged.AddListener(value =>
             {
-                PlayerPrefs.SetInt(prefsKey, value ? 1 : 0);
+                SetBoolSetting(prefsKey, value);
+                SetToggleSprite(toggle, value);
                 PlayerPrefs.Save();
             });
         }
 
         private void HandleSettingsBack()
         {
+            HideResetConfirmPopup();
+
             if (_settingsReturnScreen == UIScreen.Pause)
             {
                 ShowPause();
@@ -372,26 +375,117 @@ namespace _Project.Scripts.Systems.UISystem
             RefreshMenuStats();
         }
 
+        private void ShowResetConfirmPopup()
+        {
+            SetActive(resetConfirmPopup, true);
+        }
+
+        private void HideResetConfirmPopup()
+        {
+            SetActive(resetConfirmPopup, false);
+        }
+
+        private void ConfirmResetPlayerProgression()
+        {
+            SaveService.Instance.ResetPlayerProgression();
+            RefreshMenuStats();
+            RefreshUpgradePanel();
+            RefreshSettingsControls();
+            HideResetConfirmPopup();
+        }
+
         private void RefreshSettingsControls()
         {
-            if (musicVolumeSlider != null)
+            RefreshSettingToggle(musicToggle, MusicEnabledPrefsKey, true);
+            RefreshSettingToggle(sfxToggle, SfxEnabledPrefsKey, true);
+            RefreshSettingToggle(vibrationToggle, VibrationPrefsKey, true);
+            RefreshSettingToggle(damageTextToggle, DamageTextPrefsKey, true);
+        }
+
+        private void RefreshSettingToggle(Toggle toggle, string prefsKey, bool defaultValue)
+        {
+            if (toggle == null)
             {
-                musicVolumeSlider.value = PlayerPrefs.GetFloat(MusicVolumePrefsKey, 1f);
+                return;
             }
 
-            if (sfxVolumeSlider != null)
+            bool value = GetBoolSetting(prefsKey, defaultValue);
+            toggle.SetIsOnWithoutNotify(value);
+            SetToggleSprite(toggle, value);
+        }
+
+        private static bool GetBoolSetting(string prefsKey, bool defaultValue)
+        {
+            return PlayerPrefs.GetInt(prefsKey, defaultValue ? 1 : 0) != 0;
+        }
+
+        private static void SetBoolSetting(string prefsKey, bool value)
+        {
+            PlayerPrefs.SetInt(prefsKey, value ? 1 : 0);
+        }
+
+        private static bool GetEnabledDefaultFromLegacyVolume(string legacyPrefsKey)
+        {
+            return !PlayerPrefs.HasKey(legacyPrefsKey)
+                || PlayerPrefs.GetFloat(legacyPrefsKey, 1f) > 0.0001f;
+        }
+
+        private static void EnsureSettingsPrefsInitialized()
+        {
+            bool changed = false;
+
+            if (!PlayerPrefs.HasKey(MusicEnabledPrefsKey))
             {
-                sfxVolumeSlider.value = PlayerPrefs.GetFloat(SfxVolumePrefsKey, 1f);
+                SetBoolSetting(MusicEnabledPrefsKey, GetEnabledDefaultFromLegacyVolume(MusicVolumePrefsKey));
+                changed = true;
             }
 
-            if (vibrationToggle != null)
+            if (!PlayerPrefs.HasKey(SfxEnabledPrefsKey))
             {
-                vibrationToggle.isOn = PlayerPrefs.GetInt(VibrationPrefsKey, 1) != 0;
+                SetBoolSetting(SfxEnabledPrefsKey, GetEnabledDefaultFromLegacyVolume(SfxVolumePrefsKey));
+                changed = true;
             }
 
-            if (performanceModeToggle != null)
+            if (!PlayerPrefs.HasKey(VibrationPrefsKey))
             {
-                performanceModeToggle.isOn = PlayerPrefs.GetInt(PerformanceModePrefsKey, 0) != 0;
+                SetBoolSetting(VibrationPrefsKey, true);
+                changed = true;
+            }
+
+            if (!PlayerPrefs.HasKey(DamageTextPrefsKey))
+            {
+                SetBoolSetting(DamageTextPrefsKey, true);
+                changed = true;
+            }
+
+            if (changed)
+            {
+                PlayerPrefs.Save();
+            }
+        }
+
+        private void SetToggleSprite(Toggle toggle, bool value)
+        {
+            if (toggle == null)
+            {
+                return;
+            }
+
+            Image image = toggle.targetGraphic as Image;
+            if (image == null)
+            {
+                image = toggle.GetComponent<Image>();
+            }
+
+            if (image == null)
+            {
+                return;
+            }
+
+            Sprite sprite = value ? settingsToggleOnSprite : settingsToggleOffSprite;
+            if (sprite != null)
+            {
+                image.sprite = sprite;
             }
         }
 
@@ -519,6 +613,15 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(pausePanel, nameof(pausePanel), "GameCanvas/UIRoot/SafeAreaRoot/PausePanel");
             WarnIfMissing(gameOverPanel, nameof(gameOverPanel), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
             WarnIfMissing(gameOverPanelUI, nameof(gameOverPanelUI), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
+            WarnIfMissing(musicToggle, nameof(musicToggle), "SettingsPanel/MainPanel/RowsContainer/MusicRow/ToggleButton");
+            WarnIfMissing(sfxToggle, nameof(sfxToggle), "SettingsPanel/MainPanel/RowsContainer/SfxRow/ToggleButton");
+            WarnIfMissing(vibrationToggle, nameof(vibrationToggle), "SettingsPanel/MainPanel/RowsContainer/VibrationRow/ToggleButton");
+            WarnIfMissing(damageTextToggle, nameof(damageTextToggle), "SettingsPanel/MainPanel/RowsContainer/DamageTextRow/ToggleButton");
+            WarnIfMissing(settingsBackButton, nameof(settingsBackButton), "SettingsPanel/MainPanel/Header/BackButton");
+            WarnIfMissing(resetDataButton, nameof(resetDataButton), "SettingsPanel/MainPanel/ResetButton");
+            WarnIfMissing(resetConfirmPopup, nameof(resetConfirmPopup), "SettingsPanel/ResetConfirmPopup");
+            WarnIfMissing(resetConfirmCancelButton, nameof(resetConfirmCancelButton), "SettingsPanel/ResetConfirmPopup/ConfirmPanel/ButtonRow/CancelButton");
+            WarnIfMissing(resetConfirmButton, nameof(resetConfirmButton), "SettingsPanel/ResetConfirmPopup/ConfirmPanel/ButtonRow/ConfirmButton");
             WarnIfMissing(playButton, nameof(playButton), "MainMenuPanel/StartRunButton");
             WarnIfMissing(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), "MainMenuPanel/BottomNavigationBar/UPDATEButton");
             WarnIfMissing(mainMenuSettingsButton, nameof(mainMenuSettingsButton), "MainMenuPanel/BottomNavigationBar/SETTINGButton");
