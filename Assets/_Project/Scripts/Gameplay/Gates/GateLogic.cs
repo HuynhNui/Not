@@ -125,14 +125,21 @@ namespace _Project.Scripts.Gameplay.Gates
             GateEffectApplier.Apply(gateConfig, _playerUnit, null);
         }
 
-        public void HandlePlayerTriggered(MainPlayerUnit hitPlayer)
+        public void HandlePlayerTriggered(PlayerUnit hitPlayer)
         {
             if (!_isActive || hitPlayer == null || hitPlayer.IsDead)
             {
                 return;
             }
 
-            if (_playerUnit != null && hitPlayer != _playerUnit)
+            if (_playerController != null)
+            {
+                if (!_playerController.ContainsUnit(hitPlayer))
+                {
+                    return;
+                }
+            }
+            else if (_playerUnit != null && hitPlayer != _playerUnit)
             {
                 return;
             }

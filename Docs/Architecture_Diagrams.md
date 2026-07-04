@@ -1,9 +1,10 @@
 # True Gate Architecture Diagrams
 
-Tai lieu nay gom 2 diagram chinh co the dan truc tiep vao bao cao:
+Tai lieu nay gom 3 diagram co the dan truc tiep vao bao cao:
 
-- Class diagram: mo ta cac class quan trong va quan he giua chung.
-- Layered architecture: mo ta kien truc he thong theo cac tang.
+- Class diagram: tap trung vao cac class runtime quan trong va ten method/property dang co trong code.
+- Layered architecture: mo ta kien truc theo tang, chi giu cac mui ten cap he thong.
+- Gameplay runtime flow: mo ta duong chay chinh tu UI/Input den run, game over, save va cutscene.
 
 ## Class Diagram
 
@@ -54,9 +55,10 @@ classDiagram
     class PlayerController {
         +MainPlayerUnit MainPlayerUnit
         +IReadOnlyList~FollowerUnit~ Followers
-        +SetControlsEnabled(bool enabled)
+        +SetControlsEnabled(bool isEnabled)
         +SetSquadCount(int targetCount)
         +ShootSquad()
+        +ApplyGateEffect(GateConfig config)
         +event SquadDefeated
     }
 
@@ -74,13 +76,9 @@ classDiagram
     class MainPlayerUnit
     class FollowerUnit
 
-    class PlayerMovement {
-        +Init()
-    }
-
     class EnemySpawnerSystem {
         +BeginRun()
-        +SetSpawningEnabled(bool enabled)
+        +SetSpawningEnabled(bool isEnabled)
         +Spawn()
         +event EnemyKilled
     }
@@ -97,47 +95,59 @@ classDiagram
 
     class GateSystem {
         +BeginRun()
-        +SetSpawningEnabled(bool enabled)
+        +SetSpawningEnabled(bool isEnabled)
         +Spawn()
+        +ApplyGateConfig(GateConfig config)
+        +HandleGateChosen(GateLogic chosenGate)
         +event GateShown
         +event GateSelected
     }
 
     class GateLogic {
-        +GateConfig Config
-        +Init(GateConfig config)
-        +Apply()
+        +GateConfig GateConfig
+        +Init()
+        +Spawn()
+        +Despawn()
+        +ApplyEffect()
+        +HandlePlayerTriggered(MainPlayerUnit hitPlayer)
     }
 
     class GateRuntimeEffectController {
         +Configure()
         +BeginRun()
-        +ApplyTimedEffect()
+        +Apply(GateConfig config)
     }
 
     class GateEffectApplier {
         <<static>>
-        +Apply()
+        +Apply(GateConfig config, MainPlayerUnit mainUnit, PlayerController squad)
     }
 
     class BulletSpawner {
+        +Initialize(float damage, float fireRate)
         +Shoot()
+        +SpawnChildBullet()
         +SetDamage(float value)
         +SetFireRate(float value)
         +SetProjectileCount(int value)
     }
 
     class Bullet {
-        +Init()
-        +Launch()
-        +OnSpawned()
-        +OnDespawned()
+        +float Damage
+        +float Speed
+        +Vector3 Position
+        +Vector3 Direction
+        +Init(float bulletDamage, float bulletSpeed)
+        +Spawn()
+        +Despawn()
+        +Configure(BulletSpawner ownerSpawner, IReadOnlyList~BulletModifierConfig~ modifierConfigs)
     }
 
     class IBulletModifier {
         <<interface>>
-        +Tick()
-        +OnHit()
+        +OnInit(Bullet bullet)
+        +OnUpdate(Bullet bullet)
+        +OnHit(Bullet bullet, Collider2D target)
     }
 
     class HomingModifier
@@ -151,18 +161,18 @@ classDiagram
 
     class IConditionalDamageable {
         <<interface>>
-        +CanReceiveDamageFrom(Object source)
+        +CanReceiveDamageFrom(GameObject damageSource)
     }
 
     class IPoolable {
         <<interface>>
-        +OnSpawned()
-        +OnDespawned()
+        +Spawn()
+        +Despawn()
     }
 
-    class PoolSystem {
-        +Get()
-        +Release()
+    class IGateEffect {
+        <<interface>>
+        +ApplyEffect()
     }
 
     class SaveService {
@@ -179,8 +189,8 @@ classDiagram
         +int totalRunsCompleted
         +int totalEnemyKills
         +int walletCoins
-        +bool HasSeenCutscene(string id)
-        +bool MarkCutsceneSeen(string id)
+        +bool HasSeenCutscene(string cutsceneId)
+        +bool MarkCutsceneSeen(string cutsceneId)
     }
 
     class StoryCutsceneRuntimeController {
@@ -188,13 +198,13 @@ classDiagram
         +Init()
         +TryPlayInitialCutscene()
         +TryPlayPostRunCutscene()
-        +TryPlayCutscene(string id)
+        +TryPlayCutscene(string cutsceneId)
     }
 
     class StoryCutsceneDirector {
         +Play(string cutsceneId)
-        +OnCutsceneStarted
-        +OnCutsceneFinished
+        +event OnCutsceneStarted
+        +event OnCutsceneFinished
     }
 
     class StoryCutsceneUnlockRules {
@@ -214,23 +224,19 @@ classDiagram
 
     class GateConfig {
         <<ScriptableObject>>
-        +GateStatTarget Target
-        +GateOperationType Operation
-        +float Value
+        +GateStatTarget StatTarget
+        +GateOperationType OperationType
+        +float Amount
+        +IReadOnlyList~GateRuntimeEffect~ RuntimeEffects
+        +bool HasRuntimeEffects
+        +ConfigureRuntime()
+        +GetDisplayText()
     }
 
     class GatePoolConfig {
         <<ScriptableObject>>
         +float GateCadenceSeconds
         +float MajorGateCadenceSeconds
-    }
-
-    class PlayerUnitConfig {
-        <<ScriptableObject>>
-        +float MaxHealth
-        +float Damage
-        +float FireRate
-        +float BulletSpeed
     }
 
     class EnemySpawnConfig {
@@ -242,140 +248,114 @@ classDiagram
     }
 
     GameManager --> GameStateMachine : controls state
-    GameStateMachine --> GameState : uses
+    GameStateMachine --> GameState : stores
     GameManager --> UISystem : updates screens
-    GameManager --> PlayerController : starts and stops player
-    GameManager --> EnemySpawnerSystem : starts and stops spawning
-    GameManager --> GateSystem : starts and stops gates
-    GameManager --> RunStatsTracker : records run
-    GameManager --> SaveService : loads and saves progress
-    GameManager --> StoryCutsceneRuntimeController : plays story moments
-    GameManager --> BalanceBootstrapConfig : reads balance setup
+    GameManager --> PlayerController : run controls
+    GameManager --> EnemySpawnerSystem : run controls
+    GameManager --> GateSystem : run controls
+    GameManager --> RunStatsTracker : run snapshot
+    GameManager --> SaveService : progress data
+    GameManager --> StoryCutsceneRuntimeController : story flow
+    GameManager --> BalanceBootstrapConfig : balance entrypoint
 
-    PlayerController *-- MainPlayerUnit : owns main unit
-    PlayerController o-- FollowerUnit : manages squad
-    PlayerController --> PlayerMovement : reads movement
+    PlayerController *-- MainPlayerUnit : owns
+    PlayerController o-- FollowerUnit : manages
     MainPlayerUnit --|> PlayerUnit
     FollowerUnit --|> PlayerUnit
     PlayerUnit ..|> IDamageable
-    PlayerUnit --> BulletSpawner : fires through
-    PlayerUnit --> PlayerUnitConfig : reads stats
+    PlayerUnit --> BulletSpawner : fires
 
-    BulletSpawner --> Bullet : spawns
-    Bullet --> IDamageable : damages target
-    Bullet --> IBulletModifier : applies modifiers
+    BulletSpawner --> Bullet : creates
+    Bullet ..|> IPoolable
+    Bullet --> IDamageable : deals damage
+    Bullet --> IBulletModifier : dispatches hooks
     HomingModifier ..|> IBulletModifier
     PierceModifier ..|> IBulletModifier
     SplitModifier ..|> IBulletModifier
 
     EnemySpawnerSystem --> EnemyController : spawns
-    EnemySpawnerSystem --> EnemySpawnConfig : reads spawn rules
-    EnemySpawnerSystem --> RunPressureConfig : reads pressure curve
-    EnemySpawnerSystem --> PoolSystem : reuses enemies
+    EnemySpawnerSystem --> EnemySpawnConfig : spawn data
+    EnemySpawnerSystem --> RunPressureConfig : pressure data
     EnemyController ..|> IDamageable
     EnemyController ..|> IConditionalDamageable
     EnemyController ..|> IPoolable
-    EnemyController --> PlayerUnit : attacks player
+    EnemyController --> PlayerUnit : attacks
 
-    GateSystem --> GateLogic : creates gate choices
-    GateSystem --> GateRuntimeEffectController : applies timed effects
-    GateSystem --> GatePoolConfig : reads gate pool
-    GateLogic --> GateConfig : displays and applies config
+    GateSystem --> GateLogic : creates offers
+    GateSystem --> GateRuntimeEffectController : applies selected gate
+    GateSystem --> GatePoolConfig : offer data
+    GateLogic --> GateConfig : displays config
     GateLogic ..|> IPoolable
-    GateEffectApplier --> GateConfig : reads effect
-    GateEffectApplier --> PlayerController : modifies squad
-    GateEffectApplier --> PlayerUnit : modifies stats
+    GateLogic ..|> IGateEffect
+    GateRuntimeEffectController --> GateConfig : reads runtime effects
+    GateEffectApplier --> GateConfig : applies simple effects
 
-    StoryCutsceneRuntimeController --> StoryCutsceneDirector : starts playback
+    StoryCutsceneRuntimeController --> StoryCutsceneDirector : plays
     StoryCutsceneRuntimeController --> StoryCutsceneUnlockRules : checks unlocks
-    StoryCutsceneRuntimeController --> SaveService : reads and records seen ids
-    StoryCutsceneDirector --> UISystem : overlays story UI
-
-    SaveService *-- SaveData : owns runtime save
-    UISystem --> SaveService : shows wallet and upgrades
-    RunStatsTracker --> SaveService : commits run result
+    StoryCutsceneRuntimeController --> SaveService : reads and records
+    SaveService *-- SaveData : owns
+    RunStatsTracker --> SaveService : records result
 ```
+
+Note: The class diagram intentionally omits secondary systems such as `CombatSystem`, `LevelSystem`, `BalanceTelemetryService`, and some config types to keep the report readable. `GameManager` still references those systems in code.
 
 ## Layered Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["Presentation Layer"]
-        UI["UISystem\nMain menu, HUD, pause, upgrades, game over"]
-        CutsceneUI["Cutscene UI\nCutsceneDemoUIView / runtime canvas"]
-        HealthBars["WorldHealthBarView\nPlayer and enemy health bars"]
-    end
+    Presentation["Presentation Layer\nUISystem, HUD, pause/game over panels,\ncutscene view, world health bars"]
+    Application["Application / Core Layer\nGameManager, GameStateMachine,\nStoryCutsceneRuntimeController"]
+    Gameplay["Gameplay Runtime Layer\nPlayer, combat, enemy spawner,\ngates, run stats"]
+    Data["Data / Config / Persistence Layer\nScriptableObject configs, SaveService,\nSaveData, unlock rules, balance math"]
+    UnityInfra["Unity / Infrastructure Layer\nScenes, prefabs, MonoBehaviour lifecycle,\nassets, pooling, input, camera, storage"]
 
-    subgraph Application["Application / Core Layer"]
-        GM["GameManager\nMain run orchestration"]
-        GSM["GameStateMachine\nBootstrap, MainMenu, Playing, Cutscene, Paused, GameOver"]
-        StoryRuntime["StoryCutsceneRuntimeController\nInitial and post-run story flow"]
-    end
+    Presentation -->|raises play, pause, resume, home requests| Application
+    Application -->|changes visible screen and cutscene state| Presentation
+    Application -->|starts, pauses, resumes, ends the run| Gameplay
+    Gameplay -->|reports defeat, kills, coins, score snapshot| Application
+    Application -->|loads progress and records run/cutscene state| Data
+    Data -->|provides save data and balance configuration| Application
+    Gameplay -->|reads tuning configs and writes run results| Data
+    Presentation -->|uses canvases, UI prefabs, sprites| UnityInfra
+    Application -->|uses scene lifecycle and Time scale| UnityInfra
+    Gameplay -->|uses physics, prefabs, pooling, camera bounds| UnityInfra
+    Data -->|uses ScriptableObject assets and local files| UnityInfra
+```
 
-    subgraph Gameplay["Gameplay Domain Layer"]
-        Player["PlayerController + PlayerUnit\nMain unit, followers, movement, squad firing"]
-        Combat["BulletSpawner + Bullet + Modifiers\nProjectile damage and special bullet behavior"]
-        Enemies["EnemySpawnerSystem + EnemyController\nEnemy pacing, movement, damage, rewards"]
-        Gates["GateSystem + GateLogic + GateRuntimeEffectController\nGate offers and runtime upgrades"]
-        Stats["RunStatsTracker\nSurvival time, kills, coins, score"]
-    end
+## Gameplay Runtime Flow
 
-    subgraph Data["Data & Persistence Layer"]
-        Configs["ScriptableObject configs\nBalanceBootstrapConfig, GateConfig, GatePoolConfig,\nPlayerUnitConfig, EnemySpawnConfig, RunPressureConfig"]
-        Save["SaveService + SaveData\nLocal save, cloud provider abstraction, upgrades, cutscene flags"]
-        Rules["Static rules and math\nStoryCutsceneUnlockRules, PlayerMetaUpgradeService, BalanceV1Math"]
-    end
+```mermaid
+flowchart LR
+    InputUI["Input / UI\nPlay, pause, retry, home"] -->|PlayRequested| GM["GameManager"]
+    GM -->|StartRun| Begin["BeginRun phase"]
 
-    subgraph UnityInfra["Unity / Infrastructure Layer"]
-        Unity["Unity Engine\nMonoBehaviour lifecycle, scenes, prefabs, transforms, physics"]
-        Assets["Project assets\nSprites, animations, ScriptableObject assets, UI prefabs"]
-        Pool["PoolSystem\nReusable bullets, enemies, gates, effects"]
-        InputCamera["Input and camera\nInput System, gameplay camera, viewport placement"]
-    end
+    Begin -->|enable controls| Player["PlayerController\nMainPlayerUnit + followers"]
+    Begin -->|BeginRun + enable spawning| Enemies["EnemySpawnerSystem"]
+    Begin -->|BeginRun + enable gate spawning| Gates["GateSystem"]
+    Begin -->|BeginRun| Stats["RunStatsTracker"]
+    Begin -->|ShowGameplayHud| HUD["UISystem\nGameplay HUD"]
 
-    UI --> GM
-    CutsceneUI --> StoryRuntime
-    GM --> GSM
-    GM --> StoryRuntime
-    GM --> Player
-    GM --> Enemies
-    GM --> Gates
-    GM --> Stats
-    GM --> Save
-    GM --> Configs
+    Player -->|ShootSquad| Combat["BulletSpawner + Bullet"]
+    Combat -->|damage and kill enemies| Enemies
+    Gates -->|Apply GateConfig| Player
+    Gates -->|runtime modifiers| Enemies
+    Enemies -->|contact/projectile damage| Player
 
-    StoryRuntime --> Rules
-    StoryRuntime --> Save
-    StoryRuntime --> CutsceneUI
-
-    Player --> Combat
-    Combat --> Enemies
-    Enemies --> Player
-    Gates --> Player
-    Gates --> Enemies
-    Stats --> Enemies
-    Stats --> Save
-
-    Player --> Configs
-    Enemies --> Configs
-    Gates --> Configs
-    Combat --> Rules
-    UI --> Save
-
-    Gameplay --> Pool
-    Presentation --> Unity
-    Application --> Unity
-    Gameplay --> Unity
-    Data --> Assets
-    Configs --> Assets
-    Pool --> Unity
-    InputCamera --> Unity
+    Player -->|SquadDefeated event| GM
+    GM -->|EndRun and CreateSnapshot| Stats
+    Stats -->|RecordRunResult| Save["SaveService / SaveData"]
+    GM -->|TryPlayPostRunCutscene with snapshot| StoryRuntime["StoryCutsceneRuntimeController"]
+    StoryRuntime -->|eligible Play cutsceneId| StoryDirector["StoryCutsceneDirector"]
+    StoryRuntime -->|RecordCutsceneSeen| Save
+    StoryDirector -->|finished callback| GM
+    GM -->|ShowGameOver with snapshot| GameOverUI["UISystem\nGame over panel"]
+    Save -->|wallet and best-run values| GameOverUI
 ```
 
 ## Notes For Report
 
-- `GameManager` la trung tam dieu phoi vong choi: bat dau run, pause/resume, xu ly game over va kich hoat cutscene.
-- Gameplay duoc chia thanh cac module nho: Player, Enemy, Combat, Gate, Stats. Moi module co trach nhiem rieng va duoc `GameManager` ket noi lai.
-- Data runtime duoc tach ra khoi logic bang `ScriptableObject`, giup can bang game ma khong can sua code.
-- `SaveService` quan ly tien trinh nguoi choi, nang cap, ket qua run va cac cutscene da xem.
-- `StoryCutsceneRuntimeController` ket noi he thong cutscene vao game chinh bang cach doc `SaveData`, kiem tra unlock rules va yeu cau `StoryCutsceneDirector` phat cutscene.
+- `GameManager` la trung tam dieu phoi: nhan request tu UI, bat dau run, pause/resume, xu ly squad defeated, game over va cutscene.
+- Class diagram chi giu cac class runtime quan trong; cac dependency nho nhu layout UI, editor tool, third-party package va DTO chi tiet duoc loai ra de tranh roi.
+- Layered architecture chi mo ta quan he cap he thong. Chi tiet Player, Enemy, Gate, Combat duoc tach sang class diagram va runtime flow.
+- `ScriptableObject` la nguon cau hinh runtime: gate, spawn, pressure va balance duoc doc tu asset thay vi hard-code trong gameplay.
+- `SaveService` quan ly tien trinh nguoi choi, nang cap, ket qua run va cac cutscene da xem; `StoryCutsceneRuntimeController` dung du lieu nay de quyet dinh cutscene nao duoc phat.

@@ -25,6 +25,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private AnimationCurve difficultyCurve = AnimationCurve.Linear(0f, 1f, 60f, 2f);
         [SerializeField] private MainPlayerUnit playerUnit;
+        [SerializeField] private PlayerController playerController;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private RuntimePoolSystem poolSystem;
         [SerializeField] private float baseSpawnInterval = 1.5f;
@@ -75,6 +76,13 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             if (playerUnit == null)
             {
                 playerUnit = FindAnyObjectByType<MainPlayerUnit>();
+            }
+
+            if (playerController == null)
+            {
+                playerController = playerUnit != null
+                    ? playerUnit.GetComponentInParent<PlayerController>()
+                    : FindAnyObjectByType<PlayerController>();
             }
 
             _elapsedTime = 0f;
@@ -194,7 +202,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             }
 
             enemyInstance.SetPoolSystem(poolSystem);
-            enemyInstance.Init(playerUnit.transform, playerUnit, gameplayCamera);
+            enemyInstance.Init(playerUnit.transform, playerUnit, gameplayCamera, playerController);
             enemyInstance.SetRewardPoints(
                 selectedEntry != null
                     ? selectedEntry.GetRewardPoints()

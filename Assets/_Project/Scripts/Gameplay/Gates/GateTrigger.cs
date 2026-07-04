@@ -45,7 +45,12 @@ namespace _Project.Scripts.Gameplay.Gates
                 return;
             }
 
-            MainPlayerUnit hitPlayer = other.GetComponent<MainPlayerUnit>();
+            PlayerUnit hitPlayer = other.GetComponent<PlayerUnit>();
+
+            if (hitPlayer == null)
+            {
+                hitPlayer = other.GetComponentInParent<PlayerUnit>();
+            }
 
             if (hitPlayer == null)
             {

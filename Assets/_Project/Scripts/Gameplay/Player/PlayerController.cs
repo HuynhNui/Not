@@ -26,7 +26,8 @@ namespace _Project.Scripts.Gameplay.Player
         [SerializeField] private float formationSpacing = 1.15f;
         [SerializeField] private float ringRadiusStep = 0.75f;
         [SerializeField, Range(30f, 180f)] private float rearArcDegrees = 140f;
-        [SerializeField] private float hurtboxRadius = 0.1f;
+        [FormerlySerializedAs("hurtboxRadius")]
+        [SerializeField] private float fallbackHurtboxRadius = 0.1f;
         [SerializeField] private bool autoFire = true;
         [SerializeField] private CombatScalingConfig combatScalingConfig;
         private bool _controlsEnabled = true;
@@ -51,6 +52,98 @@ namespace _Project.Scripts.Gameplay.Player
             ? combatScalingConfig.RecruitSpawnHpRatio
             : 0.5f;
         public float GateIncomingDamageMultiplier => _gateIncomingDamageMultiplier;
+
+        public bool ContainsUnit(PlayerUnit unit)
+        {
+            if (unit == null)
+            {
+                return false;
+            }
+
+            if (unit == mainPlayerUnit)
+            {
+                return mainPlayerUnit != null && !mainPlayerUnit.IsDead;
+            }
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                FollowerUnit follower = followers[index];
+                if (follower == unit)
+                {
+                    return follower != null && !follower.IsDead;
+                }
+            }
+
+            return false;
+        }
+
+        public bool TryGetClosestAliveUnitContactPoint(
+            Vector3 worldPosition,
+            out PlayerUnit unit,
+            out Vector3 contactPoint)
+        {
+            unit = null;
+            contactPoint = worldPosition;
+            float closestSqrDistance = float.PositiveInfinity;
+
+            EvaluateClosestAliveUnit(mainPlayerUnit, worldPosition, ref unit, ref contactPoint, ref closestSqrDistance);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                EvaluateClosestAliveUnit(followers[index], worldPosition, ref unit, ref contactPoint, ref closestSqrDistance);
+            }
+
+            return unit != null;
+        }
+
+        private static void EvaluateClosestAliveUnit(
+            PlayerUnit candidate,
+            Vector3 worldPosition,
+            ref PlayerUnit closestUnit,
+            ref Vector3 closestContactPoint,
+            ref float closestSqrDistance)
+        {
+            if (candidate == null || candidate.IsDead)
+            {
+                return;
+            }
+
+            Vector3 candidateContactPoint = GetUnitContactPoint(candidate, worldPosition);
+            float sqrDistance = (candidateContactPoint - worldPosition).sqrMagnitude;
+            if (sqrDistance >= closestSqrDistance)
+            {
+                return;
+            }
+
+            closestUnit = candidate;
+            closestContactPoint = candidateContactPoint;
+            closestSqrDistance = sqrDistance;
+        }
+
+        public static Vector3 GetUnitContactPoint(PlayerUnit unit, Vector3 worldPosition)
+        {
+            if (unit == null)
+            {
+                return worldPosition;
+            }
+
+            Renderer renderer = unit.GetComponentInChildren<Renderer>();
+            if (renderer != null && renderer.enabled)
+            {
+                Vector3 closestPoint = renderer.bounds.ClosestPoint(worldPosition);
+                closestPoint.z = unit.transform.position.z;
+                return closestPoint;
+            }
+
+            Collider2D collider = unit.GetComponent<Collider2D>();
+            if (collider != null && collider.enabled)
+            {
+                Vector2 closestPoint = collider.ClosestPoint(worldPosition);
+                return new Vector3(closestPoint.x, closestPoint.y, unit.transform.position.z);
+            }
+
+            return unit.transform.position;
+        }
 
         private void Awake()
         {
@@ -487,25 +580,7 @@ namespace _Project.Scripts.Gameplay.Player
                 return;
             }
 
-            BoxCollider2D[] boxColliders = unitObject.GetComponents<BoxCollider2D>();
-            for (int index = 0; index < boxColliders.Length; index++)
-            {
-                if (boxColliders[index] != null)
-                {
-                    Destroy(boxColliders[index]);
-                }
-            }
-
-            CircleCollider2D hurtbox = unitObject.GetComponent<CircleCollider2D>();
-            if (hurtbox == null)
-            {
-                hurtbox = unitObject.AddComponent<CircleCollider2D>();
-            }
-
-            hurtbox.enabled = true;
-            hurtbox.isTrigger = true;
-            hurtbox.offset = Vector2.zero;
-            hurtbox.radius = Mathf.Max(0.01f, hurtboxRadius);
+            ConfigureSquadHurtbox(unitObject);
 
             Rigidbody2D body = unitObject.GetComponent<Rigidbody2D>();
             if (body == null)
@@ -519,6 +594,93 @@ namespace _Project.Scripts.Gameplay.Player
             body.constraints = RigidbodyConstraints2D.FreezeRotation;
             body.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
             body.interpolation = RigidbodyInterpolation2D.None;
+        }
+
+        private void ConfigureSquadHurtbox(GameObject unitObject)
+        {
+            SpriteRenderer spriteRenderer = unitObject.GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer != null && spriteRenderer.enabled)
+            {
+                ConfigureRendererBoxHurtbox(unitObject, spriteRenderer);
+                return;
+            }
+
+            ConfigureFallbackCircleHurtbox(unitObject);
+        }
+
+        private void ConfigureRendererBoxHurtbox(GameObject unitObject, SpriteRenderer spriteRenderer)
+        {
+            CircleCollider2D[] circleColliders = unitObject.GetComponents<CircleCollider2D>();
+            for (int index = 0; index < circleColliders.Length; index++)
+            {
+                DestroyCollider(circleColliders[index]);
+            }
+
+            BoxCollider2D hurtbox = unitObject.GetComponent<BoxCollider2D>();
+            if (hurtbox == null)
+            {
+                hurtbox = unitObject.AddComponent<BoxCollider2D>();
+            }
+
+            BoxCollider2D[] boxColliders = unitObject.GetComponents<BoxCollider2D>();
+            for (int index = 0; index < boxColliders.Length; index++)
+            {
+                if (boxColliders[index] != hurtbox)
+                {
+                    DestroyCollider(boxColliders[index]);
+                }
+            }
+
+            Bounds bounds = spriteRenderer.bounds;
+            Vector3 localCenter = unitObject.transform.InverseTransformPoint(bounds.center);
+            Vector3 lossyScale = unitObject.transform.lossyScale;
+            float scaleX = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.x));
+            float scaleY = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.y));
+
+            hurtbox.enabled = true;
+            hurtbox.isTrigger = true;
+            hurtbox.offset = new Vector2(localCenter.x, localCenter.y);
+            hurtbox.size = new Vector2(
+                Mathf.Max(0.01f, bounds.size.x / scaleX),
+                Mathf.Max(0.01f, bounds.size.y / scaleY));
+        }
+
+        private void ConfigureFallbackCircleHurtbox(GameObject unitObject)
+        {
+            BoxCollider2D[] boxColliders = unitObject.GetComponents<BoxCollider2D>();
+            for (int index = 0; index < boxColliders.Length; index++)
+            {
+                DestroyCollider(boxColliders[index]);
+            }
+
+            CircleCollider2D hurtbox = unitObject.GetComponent<CircleCollider2D>();
+            if (hurtbox == null)
+            {
+                hurtbox = unitObject.AddComponent<CircleCollider2D>();
+            }
+
+            hurtbox.enabled = true;
+            hurtbox.isTrigger = true;
+            hurtbox.offset = Vector2.zero;
+            hurtbox.radius = Mathf.Max(0.01f, fallbackHurtboxRadius);
+        }
+
+        private static void DestroyCollider(Collider2D collider)
+        {
+            if (collider == null)
+            {
+                return;
+            }
+
+            collider.enabled = false;
+
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(collider);
+                return;
+            }
+
+            UnityEngine.Object.DestroyImmediate(collider);
         }
 
         private void ConfigureFollower(FollowerUnit follower, int followerIndex, bool restoreFullHealth = false)

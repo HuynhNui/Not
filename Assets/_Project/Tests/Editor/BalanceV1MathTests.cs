@@ -13,6 +13,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using System.Reflection;
 
 namespace _Project.Tests.Editor
 {
@@ -873,6 +874,180 @@ namespace _Project.Tests.Editor
             {
                 Object.DestroyImmediate(squadObject);
             }
+        }
+
+        [Test]
+        public void ConfigureSquadUnitPhysics_UsesRendererBoxHurtbox()
+        {
+            var squadObject = new GameObject("RendererHurtboxSquadTest");
+            Texture2D texture = null;
+            Sprite sprite = null;
+
+            try
+            {
+                texture = new Texture2D(8, 8);
+                sprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, 8f, 8f),
+                    new Vector2(0.5f, 0.5f),
+                    8f);
+
+                squadObject.AddComponent<SpriteRenderer>().sprite = sprite;
+                squadObject.AddComponent<CircleCollider2D>();
+                MainPlayerUnit main = squadObject.AddComponent<MainPlayerUnit>();
+                PlayerController controller = squadObject.AddComponent<PlayerController>();
+
+                controller.SetMainPlayerUnit(main);
+
+                BoxCollider2D box = squadObject.GetComponent<BoxCollider2D>();
+                Assert.That(box, Is.Not.Null);
+                Assert.That(box.isTrigger, Is.True);
+                Assert.That(box.size.x, Is.EqualTo(1f).Within(0.0001f));
+                Assert.That(box.size.y, Is.EqualTo(1f).Within(0.0001f));
+                Assert.That(squadObject.GetComponent<CircleCollider2D>(), Is.Null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(squadObject);
+                Object.DestroyImmediate(sprite);
+                Object.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        public void GateLogic_AllowsLivingFollowerToChooseGate()
+        {
+            var squadObject = new GameObject("GateFollowerSquadTest");
+            var gateObject = new GameObject("GateFollowerGateTest");
+            var gateSystemObject = new GameObject("GateFollowerSystemTest");
+
+            try
+            {
+                squadObject.AddComponent<BulletSpawner>();
+                MainPlayerUnit main = squadObject.AddComponent<MainPlayerUnit>();
+                PlayerController controller = squadObject.AddComponent<PlayerController>();
+                controller.SetMainPlayerUnit(main);
+                main.SetMaxHp(20f);
+                main.RestoreFullHealth();
+                controller.SetSquadCount(2, 0.5f);
+
+                FollowerUnit follower = controller.Followers[0];
+                GateSystem gateSystem = gateSystemObject.AddComponent<GateSystem>();
+                GateLogic gate = gateObject.AddComponent<GateLogic>();
+                gate.Init(null, gateSystem, main, controller, null, null, 0f, 1f, 1f);
+                SetPrivateField(gateSystem, "_isGateSetActive", true);
+                SetPrivateField(gate, "consumeAfterUse", false);
+
+                bool selected = false;
+                gateSystem.GateSelected += (setIndex, config) => selected = true;
+
+                gate.HandlePlayerTriggered(follower);
+
+                Assert.That(selected, Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(gateSystemObject);
+                Object.DestroyImmediate(gateObject);
+                Object.DestroyImmediate(squadObject);
+            }
+        }
+
+        [Test]
+        public void GateLogic_IgnoresDeadFollower()
+        {
+            var squadObject = new GameObject("GateDeadFollowerSquadTest");
+            var gateObject = new GameObject("GateDeadFollowerGateTest");
+            var gateSystemObject = new GameObject("GateDeadFollowerSystemTest");
+
+            try
+            {
+                squadObject.AddComponent<BulletSpawner>();
+                MainPlayerUnit main = squadObject.AddComponent<MainPlayerUnit>();
+                PlayerController controller = squadObject.AddComponent<PlayerController>();
+                controller.SetMainPlayerUnit(main);
+                main.SetMaxHp(20f);
+                main.RestoreFullHealth();
+                controller.SetSquadCount(2, 0.5f);
+
+                FollowerUnit follower = controller.Followers[0];
+                follower.TakeDamage(999f);
+
+                GateSystem gateSystem = gateSystemObject.AddComponent<GateSystem>();
+                GateLogic gate = gateObject.AddComponent<GateLogic>();
+                gate.Init(null, gateSystem, main, controller, null, null, 0f, 1f, 1f);
+                SetPrivateField(gateSystem, "_isGateSetActive", true);
+                SetPrivateField(gate, "consumeAfterUse", false);
+
+                bool selected = false;
+                gateSystem.GateSelected += (setIndex, config) => selected = true;
+
+                gate.HandlePlayerTriggered(follower);
+
+                Assert.That(selected, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(gateSystemObject);
+                Object.DestroyImmediate(gateObject);
+                Object.DestroyImmediate(squadObject);
+            }
+        }
+
+        [Test]
+        public void EnemyController_TargetPositionUsesClosestSquadUnit()
+        {
+            var squadObject = new GameObject("EnemyTargetSquadTest");
+            var enemyObject = new GameObject("EnemyTargetTest");
+            Texture2D texture = null;
+            Sprite sprite = null;
+
+            try
+            {
+                texture = new Texture2D(8, 8);
+                sprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, 8f, 8f),
+                    new Vector2(0.5f, 0.5f),
+                    8f);
+
+                squadObject.AddComponent<SpriteRenderer>().sprite = sprite;
+                squadObject.AddComponent<BulletSpawner>();
+                MainPlayerUnit main = squadObject.AddComponent<MainPlayerUnit>();
+                PlayerController controller = squadObject.AddComponent<PlayerController>();
+                controller.SetMainPlayerUnit(main);
+                main.SetMaxHp(20f);
+                main.RestoreFullHealth();
+                controller.SetSquadCount(2, 0.5f);
+
+                FollowerUnit follower = controller.Followers[0];
+                main.transform.position = Vector3.zero;
+                follower.transform.position = new Vector3(3f, 0f, 0f);
+                enemyObject.transform.position = new Vector3(3.5f, 0f, 0f);
+
+                EnemyController enemy = enemyObject.AddComponent<EnemyController>();
+                enemy.Init(main.transform, main, null, controller);
+
+                Vector3 targetPosition = enemy.GetCurrentTargetPosition();
+
+                Assert.That(targetPosition.x, Is.GreaterThan(2.5f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(enemyObject);
+                Object.DestroyImmediate(squadObject);
+                Object.DestroyImmediate(sprite);
+                Object.DestroyImmediate(texture);
+            }
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            FieldInfo field = target.GetType().GetField(
+                fieldName,
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Missing private field '{fieldName}'.");
+            field.SetValue(target, value);
         }
     }
 }

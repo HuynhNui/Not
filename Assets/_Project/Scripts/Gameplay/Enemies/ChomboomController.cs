@@ -192,7 +192,8 @@ namespace _Project.Scripts.Gameplay.Enemies
                     continue;
                 }
 
-                float distance = Vector2.Distance(transform.position, playerUnit.transform.position);
+                Vector3 contactPoint = PlayerController.GetUnitContactPoint(playerUnit, transform.position);
+                float distance = Vector2.Distance(transform.position, contactPoint);
 
                 if (distance > closestDistance)
                 {
@@ -258,12 +259,12 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         private void UpdateFacingFromTarget()
         {
-            if (enemyController == null || enemyController.Target == null)
+            if (enemyController == null)
             {
                 return;
             }
 
-            Vector3 directionToTarget = enemyController.Target.position - transform.position;
+            Vector3 directionToTarget = enemyController.GetCurrentTargetPosition() - transform.position;
 
             if (directionToTarget.sqrMagnitude <= Mathf.Epsilon)
             {

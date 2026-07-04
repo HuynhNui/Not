@@ -35,6 +35,7 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         private Transform _target;
         private MainPlayerUnit _playerUnit;
+        private PlayerController _playerController;
         private Camera _gameplayCamera;
         private PoolSystem _poolSystem;
         private bool _isActive;
@@ -68,13 +69,23 @@ namespace _Project.Scripts.Gameplay.Enemies
         public float CurrentHealth => currentHealth;
         public Transform Target => _target;
         public MainPlayerUnit PlayerUnit => _playerUnit;
+        public PlayerController PlayerController => _playerController;
         public Camera GameplayCamera => _gameplayCamera;
         public PoolSystem PoolSystem => _poolSystem;
 
-        public void Init(Transform target, MainPlayerUnit playerUnit, Camera gameplayCamera = null)
+        public void Init(
+            Transform target,
+            MainPlayerUnit playerUnit,
+            Camera gameplayCamera = null,
+            PlayerController playerController = null)
         {
             _target = target;
             _playerUnit = playerUnit;
+            _playerController = playerController != null
+                ? playerController
+                : playerUnit != null
+                    ? playerUnit.GetComponentInParent<PlayerController>()
+                    : null;
             _gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
             ClearRuntimeStats();
             currentHealth = GetMaxHealth();
@@ -255,14 +266,15 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         private void MoveTowardsTarget()
         {
-            if (_target == null)
+            if (_target == null && _playerController == null)
             {
                 return;
             }
 
+            Vector3 targetPosition = GetCurrentTargetPosition();
             Vector3 nextPosition = Vector3.MoveTowards(
                 transform.position,
-                _target.position,
+                targetPosition,
                 GetMoveSpeed() * Time.deltaTime);
 
             if (clampInsideCameraWidth && _gameplayCamera != null && _gameplayCamera.orthographic)
@@ -274,6 +286,20 @@ namespace _Project.Scripts.Gameplay.Enemies
             }
 
             transform.position = nextPosition;
+        }
+
+        public Vector3 GetCurrentTargetPosition()
+        {
+            if (_playerController != null
+                && _playerController.TryGetClosestAliveUnitContactPoint(
+                    transform.position,
+                    out _,
+                    out Vector3 contactPoint))
+            {
+                return contactPoint;
+            }
+
+            return _target != null ? _target.position : transform.position;
         }
 
         private void MoveToTopBand()
