@@ -187,8 +187,38 @@ namespace _Project.Scripts.Gameplay.Enemies
             }
 
             projectile.SetPoolSystem(_poolSystem);
-            projectile.Init(projectileDamage, projectileSpeed);
+            projectile.Init(projectileDamage, projectileSpeed, ResolveProjectileDirection(spawnPoint.position));
             projectile.Spawn();
+        }
+
+        private Vector2 ResolveProjectileDirection(Vector3 spawnPosition)
+        {
+            if (enemyController != null
+                && enemyController.PlayerController != null
+                && enemyController.PlayerController.TryGetClosestAliveUnitContactPoint(
+                    spawnPosition,
+                    out _,
+                    out Vector3 contactPoint))
+            {
+                Vector2 directionToContact = contactPoint - spawnPosition;
+                if (directionToContact.sqrMagnitude > 0.0001f)
+                {
+                    return directionToContact.normalized;
+                }
+            }
+
+            if (enemyController != null
+                && enemyController.PlayerUnit != null
+                && !enemyController.PlayerUnit.IsDead)
+            {
+                Vector2 directionToPlayer = enemyController.PlayerUnit.transform.position - spawnPosition;
+                if (directionToPlayer.sqrMagnitude > 0.0001f)
+                {
+                    return directionToPlayer.normalized;
+                }
+            }
+
+            return Vector2.down;
         }
 
         private void CacheBaseRuntimeValues()

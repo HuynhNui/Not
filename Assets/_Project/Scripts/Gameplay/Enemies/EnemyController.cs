@@ -13,6 +13,8 @@ namespace _Project.Scripts.Gameplay.Enemies
     /// </summary>
     public sealed class EnemyController : MonoBehaviour, IPoolable, IDamageable, IConditionalDamageable
     {
+        private static int _lastPhysicsSyncFrame = -1;
+
         [SerializeField] private UnitData unitData;
         [SerializeField] private float currentHealth = 1f;
         [SerializeField] private int scoreValue = 1;
@@ -29,6 +31,7 @@ namespace _Project.Scripts.Gameplay.Enemies
         [SerializeField] private bool clampInsideCameraWidth = true;
         [SerializeField] private float horizontalPadding = 0.25f;
         [SerializeField] private float despawnBelowCameraOffset = 1.5f;
+        [SerializeField] private float repeatedContactDamageCooldown = 0.5f;
         [SerializeField] private WorldHealthBarView healthBarPrefab;
         [SerializeField] private Transform healthBarAnchor;
         [SerializeField] private Vector3 healthBarOffset = new Vector3(0f, 0.42f, 0f);
@@ -53,6 +56,9 @@ namespace _Project.Scripts.Gameplay.Enemies
         private bool _hasRuntimeRewardPoints;
         private bool _runtimeDestroyOnPlayerHit;
         private float _externalMoveSpeedMultiplier = 1f;
+        private float _nextContactDamageTime;
+        private Collider2D[] _contactColliders = Array.Empty<Collider2D>();
+        private readonly Collider2D[] _overlapResults = new Collider2D[8];
 
         public event Action<EnemyController> Killed;
         public event Action<EnemyController> Spawned;
@@ -94,6 +100,8 @@ namespace _Project.Scripts.Gameplay.Enemies
             _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             _externalMoveSpeedMultiplier = 1f;
+            _nextContactDamageTime = 0f;
+            CacheContactColliders();
             EnsureHealthBar();
             RefreshHealthBar();
         }
@@ -110,6 +118,13 @@ namespace _Project.Scripts.Gameplay.Enemies
                 MoveByMode();
             }
 
+            PollPlayerContact();
+
+            if (!_isActive)
+            {
+                return;
+            }
+
             DespawnIfOutOfBounds();
         }
 
@@ -120,6 +135,8 @@ namespace _Project.Scripts.Gameplay.Enemies
             _movementEnabled = true;
             _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
+            _nextContactDamageTime = 0f;
+            CacheContactColliders();
             EnsureHealthBar();
             RefreshHealthBar();
             Spawned?.Invoke(this);
@@ -371,6 +388,77 @@ namespace _Project.Scripts.Gameplay.Enemies
             if (GetDestroyOnPlayerHit())
             {
                 Despawn();
+                return;
+            }
+
+            _nextContactDamageTime = Time.time + Mathf.Max(0.01f, repeatedContactDamageCooldown);
+        }
+
+        private void PollPlayerContact()
+        {
+            if (!_isActive || (!GetDestroyOnPlayerHit() && Time.time < _nextContactDamageTime))
+            {
+                return;
+            }
+
+            if (_contactColliders == null || _contactColliders.Length == 0)
+            {
+                CacheContactColliders();
+            }
+
+            SyncPhysicsTransformsOncePerFrame();
+
+            for (int colliderIndex = 0; colliderIndex < _contactColliders.Length; colliderIndex++)
+            {
+                Collider2D enemyCollider = _contactColliders[colliderIndex];
+                if (enemyCollider == null || !enemyCollider.enabled)
+                {
+                    continue;
+                }
+
+                int overlapCount = enemyCollider.Overlap(ContactFilter2D.noFilter, _overlapResults);
+                for (int overlapIndex = 0; overlapIndex < overlapCount; overlapIndex++)
+                {
+                    Collider2D overlap = _overlapResults[overlapIndex];
+                    if (overlap == null || overlap.transform.IsChildOf(transform))
+                    {
+                        continue;
+                    }
+
+                    TryDamagePlayer(overlap);
+
+                    if (!_isActive || (!GetDestroyOnPlayerHit() && Time.time < _nextContactDamageTime))
+                    {
+                        ClearOverlapResults(overlapCount);
+                        return;
+                    }
+                }
+
+                ClearOverlapResults(overlapCount);
+            }
+        }
+
+        private void CacheContactColliders()
+        {
+            _contactColliders = GetComponentsInChildren<Collider2D>();
+        }
+
+        private static void SyncPhysicsTransformsOncePerFrame()
+        {
+            if (_lastPhysicsSyncFrame == Time.frameCount)
+            {
+                return;
+            }
+
+            Physics2D.SyncTransforms();
+            _lastPhysicsSyncFrame = Time.frameCount;
+        }
+
+        private void ClearOverlapResults(int overlapCount)
+        {
+            for (int index = 0; index < overlapCount && index < _overlapResults.Length; index++)
+            {
+                _overlapResults[index] = null;
             }
         }
 

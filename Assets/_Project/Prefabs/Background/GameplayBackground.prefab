@@ -192,6 +192,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4105131761659620460}
   - component: {fileID: 3827188754495196011}
+  - component: {fileID: 8931861741434925992}
   m_Layer: 0
   m_Name: GameplayBackground
   m_TagString: Untagged
@@ -235,6 +236,22 @@ MonoBehaviour:
   sortingOrder: -100
   fitToCameraWidth: 1
   targetCamera: {fileID: 0}
+--- !u!114 &8931861741434925992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1927212299384669480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a982abd27515986469cacd980cdab3c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Gameplay.StoryProgressBackgroundController
+  scrollingBackground: {fileID: 3827188754495196011}
+  bg1: {fileID: 3095648225022645599, guid: 116b31218006a464a99c41fd767146fc, type: 3}
+  bg2: {fileID: -2191668444884831948, guid: ef490163411079346bc835f550509f3a, type: 3}
+  bg3: {fileID: -8251505574100086631, guid: deca3c8943c3ddb4a9a0c8b7cab1767c, type: 3}
 --- !u!1 &7120339546178736493
 GameObject:
   m_ObjectHideFlags: 0

@@ -127,19 +127,45 @@ namespace _Project.Scripts.Gameplay.Player
                 return worldPosition;
             }
 
+            Collider2D[] colliders = unit.GetComponentsInChildren<Collider2D>();
+            bool foundColliderContact = false;
+            Vector3 closestColliderContact = unit.transform.position;
+            float closestColliderSqrDistance = float.PositiveInfinity;
+
+            for (int index = 0; index < colliders.Length; index++)
+            {
+                Collider2D collider = colliders[index];
+                if (collider == null
+                    || !collider.enabled
+                    || !collider.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                Vector2 colliderPoint = collider.ClosestPoint(worldPosition);
+                Vector3 contactPoint = new Vector3(colliderPoint.x, colliderPoint.y, unit.transform.position.z);
+                float sqrDistance = (contactPoint - worldPosition).sqrMagnitude;
+                if (sqrDistance >= closestColliderSqrDistance)
+                {
+                    continue;
+                }
+
+                foundColliderContact = true;
+                closestColliderContact = contactPoint;
+                closestColliderSqrDistance = sqrDistance;
+            }
+
+            if (foundColliderContact)
+            {
+                return closestColliderContact;
+            }
+
             Renderer renderer = unit.GetComponentInChildren<Renderer>();
             if (renderer != null && renderer.enabled)
             {
                 Vector3 closestPoint = renderer.bounds.ClosestPoint(worldPosition);
                 closestPoint.z = unit.transform.position.z;
                 return closestPoint;
-            }
-
-            Collider2D collider = unit.GetComponent<Collider2D>();
-            if (collider != null && collider.enabled)
-            {
-                Vector2 closestPoint = collider.ClosestPoint(worldPosition);
-                return new Vector3(closestPoint.x, closestPoint.y, unit.transform.position.z);
             }
 
             return unit.transform.position;
@@ -598,10 +624,21 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void ConfigureSquadHurtbox(GameObject unitObject)
         {
-            SpriteRenderer spriteRenderer = unitObject.GetComponentInChildren<SpriteRenderer>();
-            if (spriteRenderer != null && spriteRenderer.enabled)
+            Collider2D[] existingColliders = unitObject.GetComponentsInChildren<Collider2D>();
+            if (existingColliders.Length > 0)
             {
-                ConfigureRendererBoxHurtbox(unitObject, spriteRenderer);
+                for (int index = 0; index < existingColliders.Length; index++)
+                {
+                    Collider2D existingCollider = existingColliders[index];
+                    if (existingCollider == null)
+                    {
+                        continue;
+                    }
+
+                    existingCollider.enabled = true;
+                    existingCollider.isTrigger = true;
+                }
+
                 return;
             }
 

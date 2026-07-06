@@ -61,6 +61,17 @@ namespace _Project.Scripts.Gameplay
             LayoutTiles();
         }
 
+        public void SetBackgroundSprite(Sprite sprite)
+        {
+            if (sprite == null || backgroundSprite == sprite)
+            {
+                return;
+            }
+
+            backgroundSprite = sprite;
+            Initialize();
+        }
+
         private void ResolveCamera()
         {
             if (targetCamera == null)

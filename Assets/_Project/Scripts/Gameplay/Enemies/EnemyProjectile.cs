@@ -22,11 +22,21 @@ namespace _Project.Scripts.Gameplay.Enemies
         private float _animationTimer;
         private int _frameIndex;
         private bool _isActive;
+        private Vector2 _moveDirection = Vector2.down;
 
         public void Init(float projectileDamage, float projectileSpeed)
         {
+            Init(projectileDamage, projectileSpeed, Vector2.down);
+        }
+
+        public void Init(float projectileDamage, float projectileSpeed, Vector2 direction)
+        {
             damage = Mathf.Max(0f, projectileDamage);
             speed = Mathf.Max(0f, projectileSpeed);
+            _moveDirection = direction.sqrMagnitude > 0.0001f
+                ? direction.normalized
+                : Vector2.down;
+            ApplyDirectionRotation();
         }
 
         private void Awake()
@@ -44,7 +54,7 @@ namespace _Project.Scripts.Gameplay.Enemies
                 return;
             }
 
-            transform.position += Vector3.down * (speed * Time.deltaTime);
+            transform.position += (Vector3)(_moveDirection * (speed * Time.deltaTime));
             _remainingLifetime -= Time.deltaTime;
             UpdateAnimation();
 
@@ -60,6 +70,7 @@ namespace _Project.Scripts.Gameplay.Enemies
             _animationTimer = 0f;
             _frameIndex = 0;
             _isActive = true;
+            ApplyDirectionRotation();
             ApplyFrame();
         }
 
@@ -141,6 +152,12 @@ namespace _Project.Scripts.Gameplay.Enemies
 
             _frameIndex = Mathf.Clamp(_frameIndex, 0, animationFrames.Length - 1);
             spriteRenderer.sprite = animationFrames[_frameIndex];
+        }
+
+        private void ApplyDirectionRotation()
+        {
+            float zRotation = Mathf.Atan2(_moveDirection.y, _moveDirection.x) * Mathf.Rad2Deg + 90f;
+            transform.rotation = Quaternion.Euler(0f, 0f, zRotation);
         }
     }
 }

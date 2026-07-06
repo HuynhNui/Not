@@ -11,8 +11,12 @@ namespace _Project.Scripts.Gameplay.Gates
     public sealed class DoorView : MonoBehaviour
     {
         private const string RuntimeLabelName = "GateLabelTMP";
+        private const string TintScreenName = "GateTintScreen";
 
         [SerializeField] private SpriteRenderer frameRenderer;
+        [SerializeField] private SpriteRenderer tintScreenRenderer;
+        [SerializeField] private Sprite positiveTintScreenSprite;
+        [SerializeField] private Sprite negativeTintScreenSprite;
         [SerializeField] private GateSpriteLibrary gateSpriteLibrary;
         [SerializeField] private TextMeshPro worldLabelText;
         [SerializeField] private TextMesh legacyLabelText;
@@ -26,7 +30,9 @@ namespace _Project.Scripts.Gameplay.Gates
         [SerializeField] private Vector2 worldLabelRectMin = new Vector2(0.28f, 0.12f);
         [SerializeField] private Vector2 worldLabelRectMax = new Vector2(0.72f, 0.44f);
         [SerializeField] private float worldLabelZOffset = -0.1f;
+        [SerializeField] private float tintScreenZOffset = 0.01f;
         [SerializeField] private int labelSortingOrderOffset = 5;
+        [SerializeField] private int tintScreenSortingOrderOffset = -1;
 
         private float _targetWorldWidth = 1.6f;
         private float _targetWorldHeight = 2.4f;
@@ -41,6 +47,7 @@ namespace _Project.Scripts.Gameplay.Gates
             }
 
             CacheFallbackFrameSprite();
+            EnsureTintScreen();
 
             if (worldLabelText == null)
             {
@@ -92,6 +99,8 @@ namespace _Project.Scripts.Gameplay.Gates
                     ApplyFallbackFrame(config);
                 }
             }
+
+            ApplyTintScreen(config);
         }
 
         public void ConfigureWorldBounds(float width, float height)
@@ -143,6 +152,31 @@ namespace _Project.Scripts.Gameplay.Gates
             ApplyWorldLabelDefaults();
             ApplyWorldLabelSorting();
             ApplyWorldLabelBounds();
+        }
+
+        private void EnsureTintScreen()
+        {
+            if (tintScreenRenderer != null)
+            {
+                ApplyTintScreenTransformAndSorting();
+                return;
+            }
+
+            Transform tintTransform = transform.Find(TintScreenName);
+            if (tintTransform != null)
+            {
+                tintScreenRenderer = tintTransform.GetComponent<SpriteRenderer>();
+            }
+
+            if (tintScreenRenderer == null)
+            {
+                GameObject tintObject = new GameObject(TintScreenName);
+                tintTransform = tintObject.transform;
+                tintTransform.SetParent(transform, false);
+                tintScreenRenderer = tintObject.AddComponent<SpriteRenderer>();
+            }
+
+            ApplyTintScreenTransformAndSorting();
         }
 
         private void ApplyWorldLabelDefaults()
@@ -244,6 +278,42 @@ namespace _Project.Scripts.Gameplay.Gates
             }
 
             textRenderer.sortingOrder = labelSortingOrderOffset;
+        }
+
+        private void ApplyTintScreen(GateConfig config)
+        {
+            if (tintScreenRenderer == null || config == null)
+            {
+                return;
+            }
+
+            Sprite tintSprite = config.IsBuff ? positiveTintScreenSprite : negativeTintScreenSprite;
+            tintScreenRenderer.sprite = tintSprite;
+            tintScreenRenderer.enabled = tintSprite != null;
+            tintScreenRenderer.color = Color.white;
+            ApplyTintScreenTransformAndSorting();
+        }
+
+        private void ApplyTintScreenTransformAndSorting()
+        {
+            if (tintScreenRenderer == null)
+            {
+                return;
+            }
+
+            Transform tintTransform = tintScreenRenderer.transform;
+            tintTransform.localPosition = new Vector3(0f, 0f, tintScreenZOffset);
+            tintTransform.localRotation = Quaternion.identity;
+            tintTransform.localScale = Vector3.one;
+
+            if (frameRenderer == null)
+            {
+                tintScreenRenderer.sortingOrder = tintScreenSortingOrderOffset;
+                return;
+            }
+
+            tintScreenRenderer.sortingLayerID = frameRenderer.sortingLayerID;
+            tintScreenRenderer.sortingOrder = frameRenderer.sortingOrder + tintScreenSortingOrderOffset;
         }
 
         private void CacheFallbackFrameSprite()
