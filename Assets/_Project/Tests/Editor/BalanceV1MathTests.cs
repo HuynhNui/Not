@@ -1025,6 +1025,46 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
+        public void EnemyController_InitFitsCombatColliderToRenderer()
+        {
+            var enemyObject = new GameObject("RendererHurtboxEnemyTest");
+            var visualObject = new GameObject("Visual");
+            Texture2D texture = null;
+            Sprite sprite = null;
+
+            try
+            {
+                visualObject.transform.SetParent(enemyObject.transform, false);
+                texture = new Texture2D(8, 8);
+                sprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, 8f, 8f),
+                    new Vector2(0.5f, 0.5f),
+                    8f);
+
+                visualObject.AddComponent<SpriteRenderer>().sprite = sprite;
+                BoxCollider2D staleCollider = enemyObject.AddComponent<BoxCollider2D>();
+                staleCollider.isTrigger = false;
+                staleCollider.size = new Vector2(0.1f, 0.1f);
+                EnemyController enemy = enemyObject.AddComponent<EnemyController>();
+
+                enemy.Init(null, null);
+
+                BoxCollider2D box = enemyObject.GetComponent<BoxCollider2D>();
+                Assert.That(box, Is.Not.Null);
+                Assert.That(box.isTrigger, Is.True);
+                Assert.That(box.size.x, Is.EqualTo(1f).Within(0.0001f));
+                Assert.That(box.size.y, Is.EqualTo(1f).Within(0.0001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(enemyObject);
+                Object.DestroyImmediate(sprite);
+                Object.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
         public void GateLogic_AllowsLivingFollowerToChooseGate()
         {
             var squadObject = new GameObject("GateFollowerSquadTest");

@@ -1,3 +1,4 @@
+using System;
 using _Project.Cutscenes;
 using _Project.Scripts.Core.StateMachine;
 using _Project.Scripts.Data.Balance;
@@ -10,6 +11,7 @@ using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
 using _Project.Scripts.Systems.Telemetry;
+using _Project.Scripts.Systems.TutorialSystem;
 using _Project.Scripts.Systems.UISystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -35,15 +37,18 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private PlayerController playerController;
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
         [SerializeField] private StoryCutsceneRuntimeController storyCutsceneRuntime;
+        [SerializeField] private TutorialManager tutorialManager;
 
         private bool _isGameOver;
         private bool _isRunActive;
         private static bool _startRunAfterReload;
+        private static bool _showUpdateOnboardingAfterReload;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetSessionState()
         {
             _startRunAfterReload = false;
+            _showUpdateOnboardingAfterReload = false;
         }
 
         public void Init()
@@ -74,6 +79,11 @@ namespace _Project.Scripts.Core.GameLoop
             if (storyCutsceneRuntime == null)
             {
                 storyCutsceneRuntime = FindAnyObjectByType<StoryCutsceneRuntimeController>(FindObjectsInactive.Include);
+            }
+
+            if (tutorialManager == null)
+            {
+                tutorialManager = FindAnyObjectByType<TutorialManager>(FindObjectsInactive.Include);
             }
 
             storyCutsceneRuntime?.Init();
@@ -121,6 +131,13 @@ namespace _Project.Scripts.Core.GameLoop
 
             gateSystem?.Init();
 
+            if (tutorialManager == null)
+            {
+                tutorialManager = gameObject.AddComponent<TutorialManager>();
+            }
+
+            tutorialManager.Init(uiSystem, storyCutsceneRuntime);
+
             if (playerController != null)
             {
                 playerController.SquadDefeated -= HandleSquadDefeated;
@@ -142,10 +159,20 @@ namespace _Project.Scripts.Core.GameLoop
             uiSystem?.ShowMainMenu();
 
             bool shouldStartRunAfterReload = _startRunAfterReload;
+            bool shouldShowUpdateOnboardingAfterReload = _showUpdateOnboardingAfterReload;
             _startRunAfterReload = false;
+            _showUpdateOnboardingAfterReload = false;
 
-            if (TryPlayInitialStoryCutscene(shouldStartRunAfterReload))
+            if (TryPlayInitialStoryCutscene(shouldStartRunAfterReload, shouldShowUpdateOnboardingAfterReload))
             {
+                return;
+            }
+
+            if (shouldShowUpdateOnboardingAfterReload)
+            {
+                gameStateMachine?.SetState(GameState.MainMenu);
+                uiSystem?.ShowMainMenu();
+                tutorialManager?.StartUpdateOnboardingFromMainMenu();
                 return;
             }
 
@@ -275,12 +302,14 @@ namespace _Project.Scripts.Core.GameLoop
         private void ReturnHome()
         {
             _startRunAfterReload = false;
+            _showUpdateOnboardingAfterReload = false;
             ReloadCurrentScene();
         }
 
         private void RestartCurrentScene()
         {
             _startRunAfterReload = true;
+            _showUpdateOnboardingAfterReload = false;
             ReloadCurrentScene();
         }
 
@@ -322,15 +351,36 @@ namespace _Project.Scripts.Core.GameLoop
                 telemetryService?.EndRun(snapshot);
             }
 
-            if (TryPlayPostRunStoryCutscene(snapshot, runStatsTracker != null))
+            Action afterStory = () => CompleteRunEnd(snapshot, runStatsTracker != null);
+            if (TryPlayPostRunStoryCutscene(snapshot, runStatsTracker != null, afterStory))
             {
                 return;
             }
 
-            ShowGameOverScreen(snapshot, runStatsTracker != null);
+            afterStory.Invoke();
         }
 
-        private bool TryPlayInitialStoryCutscene(bool startRunAfterCutscene)
+        private void CompleteRunEnd(RunStatsSnapshot snapshot, bool hasSnapshot)
+        {
+            if (tutorialManager != null && tutorialManager.ShouldRunUpdateOnboardingAfterFirstDeath())
+            {
+                RouteToMainMenuForUpdateOnboarding();
+                return;
+            }
+
+            ShowGameOverScreen(snapshot, hasSnapshot);
+        }
+
+        private void RouteToMainMenuForUpdateOnboarding()
+        {
+            _startRunAfterReload = false;
+            _showUpdateOnboardingAfterReload = true;
+            ReloadCurrentScene();
+        }
+
+        private bool TryPlayInitialStoryCutscene(
+            bool startRunAfterCutscene,
+            bool showUpdateOnboardingAfterCutscene)
         {
             if (storyCutsceneRuntime == null)
             {
@@ -341,6 +391,12 @@ namespace _Project.Scripts.Core.GameLoop
             {
                 gameStateMachine?.SetState(GameState.MainMenu);
                 uiSystem?.ShowMainMenu();
+
+                if (showUpdateOnboardingAfterCutscene)
+                {
+                    tutorialManager?.StartUpdateOnboardingFromMainMenu();
+                    return;
+                }
 
                 if (startRunAfterCutscene)
                 {
@@ -358,7 +414,10 @@ namespace _Project.Scripts.Core.GameLoop
             return true;
         }
 
-        private bool TryPlayPostRunStoryCutscene(RunStatsSnapshot snapshot, bool hasSnapshot)
+        private bool TryPlayPostRunStoryCutscene(
+            RunStatsSnapshot snapshot,
+            bool hasSnapshot,
+            Action onComplete)
         {
             if (!hasSnapshot || storyCutsceneRuntime == null)
             {
@@ -367,7 +426,7 @@ namespace _Project.Scripts.Core.GameLoop
 
             bool started = storyCutsceneRuntime.TryPlayPostRunCutscene(
                 snapshot,
-                () => ShowGameOverScreen(snapshot, true));
+                onComplete);
 
             if (!started)
             {

@@ -259,6 +259,52 @@ namespace _Project.Scripts.Systems.SaveSystem
             return true;
         }
 
+        public bool IsGameplayTutorialCompleted()
+        {
+            EnsureLoaded();
+            return _data.gameplayTutorialCompleted;
+        }
+
+        public void MarkGameplayTutorialCompleted()
+        {
+            EnsureLoaded();
+            if (_data.gameplayTutorialCompleted)
+            {
+                return;
+            }
+
+            _data.gameplayTutorialCompleted = true;
+            CommitAndQueueCloudUpload();
+        }
+
+        public bool IsUpgradeTutorialCompleted()
+        {
+            EnsureLoaded();
+            return _data.upgradeTutorialCompleted;
+        }
+
+        public void MarkUpgradeTutorialCompleted()
+        {
+            EnsureLoaded();
+            if (_data.upgradeTutorialCompleted)
+            {
+                return;
+            }
+
+            _data.upgradeTutorialCompleted = true;
+            CommitAndQueueCloudUpload();
+        }
+
+        public bool IsUpdateOnboardingCompleted()
+        {
+            return IsUpgradeTutorialCompleted();
+        }
+
+        public void MarkUpdateOnboardingCompleted()
+        {
+            MarkUpgradeTutorialCompleted();
+        }
+
         public void ResolvePendingConflict(SaveConflictResolution resolution)
         {
             EnsureLoaded();

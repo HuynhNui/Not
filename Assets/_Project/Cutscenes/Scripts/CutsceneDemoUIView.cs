@@ -15,6 +15,8 @@ namespace _Project.Cutscenes
 
         [SerializeField] private GameObject menuRoot;
         [SerializeField] private GameObject cutsceneRoot;
+        [SerializeField] private GameObject cutsceneBackground;
+        [SerializeField] private GameObject actorRoot;
         [SerializeField] private GameObject dialoguePanel;
         [SerializeField] private TMP_Text speakerNameText;
         [SerializeField] private TMP_Text emotionText;
@@ -31,6 +33,7 @@ namespace _Project.Cutscenes
         [SerializeField] private GameObject actorHumanCommand;
 
         private readonly Dictionary<string, GameObject> _actors = new Dictionary<string, GameObject>();
+        private StoryCutscenePresentationMode _presentationMode = StoryCutscenePresentationMode.FullScreen;
 
         public Button NextButton => nextButton;
         public Button CloseButton => closeButton;
@@ -57,6 +60,8 @@ namespace _Project.Cutscenes
         {
             menuRoot = menu;
             cutsceneRoot = cutscene;
+            cutsceneBackground = ResolveDirectChild(cutsceneRoot, "CutsceneBackground");
+            actorRoot = ResolveDirectChild(cutsceneRoot, "ActorRoot");
             dialoguePanel = dialogue;
             speakerNameText = speaker;
             emotionText = emotion;
@@ -97,10 +102,17 @@ namespace _Project.Cutscenes
         {
             SetActive(menuRoot, false);
             SetActive(cutsceneRoot, true);
+            ApplyPresentationMode();
             SetActive(dialoguePanel, true);
             SetActive(finalChoicePanel, false);
             SetButtonVisible(nextButton, true);
             SetButtonVisible(closeButton, true);
+        }
+
+        public void SetPresentationMode(StoryCutscenePresentationMode mode)
+        {
+            _presentationMode = mode;
+            ApplyPresentationMode();
         }
 
         public void ShowFinalChoice()
@@ -136,7 +148,10 @@ namespace _Project.Cutscenes
             }
 
             HideAllActors();
-            SetActorVisible(actorKey, true);
+            if (_presentationMode == StoryCutscenePresentationMode.FullScreen)
+            {
+                SetActorVisible(actorKey, true);
+            }
         }
 
         public void HideAllActors()
@@ -174,6 +189,23 @@ namespace _Project.Cutscenes
             AddActor(ActorAlienAdult, actorAlienAdult);
             AddActor(ActorAlienChild, actorAlienChild);
             AddActor(ActorHumanCommand, actorHumanCommand);
+        }
+
+        private void ApplyPresentationMode()
+        {
+            bool fullScreen = _presentationMode == StoryCutscenePresentationMode.FullScreen;
+            if (cutsceneBackground == null)
+            {
+                cutsceneBackground = ResolveDirectChild(cutsceneRoot, "CutsceneBackground");
+            }
+
+            if (actorRoot == null)
+            {
+                actorRoot = ResolveDirectChild(cutsceneRoot, "ActorRoot");
+            }
+
+            SetActive(cutsceneBackground, fullScreen);
+            SetActive(actorRoot, fullScreen);
         }
 
         private void AddActor(string actorId, GameObject actor)
@@ -255,6 +287,17 @@ namespace _Project.Cutscenes
             {
                 button.gameObject.SetActive(visible);
             }
+        }
+
+        private static GameObject ResolveDirectChild(GameObject root, string childName)
+        {
+            if (root == null || string.IsNullOrWhiteSpace(childName))
+            {
+                return null;
+            }
+
+            Transform child = root.transform.Find(childName);
+            return child != null ? child.gameObject : null;
         }
     }
 }

@@ -106,6 +106,11 @@ namespace _Project.Scripts.Systems.UISystem
         public event Action ResumeRequested;
         public event Action RestartRequested;
         public event Action HomeRequested;
+        public event Action<UIScreen> ScreenChanged;
+
+        public UIScreen CurrentScreen => _currentScreen;
+        public RectTransform MainMenuUpgradeButtonTarget =>
+            mainMenuUpgradeButton != null ? mainMenuUpgradeButton.transform as RectTransform : null;
 
         public void Init(RunStatsTracker runStatsTracker = null)
         {
@@ -591,6 +596,7 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void SetPrimaryPanel(UIScreen screen)
         {
+            bool changed = _currentScreen != screen;
             _currentScreen = screen;
 
             SetActive(mainMenuPanel, screen == UIScreen.MainMenu);
@@ -602,6 +608,11 @@ namespace _Project.Scripts.Systems.UISystem
                 || screen == UIScreen.Pause
                 || screen == UIScreen.GameOver
                 || (_settingsReturnScreen == UIScreen.Pause && screen == UIScreen.Settings));
+
+            if (changed)
+            {
+                ScreenChanged?.Invoke(screen);
+            }
         }
 
         private void ValidateRequiredReferences()
@@ -726,7 +737,7 @@ namespace _Project.Scripts.Systems.UISystem
             RefreshUpgradePanel();
         }
 
-        private enum UIScreen
+        public enum UIScreen
         {
             None,
             MainMenu,

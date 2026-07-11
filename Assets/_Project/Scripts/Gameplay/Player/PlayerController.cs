@@ -624,6 +624,13 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void ConfigureSquadHurtbox(GameObject unitObject)
         {
+            SpriteRenderer spriteRenderer = unitObject.GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer != null && spriteRenderer.sprite != null)
+            {
+                ConfigureRendererBoxHurtbox(unitObject, spriteRenderer);
+                return;
+            }
+
             Collider2D[] existingColliders = unitObject.GetComponentsInChildren<Collider2D>();
             if (existingColliders.Length > 0)
             {

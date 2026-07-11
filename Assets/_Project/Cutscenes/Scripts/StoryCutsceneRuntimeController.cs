@@ -27,6 +27,7 @@ namespace _Project.Cutscenes
         private Action _onPlaybackComplete;
         private bool _isInitialized;
         private bool _isPlaying;
+        private bool _recordActiveCutsceneSeen = true;
 
         public bool IsPlaying => _isPlaying;
 
@@ -117,8 +118,28 @@ namespace _Project.Cutscenes
             }
 
             _onPlaybackComplete = onComplete;
+            _recordActiveCutsceneSeen = true;
             _isPlaying = true;
             director.Play(playableId);
+            return true;
+        }
+
+        public bool TryPlayTransientCutscene(
+            StoryCutsceneDefinition definition,
+            Action onComplete = null,
+            StoryCutscenePresentationMode presentationMode = StoryCutscenePresentationMode.FullScreen)
+        {
+            Init();
+
+            if (director == null || definition == null)
+            {
+                return false;
+            }
+
+            _onPlaybackComplete = onComplete;
+            _recordActiveCutsceneSeen = false;
+            _isPlaying = true;
+            director.PlayTransient(definition, presentationMode);
             return true;
         }
 
@@ -135,10 +156,14 @@ namespace _Project.Cutscenes
 
         private void HandleCutsceneFinished(string cutsceneId)
         {
-            SaveService.Instance.RecordCutsceneSeen(
-                StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(cutsceneId));
+            if (_recordActiveCutsceneSeen)
+            {
+                SaveService.Instance.RecordCutsceneSeen(
+                    StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(cutsceneId));
+            }
 
             _isPlaying = false;
+            _recordActiveCutsceneSeen = true;
             Action callback = _onPlaybackComplete;
             _onPlaybackComplete = null;
             callback?.Invoke();
