@@ -33,8 +33,6 @@ namespace _Project.Scripts.Gameplay.Player
         private bool _controlsEnabled = true;
         private float _gateIncomingDamageMultiplier = 1f;
         private const int SortingOrderUnitsPerWorldUnit = 100;
-        private const float FollowerShotLaneLocalSpacing = 0.1f;
-        private const float RightFollowerShotLaneLocalOffset = -0.116f;
 
         public event Action<PlayerController> SquadDefeated;
         public event Action<FollowerUnit> FollowerDied;
@@ -495,7 +493,7 @@ namespace _Project.Scripts.Gameplay.Player
                 followerSpawner = follower.gameObject.AddComponent<BulletSpawner>();
             }
 
-            Transform firePoint = ConfigureFollowerFirePoint(follower.transform, followerIndex);
+            Transform firePoint = ConfigureFollowerFirePoint(follower.transform);
 
             if (mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null)
             {
@@ -515,7 +513,7 @@ namespace _Project.Scripts.Gameplay.Player
             return follower.BulletSpawner != null ? follower.BulletSpawner : followerSpawner;
         }
 
-        private Transform ConfigureFollowerFirePoint(Transform followerTransform, int followerIndex)
+        private Transform ConfigureFollowerFirePoint(Transform followerTransform)
         {
             Transform firePoint = followerTransform.Find("FirePoint");
             if (firePoint == null)
@@ -533,25 +531,10 @@ namespace _Project.Scripts.Gameplay.Player
                 return firePoint;
             }
 
-            Vector3 lanePosition = mainFirePoint.localPosition;
-            lanePosition.x += GetFollowerShotLaneOffset(followerIndex);
-            firePoint.localPosition = lanePosition;
+            firePoint.localPosition = mainFirePoint.localPosition;
             firePoint.localRotation = mainFirePoint.localRotation;
             firePoint.localScale = mainFirePoint.localScale;
             return firePoint;
-        }
-
-        private float GetFollowerShotLaneOffset(int followerIndex)
-        {
-            Vector3 formationOffset = GetRearArcOffset(followerIndex);
-            if (Mathf.Abs(formationOffset.x) <= 0.001f)
-            {
-                return -FollowerShotLaneLocalSpacing;
-            }
-
-            return formationOffset.x > 0f
-                ? RightFollowerShotLaneLocalOffset
-                : -FollowerShotLaneLocalSpacing;
         }
 
         private void CopyMainVisual(GameObject followerObject)
@@ -995,13 +978,32 @@ namespace _Project.Scripts.Gameplay.Player
                 return;
             }
 
+            Vector3 promotedWorldPosition = promotedFollower.transform.position;
+            Vector3 mainLocalPosition = mainPlayerUnit.transform.localPosition;
+            Vector3 previousRootPosition = transform.position;
+            bool mainIsControllerChild = mainPlayerUnit.transform.parent == transform;
+
             mainPlayerUnit.ReviveWithStateFrom(promotedFollower);
             mainPlayerUnit.SetIncomingDamageMultiplier(_gateIncomingDamageMultiplier);
+
+            if (mainIsControllerChild)
+            {
+                transform.position = promotedWorldPosition - transform.TransformVector(mainLocalPosition);
+                mainPlayerUnit.transform.localPosition = mainLocalPosition;
+            }
+
+            ConfigureSquadUnitPhysics(mainPlayerUnit.gameObject);
+            if (_controlsEnabled)
+            {
+                playerMovement?.SetInputEnabled(true);
+            }
+
+            playerMovement?.PreserveInputAfterControlledTeleport(transform.position.x - previousRootPosition.x);
             FollowerPromoted?.Invoke(promotedFollower);
             UnsubscribeFromUnit(promotedFollower);
             followers.Remove(promotedFollower);
             Destroy(promotedFollower.gameObject);
-            RefreshFollowerFormation(snapFollowers: true);
+            RefreshFollowerFormation(snapFollowers: false);
         }
 
         private FollowerUnit GetHighestHealthFollower()

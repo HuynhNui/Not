@@ -106,6 +106,17 @@ namespace _Project.Scripts.Systems.UISystem
         public event Action ResumeRequested;
         public event Action RestartRequested;
         public event Action HomeRequested;
+        public event Action<UIScreen> ScreenChanged;
+        public event Action<PlayerMetaUpgradeType> UpgradePurchased;
+
+        public UIScreen CurrentScreen => _currentScreen;
+        public RectTransform PlayButtonTarget => playButton != null ? playButton.transform as RectTransform : null;
+        public RectTransform GameOverUpgradeButtonTarget =>
+            gameOverUpgradeButton != null ? gameOverUpgradeButton.transform as RectTransform : null;
+        public RectTransform UpgradeBackButtonTarget =>
+            upgradeBackButton != null ? upgradeBackButton.transform as RectTransform : null;
+        public RectTransform UpgradeCurrencyTarget =>
+            upgradeCurrencyText != null ? upgradeCurrencyText.transform as RectTransform : null;
 
         public void Init(RunStatsTracker runStatsTracker = null)
         {
@@ -373,6 +384,55 @@ namespace _Project.Scripts.Systems.UISystem
 
             RefreshUpgradePanel();
             RefreshMenuStats();
+            UpgradePurchased?.Invoke(upgradeType);
+        }
+
+        public bool TryGetUpgradeButtonTarget(PlayerMetaUpgradeType type, out RectTransform target)
+        {
+            target = null;
+
+            if (upgradeRows == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < upgradeRows.Count; index++)
+            {
+                UpgradeRowBinding row = upgradeRows[index];
+                if (row == null || row.UpgradeType != type || row.UpgradeButton == null)
+                {
+                    continue;
+                }
+
+                target = row.UpgradeButton.transform as RectTransform;
+                return target != null;
+            }
+
+            return false;
+        }
+
+        public bool TryGetUpgradeRowTarget(PlayerMetaUpgradeType type, out RectTransform target)
+        {
+            target = null;
+
+            if (upgradeRows == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < upgradeRows.Count; index++)
+            {
+                UpgradeRowBinding row = upgradeRows[index];
+                if (row == null || row.UpgradeType != type)
+                {
+                    continue;
+                }
+
+                target = row.RootTarget;
+                return target != null;
+            }
+
+            return false;
         }
 
         private void ShowResetConfirmPopup()
@@ -602,6 +662,7 @@ namespace _Project.Scripts.Systems.UISystem
                 || screen == UIScreen.Pause
                 || screen == UIScreen.GameOver
                 || (_settingsReturnScreen == UIScreen.Pause && screen == UIScreen.Settings));
+            ScreenChanged?.Invoke(screen);
         }
 
         private void ValidateRequiredReferences()
@@ -726,21 +787,23 @@ namespace _Project.Scripts.Systems.UISystem
             RefreshUpgradePanel();
         }
 
-        private enum UIScreen
-        {
-            None,
-            MainMenu,
-            Gameplay,
-            Upgrade,
-            Settings,
-            Pause,
-            GameOver
-        }
+    }
+
+    public enum UIScreen
+    {
+        None,
+        MainMenu,
+        Gameplay,
+        Upgrade,
+        Settings,
+        Pause,
+        GameOver
     }
 
     [Serializable]
     public sealed class UpgradeRowBinding
     {
+        [SerializeField] private RectTransform rowRoot;
         [SerializeField] private PlayerMetaUpgradeType upgradeType;
         [SerializeField] private TextMeshProUGUI levelText;
         [SerializeField] private TextMeshProUGUI currentValueText;
@@ -756,5 +819,29 @@ namespace _Project.Scripts.Systems.UISystem
         public TextMeshProUGUI CostText => costText;
         public TextMeshProUGUI UpgradeButtonText => upgradeButtonText;
         public Button UpgradeButton => upgradeButton;
+        public RectTransform RootTarget => rowRoot != null
+            ? rowRoot
+            : ResolveRootTarget();
+
+        private RectTransform ResolveRootTarget()
+        {
+            if (upgradeButton != null)
+            {
+                RectTransform buttonTransform = upgradeButton.transform as RectTransform;
+                if (buttonTransform != null && buttonTransform.parent is RectTransform parentTransform)
+                {
+                    return parentTransform;
+                }
+
+                return buttonTransform;
+            }
+
+            if (levelText != null)
+            {
+                return levelText.transform.parent as RectTransform ?? levelText.transform as RectTransform;
+            }
+
+            return null;
+        }
     }
 }

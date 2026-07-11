@@ -18,7 +18,7 @@ MonoBehaviour:
   baseHp: 8
   baseSpeed: 2.7
   baseDamage: 1.5
-  rewardPoints: 1
+  rewardPoints: 5
   scoreValue: 5
   unlockTimeSeconds: 90
   threatCost: 2

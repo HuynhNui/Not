@@ -32,9 +32,15 @@ namespace _Project.Scripts.Gameplay.Enemies
         [SerializeField] private float horizontalPadding = 0.25f;
         [SerializeField] private float despawnBelowCameraOffset = 1.5f;
         [SerializeField] private float repeatedContactDamageCooldown = 0.5f;
+        [SerializeField] private float contactDamageLeeway = 0.08f;
+        [SerializeField] private float targetOffsetRadius;
+        [SerializeField] private float separationRadius = 0.45f;
+        [SerializeField] private float separationStrength = 0.45f;
+        [SerializeField] private float crowdAvoidanceMinTargetDistance = 0.8f;
         [SerializeField] private WorldHealthBarView healthBarPrefab;
         [SerializeField] private Transform healthBarAnchor;
         [SerializeField] private Vector3 healthBarOffset = new Vector3(0f, 0.42f, 0f);
+        [SerializeField] private float healthBarScaleMultiplier = 0.5f;
 
         private Transform _target;
         private MainPlayerUnit _playerUnit;
@@ -57,8 +63,10 @@ namespace _Project.Scripts.Gameplay.Enemies
         private bool _runtimeDestroyOnPlayerHit;
         private float _externalMoveSpeedMultiplier = 1f;
         private float _nextContactDamageTime;
+        private Vector3 _targetOffset;
         private Collider2D[] _contactColliders = Array.Empty<Collider2D>();
         private readonly Collider2D[] _overlapResults = new Collider2D[8];
+        private readonly Collider2D[] _separationResults = new Collider2D[8];
 
         public event Action<EnemyController> Killed;
         public event Action<EnemyController> Spawned;
@@ -78,6 +86,11 @@ namespace _Project.Scripts.Gameplay.Enemies
         public PlayerController PlayerController => _playerController;
         public Camera GameplayCamera => _gameplayCamera;
         public PoolSystem PoolSystem => _poolSystem;
+
+        private void Awake()
+        {
+            ConfigureContactPhysics();
+        }
 
         public void Init(
             Transform target,
@@ -101,6 +114,8 @@ namespace _Project.Scripts.Gameplay.Enemies
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             _externalMoveSpeedMultiplier = 1f;
             _nextContactDamageTime = 0f;
+            ResetTargetOffset();
+            ConfigureContactPhysics();
             CacheContactColliders();
             EnsureHealthBar();
             RefreshHealthBar();
@@ -136,6 +151,8 @@ namespace _Project.Scripts.Gameplay.Enemies
             _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             _nextContactDamageTime = 0f;
+            ResetTargetOffset();
+            ConfigureContactPhysics();
             CacheContactColliders();
             EnsureHealthBar();
             RefreshHealthBar();
@@ -289,10 +306,23 @@ namespace _Project.Scripts.Gameplay.Enemies
             }
 
             Vector3 targetPosition = GetCurrentTargetPosition();
-            Vector3 nextPosition = Vector3.MoveTowards(
-                transform.position,
-                targetPosition,
-                GetMoveSpeed() * Time.deltaTime);
+            Vector3 offset = GetDestroyOnPlayerHit() ? Vector3.zero : _targetOffset;
+            targetPosition += offset;
+            Vector3 toTarget = targetPosition - transform.position;
+            float step = GetMoveSpeed() * Time.deltaTime;
+            Vector3 moveDirection = toTarget.sqrMagnitude > 0.0001f
+                ? toTarget.normalized
+                : Vector3.down;
+            Vector3 separation = toTarget.magnitude > Mathf.Max(0f, crowdAvoidanceMinTargetDistance)
+                ? GetSeparationDirection()
+                : Vector3.zero;
+
+            if (separation.sqrMagnitude > 0.0001f)
+            {
+                moveDirection = (moveDirection + separation * Mathf.Max(0f, separationStrength)).normalized;
+            }
+
+            Vector3 nextPosition = transform.position + moveDirection * step;
 
             if (clampInsideCameraWidth && _gameplayCamera != null && _gameplayCamera.orthographic)
             {
@@ -371,27 +401,41 @@ namespace _Project.Scripts.Gameplay.Enemies
                 return;
             }
 
-            PlayerUnit hitPlayer = other.GetComponent<PlayerUnit>();
+            TryDamagePlayerUnit(ResolvePlayerUnit(other));
+        }
 
-            if (hitPlayer == null)
+        private void ConfigureContactPhysics()
+        {
+            Rigidbody2D body = GetComponent<Rigidbody2D>();
+            if (body == null)
             {
-                hitPlayer = other.GetComponentInParent<PlayerUnit>();
+                body = gameObject.AddComponent<Rigidbody2D>();
             }
 
-            if (hitPlayer == null || hitPlayer.IsDead)
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.gravityScale = 0f;
+#if UNITY_6000_0_OR_NEWER
+            body.angularDamping = 0.05f;
+#else
+            body.angularDrag = 0.05f;
+#endif
+            body.constraints = RigidbodyConstraints2D.FreezeRotation;
+            body.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+            body.interpolation = RigidbodyInterpolation2D.None;
+            body.simulated = true;
+
+            Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+            for (int index = 0; index < colliders.Length; index++)
             {
-                return;
+                Collider2D collider = colliders[index];
+                if (collider == null)
+                {
+                    continue;
+                }
+
+                collider.enabled = true;
+                collider.isTrigger = true;
             }
-
-            hitPlayer.TakeDamage(GetContactDamage());
-
-            if (GetDestroyOnPlayerHit())
-            {
-                Despawn();
-                return;
-            }
-
-            _nextContactDamageTime = Time.time + Mathf.Max(0.01f, repeatedContactDamageCooldown);
         }
 
         private void PollPlayerContact()
@@ -407,6 +451,11 @@ namespace _Project.Scripts.Gameplay.Enemies
             }
 
             SyncPhysicsTransformsOncePerFrame();
+
+            if (TryDamageClosestPlayerInReach())
+            {
+                return;
+            }
 
             for (int colliderIndex = 0; colliderIndex < _contactColliders.Length; colliderIndex++)
             {
@@ -438,9 +487,151 @@ namespace _Project.Scripts.Gameplay.Enemies
             }
         }
 
+        private bool TryDamageClosestPlayerInReach()
+        {
+            if (_playerController == null)
+            {
+                return false;
+            }
+
+            if (!_playerController.TryGetClosestAliveUnitContactPoint(
+                transform.position,
+                out PlayerUnit playerUnit,
+                out Vector3 playerContactPoint))
+            {
+                return false;
+            }
+
+            Vector3 enemyContactPoint = GetClosestEnemyColliderPoint(playerContactPoint);
+            float reach = Mathf.Max(0f, contactDamageLeeway);
+            if ((enemyContactPoint - playerContactPoint).sqrMagnitude > reach * reach)
+            {
+                return false;
+            }
+
+            TryDamagePlayerUnit(playerUnit);
+            return !_isActive || (!GetDestroyOnPlayerHit() && Time.time < _nextContactDamageTime);
+        }
+
+        private Vector3 GetClosestEnemyColliderPoint(Vector3 targetPosition)
+        {
+            if (_contactColliders == null || _contactColliders.Length == 0)
+            {
+                return transform.position;
+            }
+
+            Vector3 closestPoint = transform.position;
+            float closestSqrDistance = float.PositiveInfinity;
+
+            for (int index = 0; index < _contactColliders.Length; index++)
+            {
+                Collider2D enemyCollider = _contactColliders[index];
+                if (enemyCollider == null || !enemyCollider.enabled)
+                {
+                    continue;
+                }
+
+                Vector2 colliderPoint = enemyCollider.ClosestPoint(targetPosition);
+                Vector3 point = new Vector3(colliderPoint.x, colliderPoint.y, transform.position.z);
+                float sqrDistance = (point - targetPosition).sqrMagnitude;
+                if (sqrDistance >= closestSqrDistance)
+                {
+                    continue;
+                }
+
+                closestSqrDistance = sqrDistance;
+                closestPoint = point;
+            }
+
+            return closestPoint;
+        }
+
+        private static PlayerUnit ResolvePlayerUnit(Collider2D other)
+        {
+            if (other == null)
+            {
+                return null;
+            }
+
+            PlayerUnit hitPlayer = other.GetComponent<PlayerUnit>();
+            return hitPlayer != null ? hitPlayer : other.GetComponentInParent<PlayerUnit>();
+        }
+
+        private void TryDamagePlayerUnit(PlayerUnit hitPlayer)
+        {
+            if (!_isActive || hitPlayer == null || hitPlayer.IsDead)
+            {
+                return;
+            }
+
+            hitPlayer.TakeDamage(GetContactDamage());
+
+            if (GetDestroyOnPlayerHit())
+            {
+                Despawn();
+                return;
+            }
+
+            _nextContactDamageTime = Time.time + Mathf.Max(0.01f, repeatedContactDamageCooldown);
+        }
+
+        private Vector3 GetSeparationDirection()
+        {
+            float radius = Mathf.Max(0f, separationRadius);
+            if (radius <= 0f)
+            {
+                return Vector3.zero;
+            }
+
+            int overlapCount = Physics2D.OverlapCircle(transform.position, radius, ContactFilter2D.noFilter, _separationResults);
+            Vector3 separation = Vector3.zero;
+
+            for (int index = 0; index < overlapCount; index++)
+            {
+                Collider2D overlap = _separationResults[index];
+                _separationResults[index] = null;
+
+                if (overlap == null || overlap.transform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                EnemyController otherEnemy = overlap.GetComponentInParent<EnemyController>();
+                if (otherEnemy == null || otherEnemy == this || !otherEnemy.IsActive)
+                {
+                    continue;
+                }
+
+                Vector3 away = transform.position - otherEnemy.transform.position;
+                float sqrDistance = away.sqrMagnitude;
+                if (sqrDistance <= 0.0001f)
+                {
+                    away = _targetOffset.sqrMagnitude > 0.0001f ? _targetOffset : Vector3.right;
+                    sqrDistance = away.sqrMagnitude;
+                }
+
+                separation += away.normalized / Mathf.Max(0.05f, Mathf.Sqrt(sqrDistance));
+            }
+
+            return separation.sqrMagnitude > 0.0001f ? separation.normalized : Vector3.zero;
+        }
+
         private void CacheContactColliders()
         {
             _contactColliders = GetComponentsInChildren<Collider2D>();
+        }
+
+        private void ResetTargetOffset()
+        {
+            float radius = Mathf.Max(0f, targetOffsetRadius);
+            if (radius <= 0f)
+            {
+                _targetOffset = Vector3.zero;
+                return;
+            }
+
+            Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * radius;
+            _targetOffset = new Vector3(randomOffset.x, randomOffset.y, 0f);
         }
 
         private static void SyncPhysicsTransformsOncePerFrame()
@@ -534,6 +725,7 @@ namespace _Project.Scripts.Gameplay.Enemies
                 if (_healthBarInstance != null)
                 {
                     _healthBarInstance.Configure(healthBarOffset);
+                    _healthBarInstance.SetScaleMultiplier(healthBarScaleMultiplier);
                 }
 
                 return;
@@ -543,6 +735,7 @@ namespace _Project.Scripts.Gameplay.Enemies
             _healthBarInstance = Instantiate(healthBarPrefab, parent);
             _healthBarInstance.name = healthBarPrefab.name;
             _healthBarInstance.Configure(healthBarOffset);
+            _healthBarInstance.SetScaleMultiplier(healthBarScaleMultiplier);
         }
     }
 

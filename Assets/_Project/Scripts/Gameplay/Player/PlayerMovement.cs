@@ -27,6 +27,7 @@ namespace _Project.Scripts.Gameplay.Player
         [SerializeField] private bool keepMainAboveBottomSafeZone = true;
 
         private bool _hasActivePointer;
+        private bool _activePointerIsTouch;
         private int _activeFingerId = -1;
 
         private float _targetX;
@@ -43,6 +44,7 @@ namespace _Project.Scripts.Gameplay.Player
             CacheMainPlayerReference();
             _targetX = transform.position.x;
             _hasActivePointer = false;
+            _activePointerIsTouch = false;
             _activeFingerId = -1;
         }
 
@@ -79,6 +81,7 @@ namespace _Project.Scripts.Gameplay.Player
             if (!isEnabled)
             {
                 _hasActivePointer = false;
+                _activePointerIsTouch = false;
                 _activeFingerId = -1;
             }
         }
@@ -113,7 +116,50 @@ namespace _Project.Scripts.Gameplay.Player
             _targetX = transform.position.x;
             _dragOffset = 0f;
             _hasActivePointer = false;
+            _activePointerIsTouch = false;
             _activeFingerId = -1;
+        }
+
+        public void RebindTargetToCurrentPointer()
+        {
+            _targetX = transform.position.x;
+
+            if (TryRebindActiveTouch())
+            {
+                return;
+            }
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+            if (TryRebindActiveMouse())
+            {
+                return;
+            }
+#endif
+
+            _dragOffset = 0f;
+            _hasActivePointer = false;
+            _activePointerIsTouch = false;
+            _activeFingerId = -1;
+        }
+
+        public void PreserveInputAfterControlledTeleport(float deltaX)
+        {
+            if (Mathf.Abs(deltaX) <= Mathf.Epsilon)
+            {
+                _targetX = transform.position.x;
+                return;
+            }
+
+            _targetX += deltaX;
+
+            if (_hasActivePointer)
+            {
+                _dragOffset += deltaX;
+                return;
+            }
+
+            _dragOffset = 0f;
+            _targetX = transform.position.x;
         }
 
         // ===================== INPUT =====================
@@ -132,14 +178,19 @@ namespace _Project.Scripts.Gameplay.Player
         {
             if (InputTouch.activeTouches.Count <= 0)
             {
-                _hasActivePointer = false;
-                _activeFingerId = -1;
+                if (_activePointerIsTouch)
+                {
+                    _hasActivePointer = false;
+                    _activePointerIsTouch = false;
+                    _activeFingerId = -1;
+                }
+
                 return false;
             }
 
             foreach (InputTouch touch in InputTouch.activeTouches)
             {
-                if (!_hasActivePointer)
+                if (!_hasActivePointer || !_activePointerIsTouch)
                 {
                     if (touch.phase != InputTouchPhase.Began)
                         continue;
@@ -149,6 +200,7 @@ namespace _Project.Scripts.Gameplay.Player
                         continue;
 
                     _hasActivePointer = true;
+                    _activePointerIsTouch = true;
                     _activeFingerId = touch.touchId;
 
                     float startWorldX = ScreenToWorldX(touch.screenPosition);
@@ -161,6 +213,7 @@ namespace _Project.Scripts.Gameplay.Player
                 if (touch.phase == InputTouchPhase.Ended || touch.phase == InputTouchPhase.Canceled)
                 {
                     _hasActivePointer = false;
+                    _activePointerIsTouch = false;
                     _activeFingerId = -1;
                     return true;
                 }
@@ -187,21 +240,84 @@ namespace _Project.Scripts.Gameplay.Player
                     return;
 
                 _hasActivePointer = true;
+                _activePointerIsTouch = false;
 
                 float startWorldX = ScreenToWorldX(mouse.position.ReadValue());
                 _dragOffset = transform.position.x - startWorldX;
             }
 
-            if (mouse.leftButton.isPressed && _hasActivePointer)
+            if (mouse.leftButton.isPressed && _hasActivePointer && !_activePointerIsTouch)
             {
                 float currentWorldX = ScreenToWorldX(mouse.position.ReadValue());
                 _targetX = currentWorldX + _dragOffset;
             }
 
-            if (mouse.leftButton.wasReleasedThisFrame)
+            if (mouse.leftButton.wasReleasedThisFrame && !_activePointerIsTouch)
             {
                 _hasActivePointer = false;
+                _activePointerIsTouch = false;
             }
+        }
+
+        private bool TryRebindActiveTouch()
+        {
+            if (InputTouch.activeTouches.Count <= 0)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < InputTouch.activeTouches.Count; index++)
+            {
+                InputTouch touch = InputTouch.activeTouches[index];
+                if (touch.phase == InputTouchPhase.Ended || touch.phase == InputTouchPhase.Canceled)
+                {
+                    continue;
+                }
+
+                if (_activePointerIsTouch && _hasActivePointer && touch.touchId != _activeFingerId)
+                {
+                    continue;
+                }
+
+                if ((!_activePointerIsTouch || !_hasActivePointer)
+                    && ignoreTouchesOverUi
+                    && EventSystem.current != null
+                    && EventSystem.current.IsPointerOverGameObject(touch.touchId))
+                {
+                    continue;
+                }
+
+                _hasActivePointer = true;
+                _activePointerIsTouch = true;
+                _activeFingerId = touch.touchId;
+                RebindDragOffset(ScreenToWorldX(touch.screenPosition));
+                return true;
+            }
+
+            return false;
+        }
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+        private bool TryRebindActiveMouse()
+        {
+            Mouse mouse = Mouse.current;
+            if (mouse == null || !mouse.leftButton.isPressed)
+            {
+                return false;
+            }
+
+            _hasActivePointer = true;
+            _activePointerIsTouch = false;
+            _activeFingerId = -1;
+            RebindDragOffset(ScreenToWorldX(mouse.position.ReadValue()));
+            return true;
+        }
+#endif
+
+        private void RebindDragOffset(float pointerWorldX)
+        {
+            _targetX = transform.position.x;
+            _dragOffset = transform.position.x - pointerWorldX;
         }
 
         // ===================== CORE =====================

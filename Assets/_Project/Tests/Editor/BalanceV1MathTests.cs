@@ -371,34 +371,37 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void EnemyRoleRewards_UseFractionalEconomyValues()
+        public void EnemyRoleRewards_UsePerKillCoinValues()
         {
             Assert.That(
                 EnemyRoleBalanceDefaults.GetRewardPoints(BalanceEnemyRole.Basic),
-                Is.EqualTo(0.2f).Within(0.0001f));
+                Is.EqualTo(1f).Within(0.0001f));
             Assert.That(
                 EnemyRoleBalanceDefaults.GetRewardPoints(BalanceEnemyRole.Chomboom),
-                Is.EqualTo(0.75f).Within(0.0001f));
+                Is.EqualTo(3f).Within(0.0001f));
             Assert.That(
                 EnemyRoleBalanceDefaults.GetRewardPoints(BalanceEnemyRole.Vomfy),
-                Is.EqualTo(1f).Within(0.0001f));
+                Is.EqualTo(5f).Within(0.0001f));
             Assert.That(
                 EnemyRoleBalanceDefaults.GetRewardPoints(BalanceEnemyRole.Elite),
                 Is.InRange(12f, 18f));
         }
 
         [Test]
-        public void Economy_RoundsRewardPointsOnceAtRunLevel()
+        public void Economy_CoinsComeFromRewardPointsOnly()
         {
             Assert.That(
-                EconomyConfig.CalculateDefaultFinalCoins(0.6f, 0f),
+                EconomyConfig.CalculateDefaultFinalCoins(0f, 3600f),
+                Is.EqualTo(0));
+            Assert.That(
+                EconomyConfig.CalculateDefaultFinalCoins(1f, 0f),
                 Is.EqualTo(1));
             Assert.That(
-                EconomyConfig.CalculateDefaultFinalCoins(1.4f, 0f),
-                Is.EqualTo(1));
+                EconomyConfig.CalculateDefaultFinalCoins(3f, 120f),
+                Is.EqualTo(3));
             Assert.That(
-                EconomyConfig.CalculateDefaultFinalCoins(1.6f, 0f),
-                Is.EqualTo(2));
+                EconomyConfig.CalculateDefaultFinalCoins(5f, 240f),
+                Is.EqualTo(5));
         }
 
         [Test]
@@ -620,7 +623,7 @@ namespace _Project.Tests.Editor
         public void StoryCutsceneUnlockRules_RequirePreviousCutscenesAndExactThresholds()
         {
             SaveData saveData = SaveData.CreateNew(1000);
-            var context = new StoryCutsceneProgressContext(3, 180f, 100, 100);
+            var context = new StoryCutsceneProgressContext(3, 30f, 100, 100);
 
             Assert.That(
                 StoryCutsceneUnlockRules.IsEligible(
@@ -637,6 +640,22 @@ namespace _Project.Tests.Editor
                     StoryCutsceneIds.EnemyDoesNotCharge,
                     saveData,
                     context),
+                Is.True);
+
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.GateMemoryLeak,
+                    saveData,
+                    new StoryCutsceneProgressContext(20, 179.9f, 0, 100)),
+                Is.False);
+
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.EnemyDoesNotCharge);
+
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.GateMemoryLeak,
+                    saveData,
+                    new StoryCutsceneProgressContext(20, 180f, 0, 100)),
                 Is.True);
         }
 

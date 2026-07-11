@@ -76,6 +76,23 @@ namespace _Project.Cutscenes
             ShowCurrentLine();
         }
 
+        public void PlayTransient(StoryCutsceneDefinition definition)
+        {
+            if (definition == null)
+            {
+                Debug.LogWarning("Transient story cutscene definition is null.");
+                return;
+            }
+
+            _activeCutsceneId = definition.CutsceneId;
+            _activeDefinition = definition;
+            _activeLineIndex = 0;
+
+            view?.ShowCutscene();
+            RaiseStarted(_activeCutsceneId);
+            ShowCurrentLine();
+        }
+
         public void PlayBootSequence()
         {
             Play(StoryCutsceneIds.BootSequence);

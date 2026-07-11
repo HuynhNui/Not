@@ -10,6 +10,7 @@ using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
 using _Project.Scripts.Systems.Telemetry;
+using _Project.Scripts.Systems.TutorialSystem;
 using _Project.Scripts.Systems.UISystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -35,6 +36,7 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private PlayerController playerController;
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
         [SerializeField] private StoryCutsceneRuntimeController storyCutsceneRuntime;
+        [SerializeField] private TutorialManager tutorialManager;
 
         private bool _isGameOver;
         private bool _isRunActive;
@@ -74,6 +76,11 @@ namespace _Project.Scripts.Core.GameLoop
             if (storyCutsceneRuntime == null)
             {
                 storyCutsceneRuntime = FindAnyObjectByType<StoryCutsceneRuntimeController>(FindObjectsInactive.Include);
+            }
+
+            if (tutorialManager == null)
+            {
+                tutorialManager = FindAnyObjectByType<TutorialManager>(FindObjectsInactive.Include);
             }
 
             storyCutsceneRuntime?.Init();
@@ -120,6 +127,19 @@ namespace _Project.Scripts.Core.GameLoop
             }
 
             gateSystem?.Init();
+
+            if (tutorialManager != null)
+            {
+                tutorialManager.Init(
+                    this,
+                    uiSystem,
+                    storyCutsceneRuntime,
+                    playerController,
+                    mainPlayerUnit,
+                    enemySpawnerSystem,
+                    gateSystem,
+                    runStatsTracker);
+            }
 
             if (playerController != null)
             {
@@ -212,7 +232,60 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void RequestStartRun()
         {
+            if (tutorialManager != null && tutorialManager.ShouldRunGameplayTutorial())
+            {
+                tutorialManager.StartGameplayTutorial();
+                return;
+            }
+
             StartRun();
+        }
+
+        public void StartNormalRunFromTutorial()
+        {
+            Time.timeScale = 1f;
+            _isGameOver = false;
+            _isRunActive = true;
+
+            if (playerController != null && !playerController.gameObject.activeSelf)
+            {
+                playerController.gameObject.SetActive(true);
+            }
+
+            playerController?.SetControlsEnabled(true);
+            enemySpawnerSystem?.SetSpawningEnabled(true);
+            gateSystem?.SetSpawningEnabled(true);
+            gameStateMachine?.SetState(GameState.Playing);
+            uiSystem?.ShowGameplayHud();
+        }
+
+        public void PrepareRunForTutorial()
+        {
+            Time.timeScale = 1f;
+            _isGameOver = false;
+            _isRunActive = true;
+
+            if (playerController != null && !playerController.gameObject.activeSelf)
+            {
+                playerController.gameObject.SetActive(true);
+            }
+
+            if (mainPlayerUnit != null)
+            {
+                mainPlayerUnit.Initialize();
+                PlayerMetaUpgradeService.ApplyToPlayer(mainPlayerUnit, playerController);
+            }
+
+            playerController?.ResetRunPosition();
+            runStatsTracker?.BeginRun();
+            playerController?.SetControlsEnabled(true);
+            enemySpawnerSystem?.BeginRun();
+            enemySpawnerSystem?.SetSpawningEnabled(false);
+            gateSystem?.BeginRun();
+            gateSystem?.SetSpawningEnabled(false);
+            telemetryService?.BeginRun();
+            gameStateMachine?.SetState(GameState.Playing);
+            uiSystem?.ShowGameplayHud();
         }
 
         private void StartRun()
@@ -386,10 +459,12 @@ namespace _Project.Scripts.Core.GameLoop
             if (hasSnapshot)
             {
                 uiSystem?.ShowGameOver(snapshot);
+                tutorialManager?.StartUpgradeTutorialIfNeeded();
                 return;
             }
 
             uiSystem?.ShowGameOver();
+            tutorialManager?.StartUpgradeTutorialIfNeeded();
         }
     }
 }

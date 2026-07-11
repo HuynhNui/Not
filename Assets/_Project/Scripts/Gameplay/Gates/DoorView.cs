@@ -1,6 +1,7 @@
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Project.Scripts.Gameplay.Gates
 {
@@ -31,8 +32,12 @@ namespace _Project.Scripts.Gameplay.Gates
         [SerializeField] private Vector2 worldLabelRectMax = new Vector2(0.72f, 0.44f);
         [SerializeField] private float worldLabelZOffset = -0.1f;
         [SerializeField] private float tintScreenZOffset = 0.01f;
+        [SerializeField] private Vector2 tintLocalOffset = new Vector2(0f, -0.18f);
+        [SerializeField] private Vector2 positiveTintLocalScale = new Vector2(0.78f, 0.82f);
+        [SerializeField] private Vector2 negativeTintLocalScale = new Vector2(0.68f, 0.78f);
         [SerializeField] private int labelSortingOrderOffset = 5;
-        [SerializeField] private int tintScreenSortingOrderOffset = -1;
+        [FormerlySerializedAs("tintScreenSortingOrderOffset")]
+        [SerializeField] private int tintSortingOrderOffset = -1;
 
         private float _targetWorldWidth = 1.6f;
         private float _targetWorldHeight = 2.4f;
@@ -65,6 +70,27 @@ namespace _Project.Scripts.Gameplay.Gates
         private void Awake()
         {
             Init();
+        }
+
+        private void OnValidate()
+        {
+            if (frameRenderer == null)
+            {
+                frameRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            if (tintScreenRenderer == null)
+            {
+                Transform tintTransform = transform.Find(TintScreenName);
+                if (tintTransform != null)
+                {
+                    tintScreenRenderer = tintTransform.GetComponent<SpriteRenderer>();
+                }
+            }
+
+            ApplyTintVisualPreview();
+            ApplyWorldLabelSorting();
+            ApplyWorldLabelBounds();
         }
 
         public void Bind(GateConfig config)
@@ -100,7 +126,7 @@ namespace _Project.Scripts.Gameplay.Gates
                 }
             }
 
-            ApplyTintScreen(config);
+            ApplyTintVisual(config);
         }
 
         public void ConfigureWorldBounds(float width, float height)
@@ -158,7 +184,7 @@ namespace _Project.Scripts.Gameplay.Gates
         {
             if (tintScreenRenderer != null)
             {
-                ApplyTintScreenTransformAndSorting();
+                ApplyTintVisualPreview();
                 return;
             }
 
@@ -176,7 +202,7 @@ namespace _Project.Scripts.Gameplay.Gates
                 tintScreenRenderer = tintObject.AddComponent<SpriteRenderer>();
             }
 
-            ApplyTintScreenTransformAndSorting();
+            ApplyTintVisualPreview();
         }
 
         private void ApplyWorldLabelDefaults()
@@ -280,7 +306,7 @@ namespace _Project.Scripts.Gameplay.Gates
             textRenderer.sortingOrder = labelSortingOrderOffset;
         }
 
-        private void ApplyTintScreen(GateConfig config)
+        private void ApplyTintVisual(GateConfig config)
         {
             if (tintScreenRenderer == null || config == null)
             {
@@ -290,11 +316,25 @@ namespace _Project.Scripts.Gameplay.Gates
             Sprite tintSprite = config.IsBuff ? positiveTintScreenSprite : negativeTintScreenSprite;
             tintScreenRenderer.sprite = tintSprite;
             tintScreenRenderer.enabled = tintSprite != null;
-            tintScreenRenderer.color = Color.white;
-            ApplyTintScreenTransformAndSorting();
+            ApplyTintScreenTransformAndSorting(config.IsBuff ? positiveTintLocalScale : negativeTintLocalScale);
         }
 
-        private void ApplyTintScreenTransformAndSorting()
+        private void ApplyTintVisualPreview()
+        {
+            if (tintScreenRenderer == null)
+            {
+                return;
+            }
+
+            bool previewNegative = tintScreenRenderer.sprite != null
+                && negativeTintScreenSprite != null
+                && tintScreenRenderer.sprite == negativeTintScreenSprite;
+
+            ApplyTintScreenTransformAndSorting(
+                previewNegative ? negativeTintLocalScale : positiveTintLocalScale);
+        }
+
+        private void ApplyTintScreenTransformAndSorting(Vector2 localScale)
         {
             if (tintScreenRenderer == null)
             {
@@ -302,18 +342,21 @@ namespace _Project.Scripts.Gameplay.Gates
             }
 
             Transform tintTransform = tintScreenRenderer.transform;
-            tintTransform.localPosition = new Vector3(0f, 0f, tintScreenZOffset);
+            tintTransform.localPosition = new Vector3(tintLocalOffset.x, tintLocalOffset.y, tintScreenZOffset);
             tintTransform.localRotation = Quaternion.identity;
-            tintTransform.localScale = Vector3.one;
+            tintTransform.localScale = new Vector3(
+                Mathf.Max(0.01f, localScale.x),
+                Mathf.Max(0.01f, localScale.y),
+                1f);
 
             if (frameRenderer == null)
             {
-                tintScreenRenderer.sortingOrder = tintScreenSortingOrderOffset;
+                tintScreenRenderer.sortingOrder = tintSortingOrderOffset;
                 return;
             }
 
             tintScreenRenderer.sortingLayerID = frameRenderer.sortingLayerID;
-            tintScreenRenderer.sortingOrder = frameRenderer.sortingOrder + tintScreenSortingOrderOffset;
+            tintScreenRenderer.sortingOrder = frameRenderer.sortingOrder + tintSortingOrderOffset;
         }
 
         private void CacheFallbackFrameSprite()

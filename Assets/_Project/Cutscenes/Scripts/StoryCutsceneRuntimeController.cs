@@ -27,6 +27,7 @@ namespace _Project.Cutscenes
         private Action _onPlaybackComplete;
         private bool _isInitialized;
         private bool _isPlaying;
+        private bool _recordActiveCutsceneSeen = true;
 
         public bool IsPlaying => _isPlaying;
 
@@ -118,7 +119,24 @@ namespace _Project.Cutscenes
 
             _onPlaybackComplete = onComplete;
             _isPlaying = true;
+            _recordActiveCutsceneSeen = true;
             director.Play(playableId);
+            return true;
+        }
+
+        public bool TryPlayTransientCutscene(StoryCutsceneDefinition definition, Action onComplete = null)
+        {
+            Init();
+
+            if (director == null || definition == null)
+            {
+                return false;
+            }
+
+            _onPlaybackComplete = onComplete;
+            _isPlaying = true;
+            _recordActiveCutsceneSeen = false;
+            director.PlayTransient(definition);
             return true;
         }
 
@@ -126,8 +144,10 @@ namespace _Project.Cutscenes
         {
             _isPlaying = true;
 
-            if (cutsceneId == StoryCutsceneIds.FinalChoiceContinueProtocol
+            if (_recordActiveCutsceneSeen
+                && (cutsceneId == StoryCutsceneIds.FinalChoiceContinueProtocol
                 || cutsceneId == StoryCutsceneIds.FinalChoiceShutDownCore)
+               )
             {
                 SaveService.Instance.RecordCutsceneSeen(StoryCutsceneIds.FinalChoicePreChoice);
             }
@@ -135,10 +155,14 @@ namespace _Project.Cutscenes
 
         private void HandleCutsceneFinished(string cutsceneId)
         {
-            SaveService.Instance.RecordCutsceneSeen(
-                StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(cutsceneId));
+            if (_recordActiveCutsceneSeen)
+            {
+                SaveService.Instance.RecordCutsceneSeen(
+                    StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(cutsceneId));
+            }
 
             _isPlaying = false;
+            _recordActiveCutsceneSeen = true;
             Action callback = _onPlaybackComplete;
             _onPlaybackComplete = null;
             callback?.Invoke();

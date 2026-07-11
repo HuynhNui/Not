@@ -25,6 +25,7 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private float visualTierDamage;
         [SerializeField] private CombatScalingConfig combatScalingConfig;
         [SerializeField] private int projectileSortingOrderOffset = 500;
+        [SerializeField] private float spawnBoundsPadding = 0.15f;
         [SerializeField] private List<BulletVisualTier> visualTiers = new List<BulletVisualTier>();
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
 
@@ -155,6 +156,7 @@ namespace _Project.Scripts.Gameplay.Combat
             }
 
             Transform spawnPoint = firePoint != null ? firePoint : transform;
+            Vector3 baseSpawnPosition = ResolveBaseSpawnPosition(spawnPoint);
             Quaternion rotation = forceVerticalDirection
                 ? Quaternion.LookRotation(Vector3.forward, Vector3.up)
                 : spawnPoint.rotation;
@@ -165,7 +167,8 @@ namespace _Project.Scripts.Gameplay.Combat
 
             for (int shotIndex = 0; shotIndex < shots; shotIndex++)
             {
-                Vector3 shotPosition = spawnPoint.position + Vector3.right * (startOffset + shotIndex * burstSpread);
+                Vector3 shotPosition = baseSpawnPosition + Vector3.right * (startOffset + shotIndex * burstSpread);
+                shotPosition = ClampSpawnPositionToShooterBounds(shotPosition);
                 SpawnBullet(shotPosition, rotation, shotDamage, bulletSpeed, BuildModifierConfigBuffer());
             }
 
@@ -231,6 +234,94 @@ namespace _Project.Scripts.Gameplay.Combat
             ApplyProjectileSorting(spawnedBullet);
             spawnedBullet.Spawn();
             return spawnedBullet;
+        }
+
+        private Vector3 ResolveBaseSpawnPosition(Transform spawnPoint)
+        {
+            if (!TryGetShooterVisualBounds(out Bounds visualBounds))
+            {
+                return spawnPoint != null ? spawnPoint.position : transform.position;
+            }
+
+            if (spawnPoint == null || !IsFinite(spawnPoint.position))
+            {
+                return GetDefaultMuzzlePosition(visualBounds);
+            }
+
+            return ClampToExpandedBounds(spawnPoint.position, visualBounds, Mathf.Max(0f, spawnBoundsPadding));
+        }
+
+        private Vector3 ClampSpawnPositionToShooterBounds(Vector3 position)
+        {
+            if (!TryGetShooterVisualBounds(out Bounds visualBounds) || !IsFinite(position))
+            {
+                return position;
+            }
+
+            return ClampToExpandedBounds(position, visualBounds, Mathf.Max(0f, spawnBoundsPadding));
+        }
+
+        private bool TryGetShooterVisualBounds(out Bounds bounds)
+        {
+            SpriteRenderer rootRenderer = GetComponent<SpriteRenderer>();
+            if (rootRenderer != null && rootRenderer.enabled)
+            {
+                bounds = rootRenderer.bounds;
+                return true;
+            }
+
+            SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
+            bool foundRenderer = false;
+            bounds = new Bounds(transform.position, Vector3.zero);
+
+            for (int index = 0; index < renderers.Length; index++)
+            {
+                SpriteRenderer renderer = renderers[index];
+                if (renderer == null || !renderer.enabled || renderer.transform == firePoint)
+                {
+                    continue;
+                }
+
+                if (!foundRenderer)
+                {
+                    bounds = renderer.bounds;
+                    foundRenderer = true;
+                    continue;
+                }
+
+                bounds.Encapsulate(renderer.bounds);
+            }
+
+            return foundRenderer;
+        }
+
+        private Vector3 GetDefaultMuzzlePosition(Bounds visualBounds)
+        {
+            return new Vector3(
+                visualBounds.center.x,
+                visualBounds.max.y + Mathf.Max(0f, spawnBoundsPadding),
+                transform.position.z);
+        }
+
+        private static Vector3 ClampToExpandedBounds(Vector3 position, Bounds visualBounds, float padding)
+        {
+            Vector3 min = visualBounds.min - new Vector3(padding, padding, 0f);
+            Vector3 max = visualBounds.max + new Vector3(padding, padding, 0f);
+
+            return new Vector3(
+                Mathf.Clamp(position.x, min.x, max.x),
+                Mathf.Clamp(position.y, min.y, max.y),
+                position.z);
+        }
+
+        private static bool IsFinite(Vector3 value)
+        {
+            return IsFinite(value.x) && IsFinite(value.y) && IsFinite(value.z);
+        }
+
+        private static bool IsFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
         private void ApplyProjectileSorting(Bullet spawnedBullet)

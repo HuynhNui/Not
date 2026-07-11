@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = 5;
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -22,6 +22,10 @@ namespace _Project.Scripts.Systems.SaveSystem
         public int walletCoins;
         public int totalRunsCompleted;
         public int storyStage;
+        public bool gameplayTutorialCompleted;
+        public bool upgradeTutorialCompleted;
+        public bool tutorialFirstRunBonusGranted;
+        public int tutorialVersion;
         public List<UpgradeLevelSaveEntry> upgradeLevels = new List<UpgradeLevelSaveEntry>();
         public List<string> seenCutsceneIds = new List<string>();
 
@@ -54,6 +58,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             walletCoins = Mathf.Max(0, walletCoins);
             totalRunsCompleted = Mathf.Max(0, totalRunsCompleted);
             storyStage = Mathf.Max(0, storyStage);
+            tutorialVersion = Mathf.Max(0, tutorialVersion);
 
             if (upgradeLevels == null)
             {
@@ -143,6 +148,10 @@ namespace _Project.Scripts.Systems.SaveSystem
                 walletCoins = walletCoins,
                 totalRunsCompleted = totalRunsCompleted,
                 storyStage = storyStage,
+                gameplayTutorialCompleted = gameplayTutorialCompleted,
+                upgradeTutorialCompleted = upgradeTutorialCompleted,
+                tutorialFirstRunBonusGranted = tutorialFirstRunBonusGranted,
+                tutorialVersion = tutorialVersion,
                 upgradeLevels = new List<UpgradeLevelSaveEntry>(),
                 seenCutsceneIds = new List<string>()
             };

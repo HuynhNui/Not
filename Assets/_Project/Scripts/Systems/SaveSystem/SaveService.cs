@@ -259,6 +259,68 @@ namespace _Project.Scripts.Systems.SaveSystem
             return true;
         }
 
+        public bool IsGameplayTutorialCompleted()
+        {
+            EnsureLoaded();
+            return _data.gameplayTutorialCompleted;
+        }
+
+        public bool IsUpgradeTutorialCompleted()
+        {
+            EnsureLoaded();
+            return _data.upgradeTutorialCompleted;
+        }
+
+        public void MarkGameplayTutorialCompleted()
+        {
+            EnsureLoaded();
+
+            if (_data.gameplayTutorialCompleted)
+            {
+                return;
+            }
+
+            _data.gameplayTutorialCompleted = true;
+            _data.tutorialVersion = Mathf.Max(_data.tutorialVersion, 1);
+            CommitAndQueueCloudUpload();
+        }
+
+        public void MarkUpgradeTutorialCompleted()
+        {
+            EnsureLoaded();
+
+            if (_data.upgradeTutorialCompleted)
+            {
+                return;
+            }
+
+            _data.upgradeTutorialCompleted = true;
+            _data.tutorialVersion = Mathf.Max(_data.tutorialVersion, 1);
+            CommitAndQueueCloudUpload();
+        }
+
+        public bool HasGrantedTutorialFirstRunBonus()
+        {
+            EnsureLoaded();
+            return _data.tutorialFirstRunBonusGranted;
+        }
+
+        public bool GrantTutorialFirstRunBonusIfNeeded(int amount)
+        {
+            EnsureLoaded();
+
+            if (_data.tutorialFirstRunBonusGranted)
+            {
+                return false;
+            }
+
+            int safeAmount = Mathf.Max(0, amount);
+            _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeAmount);
+            _data.tutorialFirstRunBonusGranted = true;
+            CommitAndQueueCloudUpload();
+            return true;
+        }
+
         public void ResolvePendingConflict(SaveConflictResolution resolution)
         {
             EnsureLoaded();

@@ -35,8 +35,8 @@ namespace _Project.Cutscenes
         {
             new Rule(StoryCutsceneIds.BootSequence, null, 0, 0f, 0, 0),
             new Rule(StoryCutsceneIds.FirstDeathRecovery, StoryCutsceneIds.BootSequence, 1, 0f, 0, 0),
-            new Rule(StoryCutsceneIds.EnemyDoesNotCharge, StoryCutsceneIds.FirstDeathRecovery, 3, 180f, 100, 0),
-            new Rule(StoryCutsceneIds.GateMemoryLeak, StoryCutsceneIds.EnemyDoesNotCharge, 20, 240f, 0, 0),
+            new Rule(StoryCutsceneIds.EnemyDoesNotCharge, StoryCutsceneIds.FirstDeathRecovery, 3, 30f, 100, 0),
+            new Rule(StoryCutsceneIds.GateMemoryLeak, StoryCutsceneIds.EnemyDoesNotCharge, 20, 180f, 0, 0),
             new Rule(StoryCutsceneIds.HumanCommand, StoryCutsceneIds.GateMemoryLeak, 35, 300f, 0, 1000),
             new Rule(StoryCutsceneIds.SystemFatigue, StoryCutsceneIds.HumanCommand, 50, 360f, 0, 0),
             new Rule(StoryCutsceneIds.FinalChoicePreChoice, StoryCutsceneIds.SystemFatigue, 70, 420f, 0, 0)

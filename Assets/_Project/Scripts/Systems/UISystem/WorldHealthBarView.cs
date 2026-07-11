@@ -21,6 +21,7 @@ namespace _Project.Scripts.Systems.UISystem
 
         private Vector3 _localOffset;
         private Vector3 _baseLocalScale;
+        private float _scaleMultiplier = 1f;
 
         private void Awake()
         {
@@ -60,6 +61,11 @@ namespace _Project.Scripts.Systems.UISystem
             transform.localPosition = _localOffset;
         }
 
+        public void SetScaleMultiplier(float multiplier)
+        {
+            _scaleMultiplier = Mathf.Max(0.01f, multiplier);
+        }
+
         public void SetNormalized(float value)
         {
             float clampedValue = Mathf.Clamp01(value);
@@ -91,8 +97,8 @@ namespace _Project.Scripts.Systems.UISystem
 
             Vector3 parentScale = transform.parent.lossyScale;
             transform.localScale = new Vector3(
-                _baseLocalScale.x * InverseScale(parentScale.x),
-                _baseLocalScale.y * InverseScale(parentScale.y),
+                _baseLocalScale.x * _scaleMultiplier * InverseScale(parentScale.x),
+                _baseLocalScale.y * _scaleMultiplier * InverseScale(parentScale.y),
                 _baseLocalScale.z);
         }
 

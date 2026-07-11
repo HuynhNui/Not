@@ -44,7 +44,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1481105931336844537}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -138,9 +138,15 @@ MonoBehaviour:
   horizontalPadding: 0.25
   despawnBelowCameraOffset: 1.5
   repeatedContactDamageCooldown: 0.5
+  contactDamageLeeway: 0.1
+  targetOffsetRadius: 0
+  separationRadius: 0.45
+  separationStrength: 0.45
+  crowdAvoidanceMinTargetDistance: 0.8
   healthBarPrefab: {fileID: 4963090574104541620, guid: d0c48a50c21b41c7a3bd442f014c851e, type: 3}
   healthBarAnchor: {fileID: 0}
   healthBarOffset: {x: 0, y: 0.95, z: 0}
+  healthBarScaleMultiplier: 0.5
 --- !u!114 &2266423592398468468
 MonoBehaviour:
   m_ObjectHideFlags: 0
