@@ -33,8 +33,6 @@ namespace _Project.Scripts.Gameplay.Player
         private bool _controlsEnabled = true;
         private float _gateIncomingDamageMultiplier = 1f;
         private const int SortingOrderUnitsPerWorldUnit = 100;
-        private const float FollowerShotLaneLocalSpacing = 0.1f;
-        private const float RightFollowerShotLaneLocalOffset = -0.116f;
 
         public event Action<PlayerController> SquadDefeated;
         public event Action<FollowerUnit> FollowerDied;
@@ -94,6 +92,42 @@ namespace _Project.Scripts.Gameplay.Player
             }
 
             return unit != null;
+        }
+
+        public bool TryGetClosestAliveUnit(Vector3 worldPosition, out PlayerUnit unit)
+        {
+            unit = null;
+            float closestSqrDistance = float.PositiveInfinity;
+
+            EvaluateClosestAliveUnitCenter(mainPlayerUnit, worldPosition, ref unit, ref closestSqrDistance);
+
+            for (int index = 0; index < followers.Count; index++)
+            {
+                EvaluateClosestAliveUnitCenter(followers[index], worldPosition, ref unit, ref closestSqrDistance);
+            }
+
+            return unit != null;
+        }
+
+        private static void EvaluateClosestAliveUnitCenter(
+            PlayerUnit candidate,
+            Vector3 worldPosition,
+            ref PlayerUnit closestUnit,
+            ref float closestSqrDistance)
+        {
+            if (candidate == null || candidate.IsDead)
+            {
+                return;
+            }
+
+            float sqrDistance = (candidate.transform.position - worldPosition).sqrMagnitude;
+            if (sqrDistance >= closestSqrDistance)
+            {
+                return;
+            }
+
+            closestUnit = candidate;
+            closestSqrDistance = sqrDistance;
         }
 
         private static void EvaluateClosestAliveUnit(
@@ -158,14 +192,6 @@ namespace _Project.Scripts.Gameplay.Player
             if (foundColliderContact)
             {
                 return closestColliderContact;
-            }
-
-            Renderer renderer = unit.GetComponentInChildren<Renderer>();
-            if (renderer != null && renderer.enabled)
-            {
-                Vector3 closestPoint = renderer.bounds.ClosestPoint(worldPosition);
-                closestPoint.z = unit.transform.position.z;
-                return closestPoint;
             }
 
             return unit.transform.position;
@@ -533,25 +559,12 @@ namespace _Project.Scripts.Gameplay.Player
                 return firePoint;
             }
 
-            Vector3 lanePosition = mainFirePoint.localPosition;
-            lanePosition.x += GetFollowerShotLaneOffset(followerIndex);
-            firePoint.localPosition = lanePosition;
+            Vector3 localPosition = mainFirePoint.localPosition;
+            localPosition.x = 0f;
+            firePoint.localPosition = localPosition;
             firePoint.localRotation = mainFirePoint.localRotation;
             firePoint.localScale = mainFirePoint.localScale;
             return firePoint;
-        }
-
-        private float GetFollowerShotLaneOffset(int followerIndex)
-        {
-            Vector3 formationOffset = GetRearArcOffset(followerIndex);
-            if (Mathf.Abs(formationOffset.x) <= 0.001f)
-            {
-                return -FollowerShotLaneLocalSpacing;
-            }
-
-            return formationOffset.x > 0f
-                ? RightFollowerShotLaneLocalOffset
-                : -FollowerShotLaneLocalSpacing;
         }
 
         private void CopyMainVisual(GameObject followerObject)
@@ -624,13 +637,6 @@ namespace _Project.Scripts.Gameplay.Player
 
         private void ConfigureSquadHurtbox(GameObject unitObject)
         {
-            SpriteRenderer spriteRenderer = unitObject.GetComponentInChildren<SpriteRenderer>();
-            if (spriteRenderer != null && spriteRenderer.sprite != null)
-            {
-                ConfigureRendererBoxHurtbox(unitObject, spriteRenderer);
-                return;
-            }
-
             Collider2D[] existingColliders = unitObject.GetComponentsInChildren<Collider2D>();
             if (existingColliders.Length > 0)
             {
@@ -652,51 +658,8 @@ namespace _Project.Scripts.Gameplay.Player
             ConfigureFallbackCircleHurtbox(unitObject);
         }
 
-        private void ConfigureRendererBoxHurtbox(GameObject unitObject, SpriteRenderer spriteRenderer)
-        {
-            CircleCollider2D[] circleColliders = unitObject.GetComponents<CircleCollider2D>();
-            for (int index = 0; index < circleColliders.Length; index++)
-            {
-                DestroyCollider(circleColliders[index]);
-            }
-
-            BoxCollider2D hurtbox = unitObject.GetComponent<BoxCollider2D>();
-            if (hurtbox == null)
-            {
-                hurtbox = unitObject.AddComponent<BoxCollider2D>();
-            }
-
-            BoxCollider2D[] boxColliders = unitObject.GetComponents<BoxCollider2D>();
-            for (int index = 0; index < boxColliders.Length; index++)
-            {
-                if (boxColliders[index] != hurtbox)
-                {
-                    DestroyCollider(boxColliders[index]);
-                }
-            }
-
-            Bounds bounds = spriteRenderer.bounds;
-            Vector3 localCenter = unitObject.transform.InverseTransformPoint(bounds.center);
-            Vector3 lossyScale = unitObject.transform.lossyScale;
-            float scaleX = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.x));
-            float scaleY = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.y));
-
-            hurtbox.enabled = true;
-            hurtbox.isTrigger = true;
-            hurtbox.offset = new Vector2(localCenter.x, localCenter.y);
-            hurtbox.size = new Vector2(
-                Mathf.Max(0.01f, bounds.size.x / scaleX),
-                Mathf.Max(0.01f, bounds.size.y / scaleY));
-        }
-
         private void ConfigureFallbackCircleHurtbox(GameObject unitObject)
         {
-            BoxCollider2D[] boxColliders = unitObject.GetComponents<BoxCollider2D>();
-            for (int index = 0; index < boxColliders.Length; index++)
-            {
-                DestroyCollider(boxColliders[index]);
-            }
-
             CircleCollider2D hurtbox = unitObject.GetComponent<CircleCollider2D>();
             if (hurtbox == null)
             {
@@ -707,24 +670,6 @@ namespace _Project.Scripts.Gameplay.Player
             hurtbox.isTrigger = true;
             hurtbox.offset = Vector2.zero;
             hurtbox.radius = Mathf.Max(0.01f, fallbackHurtboxRadius);
-        }
-
-        private static void DestroyCollider(Collider2D collider)
-        {
-            if (collider == null)
-            {
-                return;
-            }
-
-            collider.enabled = false;
-
-            if (Application.isPlaying)
-            {
-                UnityEngine.Object.Destroy(collider);
-                return;
-            }
-
-            UnityEngine.Object.DestroyImmediate(collider);
         }
 
         private void ConfigureFollower(FollowerUnit follower, int followerIndex, bool restoreFullHealth = false)

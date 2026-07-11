@@ -44,6 +44,7 @@ namespace _Project.Scripts.Gameplay.Combat
         public int ProjectileCount => projectileCount;
         public float VisualTierDamage => visualTierDamage;
         public float ShooterDamageScale => _shooterDamageScale;
+        public Transform FirePoint => firePoint;
 
         public void ConfigureFromTemplate(BulletSpawner template)
         {
@@ -149,23 +150,29 @@ namespace _Project.Scripts.Gameplay.Combat
 
         public void Shoot()
         {
+            if (firePoint == null)
+            {
+                Debug.LogError($"{name}: BulletSpawner requires a FirePoint reference.", this);
+                return;
+            }
+
             if (!CanShoot())
             {
                 return;
             }
 
-            Transform spawnPoint = firePoint != null ? firePoint : transform;
             Quaternion rotation = forceVerticalDirection
                 ? Quaternion.LookRotation(Vector3.forward, Vector3.up)
-                : spawnPoint.rotation;
+                : firePoint.rotation;
 
             int shots = Mathf.Max(1, projectileCount);
             float shotDamage = DamagePerProjectile;
             float startOffset = -(shots - 1) * 0.5f * burstSpread;
+            Vector3 center = firePoint.position;
 
             for (int shotIndex = 0; shotIndex < shots; shotIndex++)
             {
-                Vector3 shotPosition = spawnPoint.position + Vector3.right * (startOffset + shotIndex * burstSpread);
+                Vector3 shotPosition = center + Vector3.right * (startOffset + shotIndex * burstSpread);
                 SpawnBullet(shotPosition, rotation, shotDamage, bulletSpeed, BuildModifierConfigBuffer());
             }
 
