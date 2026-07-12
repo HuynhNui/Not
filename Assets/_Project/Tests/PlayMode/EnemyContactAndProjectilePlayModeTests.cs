@@ -7,10 +7,16 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace TrueGate.PlayModeTests
 {
     public sealed class EnemyContactAndProjectilePlayModeTests
     {
+        private const string ProductionEnemyPrefabPath = "Assets/_Project/Prefabs/Enemies/Enemy.prefab";
+
         [UnityTest]
         public IEnumerator EnemyOverlapPolling_DamagesPlayerAndDespawns()
         {
@@ -189,6 +195,116 @@ namespace TrueGate.PlayModeTests
                 UnityEngine.Object.Destroy(poolObject);
                 UnityEngine.Object.Destroy(prefabObject);
             }
+        }
+
+        [UnityTest]
+        public IEnumerator ProductionEnemyPrefab_DoesNotDamagePlayerBeforeRealColliderContact()
+        {
+#if UNITY_EDITOR
+            GameObject enemyObject = UnityEngine.Object.Instantiate(
+                LoadProductionEnemyPrefab(),
+                Vector3.zero,
+                Quaternion.identity);
+            GameObject playerObject = CreatePlayer("Player", Vector3.zero);
+            Component player = playerObject.GetComponent(RuntimeType(
+                "_Project.Scripts.Gameplay.Player.PlayerUnit"));
+            Component enemy = enemyObject.GetComponent(RuntimeType(
+                "_Project.Scripts.Gameplay.Enemies.EnemyController"));
+            CircleCollider2D playerCollider = playerObject.GetComponent<CircleCollider2D>();
+            BoxCollider2D enemyCollider = enemyObject.GetComponent<BoxCollider2D>();
+
+            try
+            {
+                Invoke(player, "SetMaxHp", 10f, false);
+                Invoke(player, "RestoreFullHealth");
+
+                Physics2D.SyncTransforms();
+                Bounds enemyBounds = enemyCollider.bounds;
+                playerObject.transform.position = new Vector3(
+                    enemyBounds.center.x,
+                    enemyBounds.min.y - playerCollider.radius - 0.04f,
+                    0f);
+                Physics2D.SyncTransforms();
+
+                Invoke(enemy, "Init", null, null, null, null);
+                Invoke(enemy, "SetMovementEnabled", false);
+                yield return null;
+
+                Assert.That((float)GetProperty(player, "CurrentHp"), Is.EqualTo(10f).Within(0.001f));
+                Assert.That((bool)GetProperty(enemy, "IsActive"), Is.True);
+
+                playerObject.transform.position = enemyBounds.center;
+                Physics2D.SyncTransforms();
+                yield return null;
+
+                Assert.That((float)GetProperty(player, "CurrentHp"), Is.EqualTo(9f).Within(0.001f));
+                Assert.That((bool)GetProperty(enemy, "IsActive"), Is.False);
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(playerObject);
+                UnityEngine.Object.Destroy(enemyObject);
+            }
+#else
+            Assert.Ignore("Production prefab contact test requires UnityEditor AssetDatabase.");
+            yield return null;
+#endif
+        }
+
+        [UnityTest]
+        public IEnumerator ProductionEnemyPrefab_PoolingPreservesColliderGeometry()
+        {
+#if UNITY_EDITOR
+            GameObject poolObject = new GameObject("Pool");
+            Component pool = poolObject.AddComponent(RuntimeType(
+                "_Project.Scripts.Systems.PoolSystem.PoolSystem"));
+            GameObject prefabObject = UnityEngine.Object.Instantiate(LoadProductionEnemyPrefab());
+            prefabObject.SetActive(false);
+            Component prefabEnemy = prefabObject.GetComponent(RuntimeType(
+                "_Project.Scripts.Gameplay.Enemies.EnemyController"));
+            BoxCollider2D prefabCollider = prefabObject.GetComponent<BoxCollider2D>();
+            Vector2 expectedOffset = prefabCollider.offset;
+            Vector2 expectedSize = prefabCollider.size;
+
+            try
+            {
+                Component enemy = (Component)InvokeGeneric(
+                    pool,
+                    "Spawn",
+                    RuntimeType("_Project.Scripts.Gameplay.Enemies.EnemyController"),
+                    prefabEnemy,
+                    Vector3.zero,
+                    Quaternion.identity);
+                Invoke(enemy, "Init", null, null, null, null);
+                Invoke(enemy, "Despawn");
+
+                Component reusedEnemy = (Component)InvokeGeneric(
+                    pool,
+                    "Spawn",
+                    RuntimeType("_Project.Scripts.Gameplay.Enemies.EnemyController"),
+                    prefabEnemy,
+                    Vector3.one,
+                    Quaternion.identity);
+                Invoke(reusedEnemy, "Init", null, null, null, null);
+
+                BoxCollider2D[] colliders = reusedEnemy.GetComponents<BoxCollider2D>();
+                Assert.That(colliders, Has.Length.EqualTo(1));
+                Assert.That(colliders[0].isTrigger, Is.True);
+                Assert.That(colliders[0].offset.x, Is.EqualTo(expectedOffset.x).Within(0.001f));
+                Assert.That(colliders[0].offset.y, Is.EqualTo(expectedOffset.y).Within(0.001f));
+                Assert.That(colliders[0].size.x, Is.EqualTo(expectedSize.x).Within(0.001f));
+                Assert.That(colliders[0].size.y, Is.EqualTo(expectedSize.y).Within(0.001f));
+                yield return null;
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(poolObject);
+                UnityEngine.Object.Destroy(prefabObject);
+            }
+#else
+            Assert.Ignore("Production prefab pooling test requires UnityEditor AssetDatabase.");
+            yield return null;
+#endif
         }
 
         [UnityTest]
@@ -431,6 +547,15 @@ namespace TrueGate.PlayModeTests
                 "_Project.Scripts.Gameplay.Enemies.EnemyProjectile"));
             return projectileObject;
         }
+
+#if UNITY_EDITOR
+        private static GameObject LoadProductionEnemyPrefab()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProductionEnemyPrefabPath);
+            Assert.That(prefab, Is.Not.Null, $"Missing production prefab at {ProductionEnemyPrefabPath}");
+            return prefab;
+        }
+#endif
 
         private static Type RuntimeType(string fullName)
         {

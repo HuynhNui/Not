@@ -210,7 +210,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.51}
+  m_Offset: {x: 0, y: 0.4}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -220,7 +220,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.39, y: 0.24}
+  m_Size: {x: 0.44, y: 0.44}
   m_EdgeRadius: 0
 --- !u!114 &790338621279653551
 MonoBehaviour:
@@ -243,12 +243,14 @@ MonoBehaviour:
   coinReward: 1
   destroyOnPlayerHit: 1
   despawnImmediatelyOnDeath: 1
+  requireCameraVisibilityForDamage: 1
   movementMode: 0
   enterMoveSpeed: 2.7
   topBandViewportY: 0.75
   clampInsideCameraWidth: 1
   horizontalPadding: 0.25
   despawnBelowCameraOffset: 1.5
+  repeatedContactDamageCooldown: 0.5
   healthBarPrefab: {fileID: 4963090574104541620, guid: d0c48a50c21b41c7a3bd442f014c851e, type: 3}
   healthBarAnchor: {fileID: 0}
   healthBarOffset: {x: 0, y: 0.45, z: 0}
