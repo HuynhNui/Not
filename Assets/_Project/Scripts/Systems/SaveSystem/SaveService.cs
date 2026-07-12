@@ -274,6 +274,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             }
 
             _data.gameplayTutorialCompleted = true;
+            _data.tutorialVersion = Mathf.Max(_data.tutorialVersion, 1);
             CommitAndQueueCloudUpload();
         }
 
@@ -292,7 +293,30 @@ namespace _Project.Scripts.Systems.SaveSystem
             }
 
             _data.upgradeTutorialCompleted = true;
+            _data.tutorialVersion = Mathf.Max(_data.tutorialVersion, 1);
             CommitAndQueueCloudUpload();
+        }
+
+        public bool HasGrantedTutorialFirstRunBonus()
+        {
+            EnsureLoaded();
+            return _data.tutorialFirstRunBonusGranted;
+        }
+
+        public bool GrantTutorialFirstRunBonusIfNeeded(int amount)
+        {
+            EnsureLoaded();
+
+            if (_data.tutorialFirstRunBonusGranted)
+            {
+                return false;
+            }
+
+            int safeAmount = Mathf.Max(0, amount);
+            _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeAmount);
+            _data.tutorialFirstRunBonusGranted = true;
+            CommitAndQueueCloudUpload();
+            return true;
         }
 
         public bool IsUpdateOnboardingCompleted()

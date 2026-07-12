@@ -21,7 +21,7 @@ namespace _Project.Tests.Editor
             {
                 service.EnsureLoaded();
 
-                Assert.That(service.IsGameplayTutorialCompleted(), Is.True);
+                Assert.That(service.IsGameplayTutorialCompleted(), Is.False);
                 Assert.That(service.IsUpgradeTutorialCompleted(), Is.False);
                 Assert.That(service.IsUpdateOnboardingCompleted(), Is.False);
 
@@ -32,7 +32,7 @@ namespace _Project.Tests.Editor
 
                 service.ResetPlayerProgression();
 
-                Assert.That(service.IsGameplayTutorialCompleted(), Is.True);
+                Assert.That(service.IsGameplayTutorialCompleted(), Is.False);
                 Assert.That(service.IsUpgradeTutorialCompleted(), Is.False);
                 Assert.That(service.IsUpdateOnboardingCompleted(), Is.False);
             }
@@ -58,6 +58,10 @@ namespace _Project.Tests.Editor
                 Assert.That(manager.ShouldRunUpdateOnboardingAfterFirstDeath(), Is.False);
 
                 service.RecordRunResult(1f, 0, 0, 0);
+
+                Assert.That(manager.ShouldRunUpdateOnboardingAfterFirstDeath(), Is.False);
+
+                service.MarkGameplayTutorialCompleted();
 
                 Assert.That(manager.ShouldRunUpdateOnboardingAfterFirstDeath(), Is.True);
 
