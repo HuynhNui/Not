@@ -37,6 +37,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
         public void Show(RectTransform target, float opacity = -1f, Vector2 padding = default)
         {
             EnsureBuilt();
+            DisableLegacyFocusHighlight();
             _target = target;
             _opacity = opacity >= 0f ? Mathf.Clamp01(opacity) : defaultOpacity;
             _padding = padding == default ? defaultPadding : padding;
@@ -48,6 +49,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
         public void Hide()
         {
             _target = null;
+            DisableLegacyFocusHighlight();
             if (gameObject.activeSelf)
             {
                 gameObject.SetActive(false);
@@ -68,7 +70,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
             SetPanelRect(bottomDimPanel, bounds.xMin, bounds.yMin, bounds.width, hole.yMin - bounds.yMin);
             SetPanelRect(leftDimPanel, bounds.xMin, hole.yMin, hole.xMin - bounds.xMin, hole.height);
             SetPanelRect(rightDimPanel, hole.xMax, hole.yMin, bounds.xMax - hole.xMax, hole.height);
-            SetPanelRect(focusHighlightFrame, hole.xMin, hole.yMin, hole.width, hole.height);
         }
 
         public void EnsureBuilt()
@@ -83,16 +84,45 @@ namespace _Project.Scripts.Systems.TutorialSystem
             bottomDimPanel ??= CreatePanel("BottomDimPanel", raycastTarget: true);
             leftDimPanel ??= CreatePanel("LeftDimPanel", raycastTarget: true);
             rightDimPanel ??= CreatePanel("RightDimPanel", raycastTarget: true);
-            focusHighlightFrame ??= CreatePanel("FocusHighlightFrame", raycastTarget: false);
-            focusHighlightFrame.color = new Color(1f, 0.82f, 0.08f, 0.95f);
-            Outline outline = focusHighlightFrame.GetComponent<Outline>();
-            if (outline == null)
+            DisableLegacyFocusHighlight();
+        }
+
+        private void DisableLegacyFocusHighlight()
+        {
+            Transform legacy = null;
+
+            if (focusHighlightFrame != null)
             {
-                outline = focusHighlightFrame.gameObject.AddComponent<Outline>();
+                legacy = focusHighlightFrame.transform;
             }
 
-            outline.effectColor = new Color(0.05f, 0.49f, 1f, 1f);
-            outline.effectDistance = new Vector2(2f, -2f);
+            if (legacy == null && root != null)
+            {
+                legacy = root.Find("FocusHighlightFrame");
+            }
+
+            if (legacy == null)
+            {
+                return;
+            }
+
+            Image image = legacy.GetComponent<Image>();
+            if (image != null)
+            {
+                image.raycastTarget = false;
+                image.enabled = false;
+                focusHighlightFrame = image;
+            }
+
+            Outline outline = legacy.GetComponent<Outline>();
+            if (outline == null)
+            {
+                legacy.gameObject.SetActive(false);
+                return;
+            }
+
+            outline.enabled = false;
+            legacy.gameObject.SetActive(false);
         }
 
         private Rect CalculateHoleRect(RectTransform target, Vector2 padding)

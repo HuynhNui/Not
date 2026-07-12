@@ -26,6 +26,8 @@ namespace _Project.Scripts.Systems.TutorialSystem
         [SerializeField] private TutorialGameplayDirector gameplayDirector;
         [SerializeField] private UpdateOnboardingDirector updateOnboardingDirector;
         [SerializeField] private MainMenuSpotlightOverlayUI mainMenuSpotlightOverlay;
+        [SerializeField] private float startButtonSpotlightOpacity = 0.62f;
+        [SerializeField] private Vector2 startButtonSpotlightPadding = new Vector2(18f, 14f);
 
         private GameManager _gameManager;
         private RuntimeUISystem _uiSystem;
@@ -126,9 +128,33 @@ namespace _Project.Scripts.Systems.TutorialSystem
 
             StopUpdateOnboarding();
             EnsureComponents();
+            mainMenuSpotlightOverlay?.Hide();
             _currentFlow = TutorialFlow.Gameplay;
             _gameManager?.PrepareRunForTutorial();
             gameplayDirector?.StartTutorial();
+        }
+
+        public void ShowStartRunSpotlightIfNeeded()
+        {
+            if (_currentFlow != TutorialFlow.None
+                || _uiSystem == null
+                || _uiSystem.CurrentScreen != UIScreen.MainMenu
+                || !ShouldRunGameplayTutorial())
+            {
+                return;
+            }
+
+            EnsureComponents();
+            RectTransform startTarget = _uiSystem.MainMenuPlayButtonTarget;
+            if (startTarget == null)
+            {
+                return;
+            }
+
+            mainMenuSpotlightOverlay?.Show(
+                startTarget,
+                startButtonSpotlightOpacity,
+                startButtonSpotlightPadding);
         }
 
         public void StartUpdateOnboardingFromMainMenu()

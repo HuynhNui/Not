@@ -172,8 +172,11 @@ namespace _Project.Scripts.Systems.TutorialSystem
             yield return PlayTutorialCutscene(TutorialCutsceneDefinitions.DefaultGateChoice);
             _tutorialGateSelected = false;
 
-            while (IsRunning && !_tutorialGateSelected)
+            int defaultGateAttempts = 0;
+            int maxAttempts = GetGateAttemptCount(config);
+            while (IsRunning && !_tutorialGateSelected && defaultGateAttempts < maxAttempts)
             {
+                defaultGateAttempts++;
                 IReadOnlyList<GateLogic> gates = _gateSystem?.SpawnTutorialDefaultGateSet();
                 float defaultGateEndTime = Time.realtimeSinceStartup + (config != null ? config.GateTimeoutSeconds : 15f);
                 ShowGameplayHint(showSwipeIcon: false);
@@ -198,8 +201,11 @@ namespace _Project.Scripts.Systems.TutorialSystem
 
         private IEnumerator RunSingleGateStep(System.Func<GateLogic> spawnGate, TutorialConfig config)
         {
-            while (IsRunning && !_tutorialGateSelected)
+            int attempts = 0;
+            int maxAttempts = GetGateAttemptCount(config);
+            while (IsRunning && !_tutorialGateSelected && attempts < maxAttempts)
             {
+                attempts++;
                 GateLogic gate = spawnGate?.Invoke();
                 float endTime = Time.realtimeSinceStartup + (config != null ? config.GateTimeoutSeconds : 15f);
                 ShowGameplayHint(showSwipeIcon: false);
@@ -275,7 +281,22 @@ namespace _Project.Scripts.Systems.TutorialSystem
             }
 
             gate.HandlePlayerTriggered(triggerUnit);
-            return _tutorialGateSelected;
+            if (_tutorialGateSelected)
+            {
+                return true;
+            }
+
+            gate.ApplyEffect();
+            gate.Despawn();
+            _gateSystem?.ClearTutorialGates();
+            _tutorialGateSelected = true;
+            return true;
+        }
+
+        private static int GetGateAttemptCount(TutorialConfig config)
+        {
+            int respawns = config != null ? config.GateRespawnCount : 1;
+            return Mathf.Max(1, respawns + 1);
         }
 
         private static Bounds GetTutorialGateCollectionBounds(GateLogic gate)

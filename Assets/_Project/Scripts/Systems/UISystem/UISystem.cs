@@ -109,6 +109,8 @@ namespace _Project.Scripts.Systems.UISystem
         public event Action<UIScreen> ScreenChanged;
 
         public UIScreen CurrentScreen => _currentScreen;
+        public RectTransform MainMenuPlayButtonTarget =>
+            playButton != null ? playButton.transform as RectTransform : null;
         public RectTransform MainMenuUpgradeButtonTarget =>
             mainMenuUpgradeButton != null ? mainMenuUpgradeButton.transform as RectTransform : null;
 

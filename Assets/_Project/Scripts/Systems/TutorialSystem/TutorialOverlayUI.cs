@@ -12,6 +12,10 @@ namespace _Project.Scripts.Systems.TutorialSystem
         [SerializeField] private RectTransform focusHighlightFrame;
         [SerializeField] private Image focusHighlightImage;
         [SerializeField] private RectTransform swipeLeftRightIcon;
+        [SerializeField] private Sprite swipeLeftRightSprite;
+        [SerializeField] private Vector2 swipeIconAnchor = new Vector2(0.5f, 0.33f);
+        [SerializeField] private Vector2 swipeIconAnchoredPosition = Vector2.zero;
+        [SerializeField] private Vector2 swipeIconSize = new Vector2(260f, 160f);
         [SerializeField] private RectTransform tutorialDialogPanel;
         [SerializeField] private TextMeshProUGUI speakerText;
         [SerializeField] private TextMeshProUGUI bodyText;
@@ -40,6 +44,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
         {
             ResolveReferences();
             gameObject.SetActive(true);
+            _rectTransform?.SetAsLastSibling();
 
             if (canvasGroup != null)
             {
@@ -94,6 +99,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
 
         public void ShowSwipeIcon()
         {
+            EnsureSwipeIconSprite();
             SetActive(swipeLeftRightIcon, true);
         }
 
@@ -241,6 +247,51 @@ namespace _Project.Scripts.Systems.TutorialSystem
             {
                 focusHighlightImage = focusHighlightFrame.GetComponent<Image>();
             }
+
+            if (swipeLeftRightIcon != null)
+            {
+                Image swipeImage = swipeLeftRightIcon.GetComponent<Image>();
+                if (swipeImage != null && swipeLeftRightSprite == null)
+                {
+                    swipeLeftRightSprite = swipeImage.sprite;
+                }
+            }
+        }
+
+        private void EnsureSwipeIconSprite()
+        {
+            if (swipeLeftRightIcon == null)
+            {
+                return;
+            }
+
+            Image image = swipeLeftRightIcon.GetComponent<Image>();
+            if (image == null)
+            {
+                image = swipeLeftRightIcon.gameObject.AddComponent<Image>();
+                image.raycastTarget = false;
+            }
+
+            if (image.sprite == null && swipeLeftRightSprite != null)
+            {
+                image.sprite = swipeLeftRightSprite;
+            }
+
+            image.enabled = image.sprite != null;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            image.color = Color.white;
+
+            swipeLeftRightIcon.anchorMin = swipeIconAnchor;
+            swipeLeftRightIcon.anchorMax = swipeIconAnchor;
+            swipeLeftRightIcon.pivot = new Vector2(0.5f, 0.5f);
+            swipeLeftRightIcon.anchoredPosition = swipeIconAnchoredPosition;
+            swipeLeftRightIcon.sizeDelta = new Vector2(
+                Mathf.Max(1f, swipeIconSize.x),
+                Mathf.Max(1f, swipeIconSize.y));
+            swipeLeftRightIcon.localScale = Vector3.one;
+            swipeLeftRightIcon.SetAsLastSibling();
         }
 
         private void WireButtons()

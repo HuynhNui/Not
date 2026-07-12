@@ -1,6 +1,7 @@
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Project.Scripts.Gameplay.Gates
 {
@@ -32,7 +33,11 @@ namespace _Project.Scripts.Gameplay.Gates
         [SerializeField] private float worldLabelZOffset = -0.1f;
         [SerializeField] private float tintScreenZOffset = 0.01f;
         [SerializeField] private int labelSortingOrderOffset = 5;
-        [SerializeField] private int tintScreenSortingOrderOffset = -1;
+        [SerializeField] private Vector2 tintLocalOffset = new Vector2(0f, -0.14f);
+        [SerializeField] private Vector2 positiveTintLocalScale = new Vector2(0.86f, 1.55f);
+        [SerializeField] private Vector2 negativeTintLocalScale = new Vector2(0.72f, 1.5f);
+        [FormerlySerializedAs("tintScreenSortingOrderOffset")]
+        [SerializeField] private int tintSortingOrderOffset = -1;
 
         private float _targetWorldWidth = 1.6f;
         private float _targetWorldHeight = 2.4f;
@@ -65,6 +70,27 @@ namespace _Project.Scripts.Gameplay.Gates
         private void Awake()
         {
             Init();
+        }
+
+        private void OnValidate()
+        {
+            if (frameRenderer == null)
+            {
+                frameRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            if (tintScreenRenderer == null)
+            {
+                Transform tintTransform = transform.Find(TintScreenName);
+                if (tintTransform != null)
+                {
+                    tintScreenRenderer = tintTransform.GetComponent<SpriteRenderer>();
+                }
+            }
+
+            ApplyTintScreenTransformAndSorting(IsCurrentTintNegative());
+            ApplyWorldLabelSorting();
+            ApplyWorldLabelBounds();
         }
 
         public void Bind(GateConfig config)
@@ -100,7 +126,7 @@ namespace _Project.Scripts.Gameplay.Gates
                 }
             }
 
-            ApplyTintScreen(config);
+            ApplyTintVisual(config);
         }
 
         public void ConfigureWorldBounds(float width, float height)
@@ -280,21 +306,22 @@ namespace _Project.Scripts.Gameplay.Gates
             textRenderer.sortingOrder = labelSortingOrderOffset;
         }
 
-        private void ApplyTintScreen(GateConfig config)
+        public void ApplyTintVisual(GateConfig config)
         {
             if (tintScreenRenderer == null || config == null)
             {
                 return;
             }
 
-            Sprite tintSprite = config.IsBuff ? positiveTintScreenSprite : negativeTintScreenSprite;
+            bool isPositive = config.IsBuff;
+            Sprite tintSprite = isPositive ? positiveTintScreenSprite : negativeTintScreenSprite;
             tintScreenRenderer.sprite = tintSprite;
             tintScreenRenderer.enabled = tintSprite != null;
             tintScreenRenderer.color = Color.white;
-            ApplyTintScreenTransformAndSorting();
+            ApplyTintScreenTransformAndSorting(!isPositive);
         }
 
-        private void ApplyTintScreenTransformAndSorting()
+        private void ApplyTintScreenTransformAndSorting(bool useNegativeScale = false)
         {
             if (tintScreenRenderer == null)
             {
@@ -302,18 +329,42 @@ namespace _Project.Scripts.Gameplay.Gates
             }
 
             Transform tintTransform = tintScreenRenderer.transform;
-            tintTransform.localPosition = new Vector3(0f, 0f, tintScreenZOffset);
+            Vector2 selectedScale = useNegativeScale ? negativeTintLocalScale : positiveTintLocalScale;
+            Vector3 safeScale = new Vector3(
+                Mathf.Max(0.01f, selectedScale.x),
+                Mathf.Max(0.01f, selectedScale.y),
+                1f);
+            Vector2 pivotCompensatedOffset = tintLocalOffset;
+            if (tintScreenRenderer.sprite != null)
+            {
+                Bounds spriteBounds = tintScreenRenderer.sprite.bounds;
+                pivotCompensatedOffset -= new Vector2(
+                    spriteBounds.center.x * safeScale.x,
+                    spriteBounds.center.y * safeScale.y);
+            }
+
+            tintTransform.localPosition = new Vector3(
+                pivotCompensatedOffset.x,
+                pivotCompensatedOffset.y,
+                tintScreenZOffset);
             tintTransform.localRotation = Quaternion.identity;
-            tintTransform.localScale = Vector3.one;
+            tintTransform.localScale = safeScale;
 
             if (frameRenderer == null)
             {
-                tintScreenRenderer.sortingOrder = tintScreenSortingOrderOffset;
+                tintScreenRenderer.sortingOrder = tintSortingOrderOffset;
                 return;
             }
 
             tintScreenRenderer.sortingLayerID = frameRenderer.sortingLayerID;
-            tintScreenRenderer.sortingOrder = frameRenderer.sortingOrder + tintScreenSortingOrderOffset;
+            tintScreenRenderer.sortingOrder = frameRenderer.sortingOrder + tintSortingOrderOffset;
+        }
+
+        private bool IsCurrentTintNegative()
+        {
+            return tintScreenRenderer != null
+                && negativeTintScreenSprite != null
+                && tintScreenRenderer.sprite == negativeTintScreenSprite;
         }
 
         private void CacheFallbackFrameSprite()

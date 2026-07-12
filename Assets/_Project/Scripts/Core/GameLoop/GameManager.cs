@@ -187,7 +187,10 @@ namespace _Project.Scripts.Core.GameLoop
             if (shouldStartRunAfterReload)
             {
                 RequestStartRun();
+                return;
             }
+
+            tutorialManager?.ShowStartRunSpotlightIfNeeded();
         }
 
         private void ApplyBalanceConfiguration()
@@ -462,7 +465,10 @@ namespace _Project.Scripts.Core.GameLoop
                 if (startRunAfterCutscene)
                 {
                     RequestStartRun();
+                    return;
                 }
+
+                tutorialManager?.ShowStartRunSpotlightIfNeeded();
             });
 
             if (!started)

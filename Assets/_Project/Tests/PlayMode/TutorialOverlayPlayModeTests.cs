@@ -60,6 +60,46 @@ namespace _Project.Tests.PlayMode
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator ShowOverlay_MovesOverlayAboveSiblingPanels()
+        {
+            var parent = new GameObject("TutorialOverlayParent", typeof(RectTransform));
+            var sibling = new GameObject("GameplayHudSibling", typeof(RectTransform));
+            sibling.transform.SetParent(parent.transform, false);
+            Component overlay = CreateOverlay(out GameObject root, out _, out _);
+            root.transform.SetParent(parent.transform, false);
+            sibling.transform.SetAsLastSibling();
+
+            Invoke(overlay, "ShowOverlay", false, false);
+
+            Assert.That(root.transform.GetSiblingIndex(), Is.EqualTo(parent.transform.childCount - 1));
+            Object.Destroy(parent);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ShowSwipeIcon_EnablesSpriteAndPreservesAspect()
+        {
+            Component overlay = CreateOverlay(out GameObject root, out _, out _);
+            RectTransform swipe = (RectTransform)GetField(overlay, "swipeLeftRightIcon");
+            Image swipeImage = swipe.GetComponent<Image>();
+            Sprite sprite = CreateTestSprite();
+            swipeImage.sprite = null;
+            SetField(overlay, "swipeLeftRightSprite", sprite);
+
+            Invoke(overlay, "ShowSwipeIcon");
+
+            Assert.That(swipe.gameObject.activeSelf, Is.True);
+            Assert.That(swipeImage.sprite, Is.EqualTo(sprite));
+            Assert.That(swipeImage.enabled, Is.True);
+            Assert.That(swipeImage.preserveAspect, Is.True);
+            Assert.That(swipeImage.raycastTarget, Is.False);
+
+            Object.Destroy(root);
+            Object.Destroy(sprite.texture);
+            yield return null;
+        }
+
         private static Component CreateOverlay(
             out GameObject root,
             out Button skipButton,
@@ -117,6 +157,15 @@ namespace _Project.Tests.PlayMode
             field.SetValue(target, value);
         }
 
+        private static object GetField(Object target, string fieldName)
+        {
+            FieldInfo field = target.GetType().GetField(
+                fieldName,
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Missing field {fieldName}");
+            return field.GetValue(target);
+        }
+
         private static void Invoke(Component target, string methodName, params object[] args)
         {
             MethodInfo method = target.GetType().GetMethod(
@@ -140,6 +189,14 @@ namespace _Project.Tests.PlayMode
             System.Type type = System.Type.GetType($"{typeName}, Assembly-CSharp");
             Assert.That(type, Is.Not.Null, $"Missing runtime type {typeName}");
             return type;
+        }
+
+        private static Sprite CreateTestSprite()
+        {
+            var texture = new Texture2D(8, 8);
+            texture.SetPixel(0, 0, Color.white);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0f, 0f, 8f, 8f), new Vector2(0.5f, 0.5f));
         }
     }
 }
