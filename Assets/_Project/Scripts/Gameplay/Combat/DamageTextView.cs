@@ -93,7 +93,7 @@ namespace _Project.Scripts.Gameplay.Combat
         private void ConfigureText(TextMeshPro target)
         {
             target.alignment = TextAlignmentOptions.Center;
-            target.enableWordWrapping = false;
+            target.textWrappingMode = TextWrappingModes.NoWrap;
             target.fontSize = fontSize;
             target.raycastTarget = false;
         }
