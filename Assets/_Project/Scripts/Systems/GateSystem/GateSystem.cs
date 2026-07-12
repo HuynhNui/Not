@@ -82,6 +82,12 @@ namespace _Project.Scripts.Systems.GateSystem
             new List<BalanceGateCategory>();
         private readonly Dictionary<string, GateConfig> _runtimeConfigCache =
             new Dictionary<string, GateConfig>();
+        private static readonly string[] TutorialDefaultGateIds =
+        {
+            "stable_damage",
+            "utility_repair",
+            "risky_glass_cannon"
+        };
 
         public event Action<int, int, GateConfig> GateShown;
         public event Action<int, GateConfig> GateSelected;
@@ -177,6 +183,126 @@ namespace _Project.Scripts.Systems.GateSystem
         public void SetSpawningEnabled(bool isEnabled)
         {
             _spawningEnabled = isEnabled;
+        }
+
+        public GateLogic SpawnTutorialGate(Vector3 spawnPosition)
+        {
+            return SpawnTutorialGateById("major_recruit", spawnPosition);
+        }
+
+        public GateLogic SpawnTutorialGateById(string gateId, Vector3 spawnPosition)
+        {
+            if (gatePrefab == null || mainPlayerUnit == null)
+            {
+                return null;
+            }
+
+            ClearActiveGates();
+            _choiceLocked = false;
+            _isGateSetActive = true;
+            ResolveGameplayCamera();
+
+            if (!TryResolveTutorialGateConfig(gateId, out GateConfig config))
+            {
+                _isGateSetActive = false;
+                return null;
+            }
+
+            float width = Mathf.Max(minGateWorldWidth, gateHalfWidth * 2f) * Mathf.Max(0.25f, gateSizeMultiplier);
+            GateLogic instance = SpawnGateInstance(
+                config,
+                spawnPosition,
+                spawnPosition.x,
+                width,
+                width * Mathf.Max(0.5f, gateHeightToWidth),
+                0);
+
+            if (instance == null)
+            {
+                _isGateSetActive = false;
+            }
+
+            return instance;
+        }
+
+        public IReadOnlyList<GateLogic> SpawnTutorialDefaultGateSet()
+        {
+            var spawnedGates = new List<GateLogic>();
+            if (gatePrefab == null || mainPlayerUnit == null)
+            {
+                return spawnedGates;
+            }
+
+            ClearActiveGates();
+            _choiceLocked = false;
+            _isGateSetActive = true;
+            ResolveGameplayCamera();
+
+            IReadOnlyList<GateConfig> configs = GetTutorialDefaultGateConfigs();
+            for (int index = 0; index < configs.Count; index++)
+            {
+                GateConfig config = configs[index];
+                if (config == null)
+                {
+                    continue;
+                }
+
+                GateLaneLayout laneLayout = GetGateLaneLayout(index, configs.Count);
+                Vector3 spawnPosition = new Vector3(
+                    laneLayout.CenterX,
+                    GetSpawnWorldY(laneLayout.GateHeight),
+                    0f);
+                GateLogic instance = SpawnGateInstance(
+                    config,
+                    spawnPosition,
+                    laneLayout.CenterX,
+                    laneLayout.GateWidth,
+                    laneLayout.GateHeight,
+                    index);
+                if (instance != null)
+                {
+                    spawnedGates.Add(instance);
+                }
+            }
+
+            if (spawnedGates.Count <= 0)
+            {
+                _isGateSetActive = false;
+            }
+
+            return spawnedGates;
+        }
+
+        public IReadOnlyList<GateConfig> GetTutorialDefaultGateConfigs()
+        {
+            var configs = new List<GateConfig>(TutorialDefaultGateIds.Length);
+            for (int index = 0; index < TutorialDefaultGateIds.Length; index++)
+            {
+                if (TryResolveTutorialGateConfig(TutorialDefaultGateIds[index], out GateConfig config))
+                {
+                    configs.Add(config);
+                }
+            }
+
+            return configs;
+        }
+
+        public bool TryResolveTutorialGateConfig(string gateId, out GateConfig config)
+        {
+            config = null;
+            if (!TryFindBalanceGateEntry(gateId, out BalanceGateEntry entry))
+            {
+                return false;
+            }
+
+            config = GetOrCreateRuntimeConfig(entry);
+            return config != null;
+        }
+
+        public void ClearTutorialGates()
+        {
+            ClearActiveGates();
+            _choiceLocked = false;
         }
 
         public void Spawn()
@@ -506,6 +632,86 @@ namespace _Project.Scripts.Systems.GateSystem
             config.ConfigureRuntime(entry);
             _runtimeConfigCache[entry.GateId] = config;
             return config;
+        }
+
+        private GateLogic SpawnGateInstance(
+            GateConfig config,
+            Vector3 spawnPosition,
+            float laneWorldX,
+            float targetWorldWidth,
+            float targetWorldHeight,
+            int gateIndex)
+        {
+            if (config == null)
+            {
+                return null;
+            }
+
+            GateLogic instance = poolSystem != null
+                ? poolSystem.Spawn(gatePrefab, spawnPosition, Quaternion.identity)
+                : Instantiate(gatePrefab, spawnPosition, Quaternion.identity);
+
+            if (instance == null)
+            {
+                return null;
+            }
+
+            float safeWidth = Mathf.Max(0.1f, targetWorldWidth);
+            float safeHeight = Mathf.Max(0.1f, targetWorldHeight);
+            instance.Init(
+                config,
+                this,
+                mainPlayerUnit,
+                playerController,
+                gameplayCamera,
+                poolSystem,
+                laneWorldX,
+                safeWidth,
+                safeHeight);
+            instance.Spawn();
+            activeGates.Add(instance);
+            GateShown?.Invoke(_gateSetCount, gateIndex, config);
+            return instance;
+        }
+
+        private bool TryFindBalanceGateEntry(string gateId, out BalanceGateEntry entry)
+        {
+            entry = null;
+            if (string.IsNullOrWhiteSpace(gateId))
+            {
+                return false;
+            }
+
+            if (TryFindBalanceGateEntryInSource(gatePoolConfig != null ? gatePoolConfig.Entries : null, gateId, out entry))
+            {
+                return true;
+            }
+
+            return TryFindBalanceGateEntryInSource(GatePoolConfig.CreateDefaultEntries(), gateId, out entry);
+        }
+
+        private static bool TryFindBalanceGateEntryInSource(
+            IReadOnlyList<BalanceGateEntry> source,
+            string gateId,
+            out BalanceGateEntry entry)
+        {
+            entry = null;
+            if (source == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < source.Count; index++)
+            {
+                BalanceGateEntry candidate = source[index];
+                if (candidate != null && string.Equals(candidate.GateId, gateId, StringComparison.Ordinal))
+                {
+                    entry = candidate;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool IsMajorEligibilitySet(

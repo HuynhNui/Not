@@ -987,7 +987,7 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void ConfigureSquadUnitPhysics_UsesRendererBoxHurtbox()
+        public void ConfigureSquadUnitPhysics_PreservesManualHurtbox()
         {
             var squadObject = new GameObject("RendererHurtboxSquadTest");
             Texture2D texture = null;
@@ -1003,18 +1003,18 @@ namespace _Project.Tests.Editor
                     8f);
 
                 squadObject.AddComponent<SpriteRenderer>().sprite = sprite;
-                squadObject.AddComponent<CircleCollider2D>();
+                CircleCollider2D manualCollider = squadObject.AddComponent<CircleCollider2D>();
+                manualCollider.radius = 0.1f;
                 MainPlayerUnit main = squadObject.AddComponent<MainPlayerUnit>();
                 PlayerController controller = squadObject.AddComponent<PlayerController>();
 
                 controller.SetMainPlayerUnit(main);
 
-                BoxCollider2D box = squadObject.GetComponent<BoxCollider2D>();
-                Assert.That(box, Is.Not.Null);
-                Assert.That(box.isTrigger, Is.True);
-                Assert.That(box.size.x, Is.EqualTo(1f).Within(0.0001f));
-                Assert.That(box.size.y, Is.EqualTo(1f).Within(0.0001f));
-                Assert.That(squadObject.GetComponent<CircleCollider2D>(), Is.Null);
+                CircleCollider2D circle = squadObject.GetComponent<CircleCollider2D>();
+                Assert.That(circle, Is.Not.Null);
+                Assert.That(circle.isTrigger, Is.True);
+                Assert.That(circle.radius, Is.EqualTo(0.1f).Within(0.0001f));
+                Assert.That(squadObject.GetComponent<BoxCollider2D>(), Is.Null);
             }
             finally
             {
@@ -1025,7 +1025,7 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void EnemyController_InitFitsCombatColliderToRenderer()
+        public void EnemyController_InitPreservesManualCombatCollider()
         {
             var enemyObject = new GameObject("RendererHurtboxEnemyTest");
             var visualObject = new GameObject("Visual");
@@ -1044,8 +1044,9 @@ namespace _Project.Tests.Editor
 
                 visualObject.AddComponent<SpriteRenderer>().sprite = sprite;
                 BoxCollider2D staleCollider = enemyObject.AddComponent<BoxCollider2D>();
-                staleCollider.isTrigger = false;
+                staleCollider.isTrigger = true;
                 staleCollider.size = new Vector2(0.1f, 0.1f);
+                staleCollider.offset = new Vector2(0.2f, 0.3f);
                 EnemyController enemy = enemyObject.AddComponent<EnemyController>();
 
                 enemy.Init(null, null);
@@ -1053,8 +1054,10 @@ namespace _Project.Tests.Editor
                 BoxCollider2D box = enemyObject.GetComponent<BoxCollider2D>();
                 Assert.That(box, Is.Not.Null);
                 Assert.That(box.isTrigger, Is.True);
-                Assert.That(box.size.x, Is.EqualTo(1f).Within(0.0001f));
-                Assert.That(box.size.y, Is.EqualTo(1f).Within(0.0001f));
+                Assert.That(box.size.x, Is.EqualTo(0.1f).Within(0.0001f));
+                Assert.That(box.size.y, Is.EqualTo(0.1f).Within(0.0001f));
+                Assert.That(box.offset.x, Is.EqualTo(0.2f).Within(0.0001f));
+                Assert.That(box.offset.y, Is.EqualTo(0.3f).Within(0.0001f));
             }
             finally
             {

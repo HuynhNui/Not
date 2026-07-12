@@ -32,7 +32,6 @@ namespace _Project.Scripts.Gameplay.Enemies
         [SerializeField] private float horizontalPadding = 0.25f;
         [SerializeField] private float despawnBelowCameraOffset = 1.5f;
         [SerializeField] private float repeatedContactDamageCooldown = 0.5f;
-        [SerializeField] private bool autoFitColliderToRenderer = true;
         [SerializeField] private WorldHealthBarView healthBarPrefab;
         [SerializeField] private Transform healthBarAnchor;
         [SerializeField] private Vector3 healthBarOffset = new Vector3(0f, 0.42f, 0f);
@@ -102,7 +101,6 @@ namespace _Project.Scripts.Gameplay.Enemies
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             _externalMoveSpeedMultiplier = 1f;
             _nextContactDamageTime = 0f;
-            ConfigureCombatCollider();
             CacheContactColliders();
             EnsureHealthBar();
             RefreshHealthBar();
@@ -138,7 +136,6 @@ namespace _Project.Scripts.Gameplay.Enemies
             _canReceiveDamage = true;
             _hasArrivedAtHoldPosition = movementMode == EnemyMovementMode.ChaseTarget;
             _nextContactDamageTime = 0f;
-            ConfigureCombatCollider();
             CacheContactColliders();
             EnsureHealthBar();
             RefreshHealthBar();
@@ -310,13 +307,9 @@ namespace _Project.Scripts.Gameplay.Enemies
 
         public Vector3 GetCurrentTargetPosition()
         {
-            if (_playerController != null
-                && _playerController.TryGetClosestAliveUnitContactPoint(
-                    transform.position,
-                    out _,
-                    out Vector3 contactPoint))
+            if (_playerController != null && _playerController.TryGetClosestAliveUnit(transform.position, out PlayerUnit unit))
             {
-                return contactPoint;
+                return unit.transform.position;
             }
 
             return _target != null ? _target.position : transform.position;
@@ -444,99 +437,6 @@ namespace _Project.Scripts.Gameplay.Enemies
         private void CacheContactColliders()
         {
             _contactColliders = GetComponentsInChildren<Collider2D>();
-        }
-
-        private void ConfigureCombatCollider()
-        {
-            if (!autoFitColliderToRenderer)
-            {
-                return;
-            }
-
-            if (!TryGetRendererBounds(out Bounds bounds))
-            {
-                return;
-            }
-
-            CircleCollider2D[] circleColliders = GetComponents<CircleCollider2D>();
-            for (int index = 0; index < circleColliders.Length; index++)
-            {
-                DestroyCollider(circleColliders[index]);
-            }
-
-            BoxCollider2D hurtbox = GetComponent<BoxCollider2D>();
-            if (hurtbox == null)
-            {
-                hurtbox = gameObject.AddComponent<BoxCollider2D>();
-            }
-
-            BoxCollider2D[] boxColliders = GetComponents<BoxCollider2D>();
-            for (int index = 0; index < boxColliders.Length; index++)
-            {
-                if (boxColliders[index] != hurtbox)
-                {
-                    DestroyCollider(boxColliders[index]);
-                }
-            }
-
-            Vector3 localCenter = transform.InverseTransformPoint(bounds.center);
-            Vector3 lossyScale = transform.lossyScale;
-            float scaleX = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.x));
-            float scaleY = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.y));
-
-            hurtbox.enabled = true;
-            hurtbox.isTrigger = true;
-            hurtbox.offset = new Vector2(localCenter.x, localCenter.y);
-            hurtbox.size = new Vector2(
-                Mathf.Max(0.01f, bounds.size.x / scaleX),
-                Mathf.Max(0.01f, bounds.size.y / scaleY));
-        }
-
-        private bool TryGetRendererBounds(out Bounds bounds)
-        {
-            SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
-            bounds = default;
-            bool hasBounds = false;
-
-            for (int index = 0; index < renderers.Length; index++)
-            {
-                SpriteRenderer renderer = renderers[index];
-                if (renderer == null
-                    || renderer.sprite == null
-                    || renderer.GetComponentInParent<WorldHealthBarView>() != null)
-                {
-                    continue;
-                }
-
-                if (!hasBounds)
-                {
-                    bounds = renderer.bounds;
-                    hasBounds = true;
-                    continue;
-                }
-
-                bounds.Encapsulate(renderer.bounds);
-            }
-
-            return hasBounds;
-        }
-
-        private static void DestroyCollider(Collider2D collider)
-        {
-            if (collider == null)
-            {
-                return;
-            }
-
-            collider.enabled = false;
-
-            if (Application.isPlaying)
-            {
-                UnityEngine.Object.Destroy(collider);
-                return;
-            }
-
-            UnityEngine.Object.DestroyImmediate(collider);
         }
 
         private static void SyncPhysicsTransformsOncePerFrame()

@@ -47,6 +47,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         private readonly Dictionary<EnemyController, float> _activeThreatCosts =
             new Dictionary<EnemyController, float>();
         private readonly List<EnemyController> _enemyRemovalBuffer = new List<EnemyController>();
+        private readonly List<EnemyController> _tutorialEnemies = new List<EnemyController>();
 
         public event Action<EnemyController> EnemyKilled;
 
@@ -93,6 +94,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             _gatePressureMultiplier = 1f;
             _activeEnemies.Clear();
             _activeThreatCosts.Clear();
+            _tutorialEnemies.Clear();
         }
 
         private void Awake()
@@ -126,7 +128,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
                 && GetActiveEnemyCount() < pressure.ActiveCap
                 && spawnedThisFrame < MaxSpawnBurstPerFrame)
             {
-                if (!SpawnSingleEnemy(GetSpawnPosition(), false, pressure))
+                if (SpawnSingleEnemy(GetSpawnPosition(), false, pressure) == null)
                 {
                     _spawnAccumulator = 0f;
                     break;
@@ -147,6 +149,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             _gatePressureMultiplier = 1f;
             _activeEnemies.Clear();
             _activeThreatCosts.Clear();
+            CleanupTutorialEnemies();
         }
 
         public void Spawn()
@@ -174,14 +177,46 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             _spawningEnabled = isEnabled;
         }
 
-        private bool SpawnSingleEnemy(
+        public EnemyController SpawnTutorialEnemy(Vector3 spawnPosition, bool weak = true)
+        {
+            RunPressureSnapshot pressure = GetCurrentPressure();
+            EnemyController enemy = SpawnSingleEnemy(spawnPosition, true, pressure, ignoreSpawningEnabled: true);
+            if (enemy == null)
+            {
+                return null;
+            }
+
+            EnemyRuntimeStats stats = weak
+                ? new EnemyRuntimeStats(1f, 0.35f, 0f, 0, 0, false)
+                : new EnemyRuntimeStats(2f, 0.75f, 0f, 0, 0, false);
+            enemy.ApplyRuntimeStats(stats);
+            _tutorialEnemies.Add(enemy);
+            return enemy;
+        }
+
+        public void CleanupTutorialEnemies()
+        {
+            for (int index = _tutorialEnemies.Count - 1; index >= 0; index--)
+            {
+                EnemyController enemy = _tutorialEnemies[index];
+                if (enemy != null && enemy.IsActive)
+                {
+                    enemy.Despawn();
+                }
+            }
+
+            _tutorialEnemies.Clear();
+        }
+
+        private EnemyController SpawnSingleEnemy(
             Vector3 spawnPosition,
             bool basicOnly,
-            RunPressureSnapshot pressure)
+            RunPressureSnapshot pressure,
+            bool ignoreSpawningEnabled = false)
         {
-            if (!_spawningEnabled || playerUnit == null)
+            if ((!_spawningEnabled && !ignoreSpawningEnabled) || playerUnit == null)
             {
-                return false;
+                return null;
             }
 
             EnemySpawnEntry selectedEntry = SelectEnemyEntry(basicOnly, pressure.ThreatBudget);
@@ -189,7 +224,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             if (selectedPrefab == null)
             {
-                return false;
+                return null;
             }
 
             EnemyController enemyInstance = poolSystem != null
@@ -198,7 +233,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             if (enemyInstance == null)
             {
-                return false;
+                return null;
             }
 
             enemyInstance.SetPoolSystem(poolSystem);
@@ -215,7 +250,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             enemyInstance.Despawned += HandleEnemyDespawned;
             enemyInstance.Spawn();
             TrackEnemy(enemyInstance, selectedEntry != null ? selectedEntry.GetThreatCost() : 0f);
-            return true;
+            return enemyInstance;
         }
 
         private float GetCurrentSpawnInterval()
@@ -559,7 +594,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             for (int spawnIndex = 0; spawnIndex < spawnCount; spawnIndex++)
             {
-                if (!SpawnSingleEnemy(GetVisibleFloorSpawnPosition(), true, pressure))
+                if (SpawnSingleEnemy(GetVisibleFloorSpawnPosition(), true, pressure) == null)
                 {
                     return;
                 }

@@ -192,8 +192,7 @@ namespace _Project.Scripts.Gameplay.Enemies
                     continue;
                 }
 
-                Vector3 contactPoint = PlayerController.GetUnitContactPoint(playerUnit, transform.position);
-                float distance = Vector2.Distance(transform.position, contactPoint);
+                float distance = Vector2.Distance(transform.position, playerUnit.transform.position);
 
                 if (distance > closestDistance)
                 {

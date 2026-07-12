@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 5;
+        public const int CurrentSchemaVersion = 6;
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -22,9 +22,10 @@ namespace _Project.Scripts.Systems.SaveSystem
         public int walletCoins;
         public int totalRunsCompleted;
         public int storyStage;
-        public bool gameplayTutorialCompleted = true;
+        public bool gameplayTutorialCompleted;
         public bool upgradeTutorialCompleted;
         public bool tutorialFirstRunBonusGranted;
+        public int tutorialVersion;
         public List<UpgradeLevelSaveEntry> upgradeLevels = new List<UpgradeLevelSaveEntry>();
         public List<string> seenCutsceneIds = new List<string>();
 
@@ -43,6 +44,11 @@ namespace _Project.Scripts.Systems.SaveSystem
 
         public void Normalize(long fallbackTimestampUnixMs)
         {
+            int sourceSchemaVersion = schemaVersion;
+            bool shouldPreserveLegacyTutorialCompletion =
+                sourceSchemaVersion < 6
+                && HasLegacyProgressEvidence();
+
             schemaVersion = CurrentSchemaVersion;
             balanceVersionLastPlayed = string.IsNullOrWhiteSpace(balanceVersionLastPlayed)
                 ? _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion
@@ -57,6 +63,12 @@ namespace _Project.Scripts.Systems.SaveSystem
             walletCoins = Mathf.Max(0, walletCoins);
             totalRunsCompleted = Mathf.Max(0, totalRunsCompleted);
             storyStage = Mathf.Max(0, storyStage);
+            tutorialVersion = Mathf.Max(0, tutorialVersion);
+            if (shouldPreserveLegacyTutorialCompletion)
+            {
+                gameplayTutorialCompleted = true;
+                tutorialVersion = Mathf.Max(tutorialVersion, 1);
+            }
 
             if (upgradeLevels == null)
             {
@@ -149,6 +161,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 gameplayTutorialCompleted = gameplayTutorialCompleted,
                 upgradeTutorialCompleted = upgradeTutorialCompleted,
                 tutorialFirstRunBonusGranted = tutorialFirstRunBonusGranted,
+                tutorialVersion = tutorialVersion,
                 upgradeLevels = new List<UpgradeLevelSaveEntry>(),
                 seenCutsceneIds = new List<string>()
             };
@@ -235,6 +248,41 @@ namespace _Project.Scripts.Systems.SaveSystem
 
             seenCutsceneIds = cleanedIds;
             storyStage = Mathf.Max(storyStage, seenCutsceneIds.Count);
+        }
+
+        private bool HasLegacyProgressEvidence()
+        {
+            if (revision > 0
+                || bestSurvivalTime > 0f
+                || bestKillCount > 0
+                || bestCoinsEarned > 0
+                || bestScore > 0
+                || totalEnemyKills > 0
+                || walletCoins > 0
+                || totalRunsCompleted > 0
+                || storyStage > 0
+                || upgradeTutorialCompleted
+                || tutorialFirstRunBonusGranted
+                || (seenCutsceneIds != null && seenCutsceneIds.Count > 0))
+            {
+                return true;
+            }
+
+            if (upgradeLevels == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < upgradeLevels.Count; index++)
+            {
+                UpgradeLevelSaveEntry entry = upgradeLevels[index];
+                if (entry != null && entry.level > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string NormalizeCutsceneId(string cutsceneId)

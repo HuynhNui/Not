@@ -136,7 +136,15 @@ namespace _Project.Scripts.Core.GameLoop
                 tutorialManager = gameObject.AddComponent<TutorialManager>();
             }
 
-            tutorialManager.Init(uiSystem, storyCutsceneRuntime);
+            tutorialManager.Init(
+                this,
+                uiSystem,
+                storyCutsceneRuntime,
+                playerController,
+                mainPlayerUnit,
+                enemySpawnerSystem,
+                gateSystem,
+                runStatsTracker);
 
             if (playerController != null)
             {
@@ -239,7 +247,60 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void RequestStartRun()
         {
+            if (tutorialManager != null && tutorialManager.ShouldRunGameplayTutorial())
+            {
+                tutorialManager.StartGameplayTutorial();
+                return;
+            }
+
             StartRun();
+        }
+
+        public void PrepareRunForTutorial()
+        {
+            Time.timeScale = 1f;
+            _isGameOver = false;
+            _isRunActive = true;
+
+            if (playerController != null && !playerController.gameObject.activeSelf)
+            {
+                playerController.gameObject.SetActive(true);
+            }
+
+            if (mainPlayerUnit != null)
+            {
+                mainPlayerUnit.Initialize();
+                PlayerMetaUpgradeService.ApplyToPlayer(mainPlayerUnit, playerController);
+            }
+
+            playerController?.ResetRunPosition();
+            runStatsTracker?.BeginRun();
+            playerController?.SetControlsEnabled(true);
+            enemySpawnerSystem?.BeginRun();
+            enemySpawnerSystem?.SetSpawningEnabled(false);
+            gateSystem?.BeginRun();
+            gateSystem?.SetSpawningEnabled(false);
+            telemetryService?.BeginRun();
+            gameStateMachine?.SetState(GameState.Playing);
+            uiSystem?.ShowGameplayHud();
+        }
+
+        public void StartNormalRunFromTutorial()
+        {
+            Time.timeScale = 1f;
+            _isGameOver = false;
+            _isRunActive = true;
+
+            if (playerController != null && !playerController.gameObject.activeSelf)
+            {
+                playerController.gameObject.SetActive(true);
+            }
+
+            playerController?.SetControlsEnabled(true);
+            enemySpawnerSystem?.SetSpawningEnabled(true);
+            gateSystem?.SetSpawningEnabled(true);
+            gameStateMachine?.SetState(GameState.Playing);
+            uiSystem?.ShowGameplayHud();
         }
 
         private void StartRun()
