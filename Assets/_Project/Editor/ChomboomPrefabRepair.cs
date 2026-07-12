@@ -131,6 +131,7 @@ namespace _Project.Editor
                 prefabRoot.transform.localScale = Vector3.one;
 
                 Rigidbody2D body = EnsureComponent<Rigidbody2D>(prefabRoot);
+                body.bodyType = RigidbodyType2D.Kinematic;
                 body.gravityScale = 0f;
                 body.constraints = RigidbodyConstraints2D.FreezeRotation;
 

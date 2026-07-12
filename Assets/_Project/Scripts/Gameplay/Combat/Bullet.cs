@@ -1,4 +1,5 @@
 using _Project.Scripts.Interfaces;
+using _Project.Scripts.Gameplay.Enemies;
 using _Project.Scripts.Systems.PoolSystem;
 using System.Collections.Generic;
 using UnityEngine;
@@ -172,11 +173,23 @@ namespace _Project.Scripts.Gameplay.Combat
             if (damageable is IConditionalDamageable conditionalDamageable
                 && !conditionalDamageable.CanReceiveDamageFrom(gameObject))
             {
+                if (ShouldPassThroughTarget(target))
+                {
+                    return;
+                }
+
                 Despawn();
                 return;
             }
 
             _preserveAfterHit = false;
+            EnemyController damagedEnemy = FindEnemyTarget(target);
+
+            if (damagedEnemy != null)
+            {
+                DamageTextSpawner.ShowDamage(damage, target, damagedEnemy);
+            }
+
             damageable?.TakeDamage(damage);
 
             for (int index = 0; index < _modifiers.Count; index++)
@@ -200,6 +213,20 @@ namespace _Project.Scripts.Gameplay.Combat
             }
 
             return target.GetComponentInParent<IDamageable>();
+        }
+
+        private static EnemyController FindEnemyTarget(Collider2D target)
+        {
+            return target != null ? target.GetComponentInParent<EnemyController>() : null;
+        }
+
+        private static bool ShouldPassThroughTarget(Collider2D target)
+        {
+            ChomboomController chomboom = target != null
+                ? target.GetComponentInParent<ChomboomController>()
+                : null;
+
+            return chomboom != null && chomboom.AllowsProjectilePassThrough;
         }
     }
 }

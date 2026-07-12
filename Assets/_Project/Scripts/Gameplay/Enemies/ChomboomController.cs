@@ -35,6 +35,8 @@ namespace _Project.Scripts.Gameplay.Enemies
         private bool _hasBaseRuntimeValues;
         private float _baseExplosionDamage;
 
+        public bool AllowsProjectilePassThrough => _state == ChomboomState.Arming;
+
         private void Awake()
         {
             CacheBaseRuntimeValues();

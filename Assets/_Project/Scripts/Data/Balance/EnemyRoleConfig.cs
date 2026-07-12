@@ -13,7 +13,7 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private float baseHp = 2f;
         [SerializeField] private float baseSpeed = 2.8f;
         [SerializeField] private float baseDamage = 0.5f;
-        [SerializeField] private float rewardPoints = 0.2f;
+        [SerializeField] private float rewardPoints = 1f;
         [SerializeField] private int scoreValue = 1;
         [SerializeField] private float unlockTimeSeconds;
         [SerializeField] private float threatCost;
@@ -100,12 +100,12 @@ namespace _Project.Scripts.Data.Balance
         {
             return role switch
             {
-                BalanceEnemyRole.Swarmer => 0.1f,
-                BalanceEnemyRole.Chomboom => 0.75f,
-                BalanceEnemyRole.Vomfy => 1f,
+                BalanceEnemyRole.Swarmer => 1f,
+                BalanceEnemyRole.Chomboom => 3f,
+                BalanceEnemyRole.Vomfy => 5f,
                 BalanceEnemyRole.Tanker => 2f,
                 BalanceEnemyRole.Elite => 15f,
-                _ => 0.2f
+                _ => 1f
             };
         }
 
