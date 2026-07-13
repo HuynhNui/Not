@@ -44,6 +44,7 @@ namespace _Project.Scripts.Gameplay.Combat
         public int ProjectileCount => projectileCount;
         public float VisualTierDamage => visualTierDamage;
         public float ShooterDamageScale => _shooterDamageScale;
+        public CombatScalingConfig CurrentCombatScalingConfig => combatScalingConfig;
         public Transform FirePoint => firePoint;
 
         public void ConfigureFromTemplate(BulletSpawner template)
@@ -267,16 +268,17 @@ namespace _Project.Scripts.Gameplay.Combat
             }
         }
 
-        private Bullet GetBulletPrefabForCurrentTier()
+        public int ResolveVisualTierIndex(float visualDamage)
         {
-            Bullet selectedPrefab = bulletPrefab;
+            int selectedIndex = -1;
             float selectedMinDamage = float.NegativeInfinity;
+            float safeVisualDamage = Mathf.Max(0f, visualDamage);
 
             for (int index = 0; index < visualTiers.Count; index++)
             {
                 BulletVisualTier tier = visualTiers[index];
 
-                if (tier == null || tier.BulletPrefab == null || visualTierDamage < tier.MinDamage)
+                if (tier == null || tier.BulletPrefab == null || safeVisualDamage < tier.MinDamage)
                 {
                     continue;
                 }
@@ -287,10 +289,18 @@ namespace _Project.Scripts.Gameplay.Combat
                 }
 
                 selectedMinDamage = tier.MinDamage;
-                selectedPrefab = tier.BulletPrefab;
+                selectedIndex = index;
             }
 
-            return selectedPrefab;
+            return selectedIndex;
+        }
+
+        private Bullet GetBulletPrefabForCurrentTier()
+        {
+            int tierIndex = ResolveVisualTierIndex(visualTierDamage);
+            return tierIndex >= 0 && tierIndex < visualTiers.Count
+                ? visualTiers[tierIndex].BulletPrefab
+                : bulletPrefab;
         }
 
         private IReadOnlyList<BulletModifierConfig> BuildModifierConfigBuffer()

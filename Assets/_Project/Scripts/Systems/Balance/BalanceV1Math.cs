@@ -8,8 +8,8 @@ namespace _Project.Scripts.Systems.Balance
         public const float DefaultFireSoftCapStart = 6f;
         public const float DefaultFireSoftCapMax = 18f;
         public const int DefaultBaseProjectileCount = 5;
-        public const float DefaultProjectileCoverageCoefficient = 0.15f;
-        public const float DefaultSquadCoverageCoefficient = 0.45f;
+        public const float DefaultProjectileCoverageCoefficient = 0.20f;
+        public const float DefaultSquadCoverageCoefficient = 0.55f;
 
         public static float EffectiveFireRate(
             float rawFireRate,

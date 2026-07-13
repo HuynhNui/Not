@@ -55,6 +55,154 @@ namespace TrueGate.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator ProjectileMetaLevels_ApplyConfiguredRuntimeProjectileCounts()
+        {
+            int[] levels = { 0, 1, 3, 5 };
+            int[] expectedProjectiles = { 5, 6, 10, 16 };
+
+            for (int index = 0; index < levels.Length; index++)
+            {
+                string saveDirectory = CreateTempDirectory($"projectile-{levels[index]}");
+                object saveService = CreateTestSaveService(saveDirectory);
+                GameObject squadObject = new GameObject($"ProjectileMetaLevel{levels[index]}Test");
+
+                try
+                {
+                    Component bulletSpawner = squadObject.AddComponent(
+                        RuntimeType("_Project.Scripts.Gameplay.Combat.BulletSpawner"));
+                    Component main = squadObject.AddComponent(
+                        RuntimeType("_Project.Scripts.Gameplay.Player.MainPlayerUnit"));
+                    Component controller = squadObject.AddComponent(
+                        RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
+                    Invoke(controller, "SetMainPlayerUnit", main);
+                    SetUpgradeLevel(saveService, "ProjectileCount", levels[index]);
+
+                    Type upgradeService = RuntimeType(
+                        "_Project.Scripts.Systems.ProgressionSystem.PlayerMetaUpgradeService");
+                    upgradeService.GetMethod(
+                            "ApplyToPlayer",
+                            BindingFlags.Public | BindingFlags.Static)
+                        .Invoke(null, new object[] { main, controller });
+
+                    Assert.That(
+                        (int)GetProperty(bulletSpawner, "ProjectileCount"),
+                        Is.EqualTo(expectedProjectiles[index]));
+                }
+                finally
+                {
+                    ResetTestSaveService();
+                    UnityEngine.Object.Destroy(squadObject);
+                    DeleteDirectory(saveDirectory);
+                }
+
+                yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ProjectileMetaApplication_IsIdempotentAndFollowerSynced()
+        {
+            string saveDirectory = CreateTempDirectory("projectile-idempotent");
+            object saveService = CreateTestSaveService(saveDirectory);
+            GameObject squadObject = new GameObject("ProjectileMetaIdempotentTest");
+
+            try
+            {
+                Component bulletSpawner = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Combat.BulletSpawner"));
+                Component main = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Player.MainPlayerUnit"));
+                Component controller = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
+                Invoke(controller, "SetMainPlayerUnit", main);
+                SetUpgradeLevel(saveService, "ProjectileCount", 5);
+                SetUpgradeLevel(saveService, "SquadSize", 1);
+
+                Type upgradeService = RuntimeType(
+                    "_Project.Scripts.Systems.ProgressionSystem.PlayerMetaUpgradeService");
+                MethodInfo apply = upgradeService.GetMethod(
+                    "ApplyToPlayer",
+                    BindingFlags.Public | BindingFlags.Static);
+
+                apply.Invoke(null, new object[] { main, controller });
+                apply.Invoke(null, new object[] { main, controller });
+
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(16));
+
+                var followers = (IList)GetProperty(controller, "Followers");
+                Assert.That(followers.Count, Is.EqualTo(1));
+                Component follower = (Component)followers[0];
+                Component followerSpawner = (Component)GetProperty(follower, "BulletSpawner");
+                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(16));
+                yield return null;
+            }
+            finally
+            {
+                ResetTestSaveService();
+                UnityEngine.Object.Destroy(squadObject);
+                DeleteDirectory(saveDirectory);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ProjectileGateAfterFullMeta_IncrementsAndRestartResetsToMetaValue()
+        {
+            string saveDirectory = CreateTempDirectory("projectile-gate-reset");
+            object saveService = CreateTestSaveService(saveDirectory);
+            GameObject squadObject = new GameObject("ProjectileGateAfterFullMetaTest");
+            ScriptableObject gateConfig = null;
+
+            try
+            {
+                Component bulletSpawner = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Combat.BulletSpawner"));
+                Component main = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Player.MainPlayerUnit"));
+                Component controller = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
+                Invoke(controller, "SetMainPlayerUnit", main);
+                SetUpgradeLevel(saveService, "ProjectileCount", 5);
+
+                Type upgradeService = RuntimeType(
+                    "_Project.Scripts.Systems.ProgressionSystem.PlayerMetaUpgradeService");
+                MethodInfo apply = upgradeService.GetMethod(
+                    "ApplyToPlayer",
+                    BindingFlags.Public | BindingFlags.Static);
+                apply.Invoke(null, new object[] { main, controller });
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(16));
+
+                Component runtimeController = squadObject.AddComponent(
+                    RuntimeType("_Project.Scripts.Gameplay.Gates.GateRuntimeEffectController"));
+                Invoke(runtimeController, "Configure", main, controller, null);
+
+                gateConfig = ScriptableObject.CreateInstance(
+                    RuntimeType("_Project.Scripts.Data.ScriptableObjects.GateConfigs.GateConfig"));
+                Invoke(
+                    gateConfig,
+                    "ConfigureRuntime",
+                    FindDefaultGateEntryById("major_projectile"));
+
+                Invoke(runtimeController, "Apply", gateConfig);
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(17));
+
+                apply.Invoke(null, new object[] { main, controller });
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(16));
+                yield return null;
+            }
+            finally
+            {
+                if (gateConfig != null)
+                {
+                    UnityEngine.Object.Destroy(gateConfig);
+                }
+
+                ResetTestSaveService();
+                UnityEngine.Object.Destroy(squadObject);
+                DeleteDirectory(saveDirectory);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ProjectileGateRuntimeEffect_IncrementsMainAndFollowerProjectileCount()
         {
             GameObject squadObject = new GameObject("ProjectileGateRuntimeTest");
@@ -321,6 +469,18 @@ namespace TrueGate.PlayModeTests
                 "SetInstanceForTests",
                 BindingFlags.Public | BindingFlags.Static)
                 .Invoke(null, new object[] { null });
+        }
+
+        private static void SetUpgradeLevel(object saveService, string upgradeTypeName, int level)
+        {
+            object saveData = GetProperty(saveService, "Data");
+            Type upgradeType = RuntimeType(
+                "_Project.Scripts.Systems.ProgressionSystem.PlayerMetaUpgradeType");
+            object parsedUpgradeType = Enum.Parse(upgradeType, upgradeTypeName);
+            saveData.GetType().GetMethod(
+                    "SetUpgradeLevel",
+                    new[] { upgradeType, typeof(int) })
+                .Invoke(saveData, new[] { parsedUpgradeType, level });
         }
 
         private static object Invoke(object target, string methodName, params object[] arguments)

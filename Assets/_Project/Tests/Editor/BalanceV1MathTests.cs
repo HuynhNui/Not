@@ -44,6 +44,9 @@ namespace _Project.Tests.Editor
         public void ProjectileFactor_IsOneAtBaseProjectileCount()
         {
             Assert.That(BalanceV1Math.ProjectileFactor(5), Is.EqualTo(1f).Within(0.0001f));
+            Assert.That(
+                BalanceV1Math.ProjectileFactor(16, 5, 0.20f),
+                Is.EqualTo(1.3528f).Within(0.0001f));
         }
 
         [Test]
@@ -63,9 +66,9 @@ namespace _Project.Tests.Editor
         public void SquadFactor_UsesDiminishingReturns()
         {
             Assert.That(BalanceV1Math.SquadFactor(1), Is.EqualTo(1f).Within(0.0001f));
-            Assert.That(BalanceV1Math.FollowerDamageScale(2), Is.EqualTo(0.45f).Within(0.0001f));
-            Assert.That(BalanceV1Math.SquadFactor(12), Is.LessThan(2.5f));
-            Assert.That(BalanceV1Math.FollowerDamageScale(12), Is.LessThan(0.15f));
+            Assert.That(BalanceV1Math.FollowerDamageScale(2), Is.EqualTo(0.55f).Within(0.0001f));
+            Assert.That(BalanceV1Math.SquadFactor(12), Is.EqualTo(2.8241f).Within(0.0001f));
+            Assert.That(BalanceV1Math.FollowerDamageScale(12), Is.EqualTo(0.1658f).Within(0.0001f));
         }
 
         [Test]
@@ -83,10 +86,15 @@ namespace _Project.Tests.Editor
         public void FullMetaEffectiveDps_RemainsInsideTargetRange()
         {
             float baseline = BalanceV1Math.EffectiveDps(1f, 4f, 5, 1);
-            float fullMeta = BalanceV1Math.EffectiveDps(1.55f, 6.4f, 16, 12);
+            float fullMeta = BalanceV1Math.EffectiveDps(1.9f, 6.4f, 16, 12);
             float ratio = fullMeta / baseline;
 
-            Assert.That(ratio, Is.InRange(7f, 8f));
+            Assert.That(baseline, Is.EqualTo(20f).Within(0.0001f));
+            Assert.That(fullMeta, Is.EqualTo(231.8f).Within(0.1f));
+            Assert.That(ratio, Is.InRange(11f, 12.2f));
+            Assert.That(
+                BalanceV1Math.DamagePerMainBullet(1.9f, 16),
+                Is.EqualTo(0.803f).Within(0.001f));
         }
 
         [Test]
@@ -855,7 +863,7 @@ namespace _Project.Tests.Editor
                 PlayerMetaLevelData fullMeta = config.GetLevelData(5);
 
                 Assert.That(config.Levels.Count, Is.EqualTo(6));
-                Assert.That(fullMeta.Damage, Is.EqualTo(1.55f).Within(0.0001f));
+                Assert.That(fullMeta.Damage, Is.EqualTo(1.9f).Within(0.0001f));
                 Assert.That(fullMeta.FireRate, Is.EqualTo(6.4f).Within(0.0001f));
                 Assert.That(fullMeta.ProjectileCount, Is.EqualTo(16));
                 Assert.That(fullMeta.SquadSize, Is.EqualTo(12));
@@ -872,7 +880,7 @@ namespace _Project.Tests.Editor
         {
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.Damage, 5),
-                Is.EqualTo(1.55f).Within(0.0001f));
+                Is.EqualTo(1.9f).Within(0.0001f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.FireRate, 5),
                 Is.EqualTo(6.4f).Within(0.0001f));
@@ -911,6 +919,57 @@ namespace _Project.Tests.Editor
             finally
             {
                 Object.DestroyImmediate(gameObject);
+            }
+        }
+
+        [Test]
+        public void BulletSpawner_ResolveVisualTierIndex_UsesDamageThresholds()
+        {
+            var gameObject = new GameObject("BulletVisualTierTest");
+            BulletSpawner spawner = gameObject.AddComponent<BulletSpawner>();
+            var bulletObjects = new GameObject[5];
+
+            try
+            {
+                var serializedSpawner = new SerializedObject(spawner);
+                SerializedProperty tiers = serializedSpawner.FindProperty("visualTiers");
+                tiers.arraySize = 5;
+                float[] thresholds = { 1.3f, 1.6f, 1.9f, 2.5f, 3.25f };
+
+                for (int index = 0; index < thresholds.Length; index++)
+                {
+                    bulletObjects[index] = new GameObject($"BulletTier{index}");
+                    Bullet bullet = bulletObjects[index].AddComponent<Bullet>();
+                    SerializedProperty tier = tiers.GetArrayElementAtIndex(index);
+                    tier.FindPropertyRelative("minDamage").floatValue = thresholds[index];
+                    tier.FindPropertyRelative("bulletPrefab").objectReferenceValue = bullet;
+                }
+
+                serializedSpawner.ApplyModifiedPropertiesWithoutUndo();
+
+                Assert.That(spawner.ResolveVisualTierIndex(1.29f), Is.EqualTo(-1));
+                Assert.That(spawner.ResolveVisualTierIndex(1.3f), Is.EqualTo(0));
+                Assert.That(spawner.ResolveVisualTierIndex(1.59f), Is.EqualTo(0));
+                Assert.That(spawner.ResolveVisualTierIndex(1.6f), Is.EqualTo(1));
+                Assert.That(spawner.ResolveVisualTierIndex(1.89f), Is.EqualTo(1));
+                Assert.That(spawner.ResolveVisualTierIndex(1.9f), Is.EqualTo(2));
+                Assert.That(spawner.ResolveVisualTierIndex(2.49f), Is.EqualTo(2));
+                Assert.That(spawner.ResolveVisualTierIndex(2.5f), Is.EqualTo(3));
+
+                spawner.SetVisualTierDamage(1.9f);
+                int tierBeforeProjectileUpgrade = spawner.ResolveVisualTierIndex(spawner.VisualTierDamage);
+                spawner.SetProjectileCount(16);
+                Assert.That(
+                    spawner.ResolveVisualTierIndex(spawner.VisualTierDamage),
+                    Is.EqualTo(tierBeforeProjectileUpgrade));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameObject);
+                for (int index = 0; index < bulletObjects.Length; index++)
+                {
+                    Object.DestroyImmediate(bulletObjects[index]);
+                }
             }
         }
 
@@ -989,7 +1048,7 @@ namespace _Project.Tests.Editor
                 Assert.That(follower.CurrentHp, Is.EqualTo(2.5f).Within(0.0001f));
                 Assert.That(
                     follower.BulletSpawner.ShooterDamageScale,
-                    Is.EqualTo(0.45f).Within(0.0001f));
+                    Is.EqualTo(0.55f).Within(0.0001f));
             }
             finally
             {

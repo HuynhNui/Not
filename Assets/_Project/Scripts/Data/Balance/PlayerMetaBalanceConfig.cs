@@ -13,11 +13,11 @@ namespace _Project.Scripts.Data.Balance
         private static readonly PlayerMetaLevelData[] DefaultLevels =
         {
             new PlayerMetaLevelData(0, 1f, 4f, 10f, 5, 1, 0),
-            new PlayerMetaLevelData(1, 1.1f, 4.4f, 11.5f, 6, 2, 100),
-            new PlayerMetaLevelData(2, 1.2f, 4.8f, 13f, 8, 3, 250),
-            new PlayerMetaLevelData(3, 1.3f, 5.2f, 15f, 10, 5, 550),
-            new PlayerMetaLevelData(4, 1.42f, 5.8f, 17.5f, 13, 8, 1100),
-            new PlayerMetaLevelData(5, 1.55f, 6.4f, 20f, 16, 12, 2200)
+            new PlayerMetaLevelData(1, 1.15f, 4.4f, 11.5f, 6, 2, 100),
+            new PlayerMetaLevelData(2, 1.3f, 4.8f, 13f, 8, 3, 250),
+            new PlayerMetaLevelData(3, 1.5f, 5.2f, 15f, 10, 5, 550),
+            new PlayerMetaLevelData(4, 1.7f, 5.8f, 17.5f, 13, 8, 1100),
+            new PlayerMetaLevelData(5, 1.9f, 6.4f, 20f, 16, 12, 2200)
         };
 
         [SerializeField] private string configVersion = CombatScalingConfig.DefaultConfigVersion;

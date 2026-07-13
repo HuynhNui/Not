@@ -7,14 +7,14 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Combat Scaling Config")]
     public sealed class CombatScalingConfig : ScriptableObject
     {
-        public const string DefaultConfigVersion = "balance-v1.0.0";
+        public const string DefaultConfigVersion = "balance-v1.1.0";
 
         [SerializeField] private string configVersion = DefaultConfigVersion;
         [SerializeField] private float fireSoftCapStart = 6f;
         [SerializeField] private float fireSoftCapMax = 18f;
         [SerializeField] private int baseProjectileCount = 5;
-        [SerializeField] private float projectileCoverageCoefficient = 0.15f;
-        [SerializeField] private float squadCoverageCoefficient = 0.45f;
+        [SerializeField] private float projectileCoverageCoefficient = 0.20f;
+        [SerializeField] private float squadCoverageCoefficient = 0.55f;
         [SerializeField, Range(0f, 1f)] private float followerHpRatio = 0.25f;
         [SerializeField, Range(0f, 1f)] private float recruitSpawnHpRatio = 0.5f;
 

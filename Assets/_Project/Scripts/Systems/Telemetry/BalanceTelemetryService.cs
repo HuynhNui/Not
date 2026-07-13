@@ -6,6 +6,7 @@ using System.Text;
 using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Player;
+using _Project.Scripts.Systems.Balance;
 using _Project.Scripts.Systems.RunStatsSystem;
 using UnityEngine;
 using RuntimeEnemySpawnerSystem =
@@ -38,11 +39,18 @@ namespace _Project.Scripts.Systems.Telemetry
         private int _followerDeathCount;
         private int _promotionCount;
         private int _startingSquadCount;
+        private int _previousSnapshotKills;
         private float _firstHitSeconds = -1f;
+        private float _firstFollowerDeathSeconds = -1f;
+        private float _peakEffectiveDpsEstimate;
+        private float _peakDamage;
+        private int _peakProjectileCount;
+        private int _peakSquadCount;
 
         public string OutputDirectory => Path.Combine(
             Application.persistentDataPath,
-            TelemetryFolderName);
+            TelemetryFolderName,
+            BalanceVersion);
         public bool IsRunActive => _isRunActive;
         public int SnapshotCount => _snapshotCount;
 
@@ -84,8 +92,14 @@ namespace _Project.Scripts.Systems.Telemetry
             _gateSelectedCount = 0;
             _followerDeathCount = 0;
             _promotionCount = 0;
+            _previousSnapshotKills = 0;
             _firstHitRecorded = false;
             _firstHitSeconds = -1f;
+            _firstFollowerDeathSeconds = -1f;
+            _peakEffectiveDpsEstimate = 0f;
+            _peakDamage = 0f;
+            _peakProjectileCount = 0;
+            _peakSquadCount = 0;
             _startingSquadCount = playerController != null
                 ? playerController.CurrentSquadCount
                 : 0;
@@ -128,7 +142,12 @@ namespace _Project.Scripts.Systems.Telemetry
                 firstHitSeconds = _firstHitSeconds,
                 followerDeaths = _followerDeathCount,
                 promotions = _promotionCount,
-                snapshotCount = _snapshotCount
+                snapshotCount = _snapshotCount,
+                peakEffectiveDpsEstimate = _peakEffectiveDpsEstimate,
+                peakDamage = _peakDamage,
+                peakProjectileCount = _peakProjectileCount,
+                peakSquadCount = _peakSquadCount,
+                firstFollowerDeathSeconds = _firstFollowerDeathSeconds
             });
 
             _writer.Flush();
@@ -228,6 +247,11 @@ namespace _Project.Scripts.Systems.Telemetry
             }
 
             _followerDeathCount++;
+            if (_firstFollowerDeathSeconds < 0f)
+            {
+                _firstFollowerDeathSeconds = ElapsedSeconds;
+            }
+
             RecordEvent(
                 "follower_death",
                 value: follower != null ? follower.CurrentHp : 0f);
@@ -285,22 +309,57 @@ namespace _Project.Scripts.Systems.Telemetry
                 return;
             }
 
+            int enemyKills = runStatsTracker.EnemyKills;
+            int projectileCount = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+                ? mainPlayerUnit.BulletSpawner.ProjectileCount
+                : 0;
+            int squadCount = playerController != null ? playerController.CurrentSquadCount : 0;
+            float damage = mainPlayerUnit != null ? mainPlayerUnit.Damage : 0f;
+            float fireRate = mainPlayerUnit != null ? mainPlayerUnit.FireRate : 0f;
+            CombatScalingConfig combatConfig = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+                ? mainPlayerUnit.BulletSpawner.CurrentCombatScalingConfig
+                : null;
+            float projectileFactor = BalanceV1Math.ProjectileFactor(projectileCount, combatConfig);
+            float squadFactor = BalanceV1Math.SquadFactor(squadCount, combatConfig);
+            float followerDamageScale = BalanceV1Math.FollowerDamageScale(squadCount, combatConfig);
+            float mainDamagePerProjectile = BalanceV1Math.DamagePerMainBullet(
+                damage,
+                projectileCount,
+                combatConfig);
+            float effectiveDpsEstimate = BalanceV1Math.EffectiveDps(
+                damage,
+                fireRate,
+                projectileCount,
+                squadCount,
+                combatConfig);
+            int killsSincePreviousSnapshot = Mathf.Max(0, enemyKills - _previousSnapshotKills);
+            _previousSnapshotKills = enemyKills;
+
+            _peakEffectiveDpsEstimate = Mathf.Max(_peakEffectiveDpsEstimate, effectiveDpsEstimate);
+            _peakDamage = Mathf.Max(_peakDamage, damage);
+            _peakProjectileCount = Mathf.Max(_peakProjectileCount, projectileCount);
+            _peakSquadCount = Mathf.Max(_peakSquadCount, squadCount);
+
             _writer.BufferSnapshot(new BalanceRunSnapshotRow
             {
                 runId = _runId,
                 elapsedSeconds = elapsed,
-                enemyKills = runStatsTracker.EnemyKills,
+                enemyKills = enemyKills,
                 coinRewardPoints = runStatsTracker.CoinRewardPoints,
                 roundedRunCoins = runStatsTracker.CoinsEarned,
                 score = runStatsTracker.Score,
-                squadCount = playerController != null ? playerController.CurrentSquadCount : 0,
+                squadCount = squadCount,
                 currentHp = mainPlayerUnit != null ? mainPlayerUnit.CurrentHp : 0f,
                 maxHp = mainPlayerUnit != null ? mainPlayerUnit.MaxHp : 0f,
-                damage = mainPlayerUnit != null ? mainPlayerUnit.Damage : 0f,
-                fireRate = mainPlayerUnit != null ? mainPlayerUnit.FireRate : 0f,
-                projectileCount = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
-                    ? mainPlayerUnit.BulletSpawner.ProjectileCount
-                    : 0,
+                damage = damage,
+                fireRate = fireRate,
+                projectileCount = projectileCount,
+                effectiveDpsEstimate = effectiveDpsEstimate,
+                projectileFactor = projectileFactor,
+                squadFactor = squadFactor,
+                followerDamageScale = followerDamageScale,
+                mainDamagePerProjectile = mainDamagePerProjectile,
+                killsSincePreviousSnapshot = killsSincePreviousSnapshot,
                 activeEnemies = enemySpawnerSystem != null
                     ? enemySpawnerSystem.ActiveEnemyCount
                     : 0,
@@ -363,7 +422,7 @@ namespace _Project.Scripts.Systems.Telemetry
 
         private void EnsureWriter()
         {
-            _writer ??= new BalanceTelemetryWriter(
+            _writer = new BalanceTelemetryWriter(
                 OutputDirectory,
                 config == null || config.ExportCsv,
                 config == null || config.ExportJsonl);
@@ -405,15 +464,19 @@ namespace _Project.Scripts.Systems.Telemetry
             "balance_version", "survival_seconds", "enemy_kills",
             "coin_reward_points", "coins_earned", "score", "wallet_coins",
             "starting_squad", "ending_squad", "gates_shown", "gates_selected",
-            "first_hit_seconds", "follower_deaths", "promotions", "snapshot_count"
+            "first_hit_seconds", "follower_deaths", "promotions", "snapshot_count",
+            "peak_effective_dps_estimate", "peak_damage", "peak_projectile_count",
+            "peak_squad_count", "first_follower_death_seconds"
         };
 
         private static readonly string[] SnapshotHeader =
         {
             "run_id", "elapsed_seconds", "enemy_kills", "coin_reward_points",
             "rounded_run_coins", "score", "squad_count", "current_hp", "max_hp",
-            "damage", "fire_rate", "projectile_count", "active_enemies",
-            "visible_enemies", "active_threat", "gate_set_count"
+            "damage", "fire_rate", "projectile_count", "effective_dps_estimate",
+            "projectile_factor", "squad_factor", "follower_damage_scale",
+            "main_damage_per_projectile", "kills_since_previous_snapshot",
+            "active_enemies", "visible_enemies", "active_threat", "gate_set_count"
         };
 
         private readonly string _directoryPath;
@@ -580,6 +643,11 @@ namespace _Project.Scripts.Systems.Telemetry
         public int followerDeaths;
         public int promotions;
         public int snapshotCount;
+        public float peakEffectiveDpsEstimate;
+        public float peakDamage;
+        public int peakProjectileCount;
+        public int peakSquadCount;
+        public float firstFollowerDeathSeconds;
 
         public string ToCsv()
         {
@@ -602,7 +670,12 @@ namespace _Project.Scripts.Systems.Telemetry
                 F(firstHitSeconds),
                 followerDeaths,
                 promotions,
-                snapshotCount);
+                snapshotCount,
+                F(peakEffectiveDpsEstimate),
+                F(peakDamage),
+                peakProjectileCount,
+                peakSquadCount,
+                F(firstFollowerDeathSeconds));
         }
 
         private static string F(float value)
@@ -625,6 +698,12 @@ namespace _Project.Scripts.Systems.Telemetry
         public float damage;
         public float fireRate;
         public int projectileCount;
+        public float effectiveDpsEstimate;
+        public float projectileFactor;
+        public float squadFactor;
+        public float followerDamageScale;
+        public float mainDamagePerProjectile;
+        public int killsSincePreviousSnapshot;
         public int activeEnemies;
         public int visibleEnemies;
         public float activeThreat;
@@ -645,6 +724,12 @@ namespace _Project.Scripts.Systems.Telemetry
                 F(damage),
                 F(fireRate),
                 projectileCount,
+                F(effectiveDpsEstimate),
+                F(projectileFactor),
+                F(squadFactor),
+                F(followerDamageScale),
+                F(mainDamagePerProjectile),
+                killsSincePreviousSnapshot,
                 activeEnemies,
                 visibleEnemies,
                 F(activeThreat),
