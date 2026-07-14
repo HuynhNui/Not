@@ -26,35 +26,40 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 "Damage",
                 "Increases damage per bullet.",
                 1f,
-                false),
+                false,
+                MaxUpgradeLevel),
             new UpgradeDefinition(
                 PlayerMetaUpgradeType.FireRate,
                 "FIRE",
                 "Fire Rate",
                 "Increases shooting speed.",
                 4f,
-                false),
+                false,
+                MaxUpgradeLevel),
             new UpgradeDefinition(
                 PlayerMetaUpgradeType.MaxHp,
                 "HP",
                 "Max HP",
                 "Increases maximum health.",
                 10f,
-                false),
+                false,
+                MaxUpgradeLevel),
             new UpgradeDefinition(
                 PlayerMetaUpgradeType.ProjectileCount,
                 "BULLET",
                 "Projectile Count",
                 "Increases bullets per shot.",
                 1f,
-                true),
+                true,
+                3),
             new UpgradeDefinition(
                 PlayerMetaUpgradeType.SquadSize,
                 "PLAYER",
                 "Squad Size",
                 "Increases players and followers.",
                 1f,
-                true)
+                true,
+                MaxUpgradeLevel)
         };
 
         public static int GetLevel(PlayerMetaUpgradeType type)
@@ -64,7 +69,15 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static int GetMaxLevel(PlayerMetaUpgradeType type)
         {
-            return MaxUpgradeLevel;
+            if (!TryGetDefinition(type, out UpgradeDefinition definition))
+            {
+                return 0;
+            }
+
+            int configMax = _balanceConfig != null
+                ? _balanceConfig.MaxLevel
+                : PlayerMetaBalanceConfig.DefaultMaxLevel;
+            return Mathf.Clamp(definition.MaxLevel, 0, configMax);
         }
 
         public static bool IsMaxLevel(PlayerMetaUpgradeType type)
@@ -74,14 +87,23 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static bool IsSupportedUpgrade(PlayerMetaUpgradeType type)
         {
+            return TryGetDefinition(type, out _);
+        }
+
+        public static bool TryGetDefinition(
+            PlayerMetaUpgradeType type,
+            out UpgradeDefinition definition)
+        {
             for (int index = 0; index < Definitions.Length; index++)
             {
                 if (Definitions[index].Type == type)
                 {
+                    definition = Definitions[index];
                     return true;
                 }
             }
 
+            definition = default;
             return false;
         }
 
@@ -226,12 +248,9 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static UpgradeDefinition GetDefinition(PlayerMetaUpgradeType type)
         {
-            for (int index = 0; index < Definitions.Length; index++)
+            if (TryGetDefinition(type, out UpgradeDefinition definition))
             {
-                if (Definitions[index].Type == type)
-                {
-                    return Definitions[index];
-                }
+                return definition;
             }
 
             throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported player upgrade type.");
@@ -279,6 +298,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
         public readonly string Description;
         public readonly float BaseValue;
         public readonly bool UsesWholeNumbers;
+        public readonly int MaxLevel;
 
         public UpgradeDefinition(
             PlayerMetaUpgradeType type,
@@ -286,7 +306,8 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             string statName,
             string description,
             float baseValue,
-            bool usesWholeNumbers)
+            bool usesWholeNumbers,
+            int maxLevel)
         {
             Type = type;
             DisplayName = displayName;
@@ -294,6 +315,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             Description = description;
             BaseValue = baseValue;
             UsesWholeNumbers = usesWholeNumbers;
+            MaxLevel = Mathf.Max(0, maxLevel);
         }
     }
 }

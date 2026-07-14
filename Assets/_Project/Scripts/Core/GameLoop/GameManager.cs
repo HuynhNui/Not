@@ -173,8 +173,7 @@ namespace _Project.Scripts.Core.GameLoop
             _startRunAfterReload = false;
             _showUpdateOnboardingAfterReload = false;
 
-            if (!ShouldSuppressBenchmarkStory()
-                && TryPlayInitialStoryCutscene(shouldStartRunAfterReload, shouldShowUpdateOnboardingAfterReload))
+            if (TryPlayInitialStoryCutscene(shouldStartRunAfterReload, shouldShowUpdateOnboardingAfterReload))
             {
                 return;
             }
@@ -257,8 +256,7 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void RequestStartRun()
         {
-            if (!ShouldSuppressBenchmarkTutorial()
-                && tutorialManager != null
+            if (tutorialManager != null
                 && tutorialManager.ShouldRunGameplayTutorial())
             {
                 tutorialManager.StartGameplayTutorial();
@@ -554,12 +552,16 @@ namespace _Project.Scripts.Core.GameLoop
 
         private bool ShouldSuppressBenchmarkStory()
         {
-            return IsBenchmarkProfileActive() && benchmarkProfile.SuppressStoryProgress;
+            return _isBenchmarkRun
+                && benchmarkProfile != null
+                && benchmarkProfile.SuppressStoryProgress;
         }
 
         private bool ShouldSuppressBenchmarkTutorial()
         {
-            return IsBenchmarkProfileActive() && benchmarkProfile.SuppressTutorialProgress;
+            return _isBenchmarkRun
+                && benchmarkProfile != null
+                && benchmarkProfile.SuppressTutorialProgress;
         }
     }
 }

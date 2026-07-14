@@ -231,6 +231,25 @@ namespace _Project.Scripts.Systems.SaveSystem
             return true;
         }
 
+        public bool TryAddDebugWalletCoins(int amount)
+        {
+            EnsureLoaded();
+            if (!Application.isEditor && !Debug.isDebugBuild)
+            {
+                return false;
+            }
+
+            int safeAmount = Mathf.Max(0, amount);
+            if (safeAmount <= 0)
+            {
+                return false;
+            }
+
+            _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeAmount);
+            CommitAndQueueCloudUpload();
+            return true;
+        }
+
         public int GetUpgradeLevel(PlayerMetaUpgradeType type)
         {
             EnsureLoaded();

@@ -6,6 +6,7 @@ using _Project.Scripts.Core.GameLoop;
 using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Systems.Balance;
 using _Project.Scripts.Systems.GateSystem;
+using _Project.Scripts.Systems.ProgressionSystem;
 using UnityEditor;
 using UnityEngine;
 
@@ -42,6 +43,7 @@ internal static class BalanceConfigExporter
             balanceVersion = CombatScalingConfig.DefaultConfigVersion,
             combat = BuildCombat(combat),
             metaLevels = BuildMetaLevels(meta, combat),
+            metaTracks = BuildMetaTracks(meta),
             pressureSamples = BuildPressureSamples(pressure),
             enemyRoles = BuildEnemyRoles(),
             gateSchedule = BuildGateSchedule(gates),
@@ -93,6 +95,7 @@ internal static class BalanceConfigExporter
             balanceVersion = bootstrap.ActiveBalanceVersion,
             combat = combat != null ? BuildCombat(combat) : null,
             metaLevels = meta != null && combat != null ? BuildMetaLevels(meta, combat) : new List<MetaLevelExport>(),
+            metaTracks = meta != null ? BuildMetaTracks(meta) : new List<MetaTrackExport>(),
             pressureSamples = pressure != null ? BuildPressureSamples(pressure) : new List<PressureSampleExport>(),
             enemyRoles = BuildEnemyRoles(bootstrap),
             gateSchedule = gates != null ? BuildGateSchedule(gates, gateScaling) : new List<GateScheduleExport>(),
@@ -102,7 +105,7 @@ internal static class BalanceConfigExporter
             economy = economy != null ? BuildEconomy(economy) : null
         };
 
-        string jsonPath = Path.Combine(outputDirectory, "true_gate_balance_v1_2_benchmark.json");
+        string jsonPath = Path.Combine(outputDirectory, "true_gate_balance_v1_2_1_benchmark.json");
         string phasePath = Path.Combine(outputDirectory, "gate_phase_values.csv");
         string curvePath = Path.Combine(outputDirectory, "benchmark_target_curve.csv");
         File.WriteAllText(jsonPath, JsonUtility.ToJson(export, prettyPrint: true));
@@ -185,6 +188,51 @@ internal static class BalanceConfigExporter
         }
 
         return result;
+    }
+
+    private static List<MetaTrackExport> BuildMetaTracks(PlayerMetaBalanceConfig meta)
+    {
+        var result = new List<MetaTrackExport>();
+
+        for (int index = 0; index < PlayerMetaUpgradeService.Definitions.Length; index++)
+        {
+            UpgradeDefinition definition = PlayerMetaUpgradeService.Definitions[index];
+            int maxLevel = Mathf.Clamp(definition.MaxLevel, 0, meta.MaxLevel);
+            var values = new List<float>();
+            var costs = new List<int>();
+
+            for (int level = 0; level <= maxLevel; level++)
+            {
+                PlayerMetaLevelData data = meta.GetLevelData(level);
+                values.Add(GetMetaTrackValue(definition.Type, data));
+                costs.Add(level == 0 ? 0 : data.Cost);
+            }
+
+            result.Add(new MetaTrackExport
+            {
+                type = definition.Type.ToString(),
+                maxLevel = maxLevel,
+                values = values,
+                costs = costs
+            });
+        }
+
+        return result;
+    }
+
+    private static float GetMetaTrackValue(
+        PlayerMetaUpgradeType type,
+        PlayerMetaLevelData data)
+    {
+        return type switch
+        {
+            PlayerMetaUpgradeType.Damage => data.Damage,
+            PlayerMetaUpgradeType.FireRate => data.FireRate,
+            PlayerMetaUpgradeType.MaxHp => data.MaxHp,
+            PlayerMetaUpgradeType.ProjectileCount => data.ProjectileCount,
+            PlayerMetaUpgradeType.SquadSize => data.SquadSize,
+            _ => 0f
+        };
     }
 
     private static List<PressureSampleExport> BuildPressureSamples(
@@ -500,6 +548,7 @@ internal static class BalanceConfigExporter
         public string balanceVersion;
         public CombatExport combat;
         public List<MetaLevelExport> metaLevels;
+        public List<MetaTrackExport> metaTracks;
         public List<PressureSampleExport> pressureSamples;
         public List<EnemyRoleExport> enemyRoles;
         public List<GateScheduleExport> gateSchedule;
@@ -533,6 +582,15 @@ internal static class BalanceConfigExporter
         public int cost;
         public float effectiveDps;
         public float durability;
+    }
+
+    [Serializable]
+    private sealed class MetaTrackExport
+    {
+        public string type;
+        public int maxLevel;
+        public List<float> values;
+        public List<int> costs;
     }
 
     [Serializable]

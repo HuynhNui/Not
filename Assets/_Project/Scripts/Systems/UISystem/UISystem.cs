@@ -62,6 +62,7 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private GameObject resetConfirmPopup;
         [SerializeField] private Button resetConfirmCancelButton;
         [SerializeField] private Button resetConfirmButton;
+        [SerializeField] private Button debugAddCoinsButton;
         [SerializeField] private Sprite settingsToggleOnSprite;
         [SerializeField] private Sprite settingsToggleOffSprite;
 
@@ -268,6 +269,7 @@ namespace _Project.Scripts.Systems.UISystem
             WireButton(resetDataButton, nameof(resetDataButton), ShowResetConfirmPopup);
             WireButton(resetConfirmCancelButton, nameof(resetConfirmCancelButton), HideResetConfirmPopup);
             WireButton(resetConfirmButton, nameof(resetConfirmButton), ConfirmResetPlayerProgression);
+            WireOptionalButton(debugAddCoinsButton, HandleDebugAddCoins);
             WireButton(resumeButton, nameof(resumeButton), () => ResumeRequested?.Invoke());
             WireButton(pauseRestartButton, nameof(pauseRestartButton), () => RestartRequested?.Invoke());
             WireButton(pauseSettingsButton, nameof(pauseSettingsButton), ShowSettingsFromPause);
@@ -278,6 +280,7 @@ namespace _Project.Scripts.Systems.UISystem
 
             WireSettingsControls();
             WireUpgradeRows();
+            RefreshDebugControls();
         }
 
         private void ResolveGameOverReferences()
@@ -331,6 +334,17 @@ namespace _Project.Scripts.Systems.UISystem
             if (button == null)
             {
                 WarnMissing(fieldName);
+                return;
+            }
+
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => action?.Invoke());
+        }
+
+        private static void WireOptionalButton(Button button, Action action)
+        {
+            if (button == null)
+            {
                 return;
             }
 
@@ -399,6 +413,28 @@ namespace _Project.Scripts.Systems.UISystem
             RefreshUpgradePanel();
             RefreshSettingsControls();
             HideResetConfirmPopup();
+            RestartCurrentScene();
+        }
+
+        private void HandleDebugAddCoins()
+        {
+            if (!SaveService.Instance.TryAddDebugWalletCoins(10000))
+            {
+                return;
+            }
+
+            RefreshMenuStats();
+            RefreshUpgradePanel();
+        }
+
+        private void RefreshDebugControls()
+        {
+            if (debugAddCoinsButton == null)
+            {
+                return;
+            }
+
+            debugAddCoinsButton.gameObject.SetActive(Application.isEditor || Debug.isDebugBuild);
         }
 
         private void RefreshSettingsControls()

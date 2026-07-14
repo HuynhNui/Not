@@ -1,4 +1,5 @@
 using System.IO;
+using _Project.Cutscenes;
 using _Project.Scripts.Systems.SaveSystem;
 using NUnit.Framework;
 
@@ -83,6 +84,22 @@ namespace _Project.Tests.Editor
             Assert.That(_service.Data.upgradeTutorialCompleted, Is.False);
             Assert.That(_service.Data.tutorialFirstRunBonusGranted, Is.False);
             Assert.That(_service.Data.tutorialVersion, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ResetPlayerProgression_ReopensFirstCutsceneAndGameplayTutorial()
+        {
+            _service.RecordCutsceneSeen(StoryCutsceneIds.BootSequence);
+            _service.MarkGameplayTutorialCompleted();
+            _service.RecordRunResult(10f, 1, 0, 10);
+
+            _service.ResetPlayerProgression();
+
+            Assert.That(_service.HasSeenCutscene(StoryCutsceneIds.BootSequence), Is.False);
+            Assert.That(_service.Data.seenCutsceneIds, Is.Empty);
+            Assert.That(_service.Data.storyStage, Is.EqualTo(0));
+            Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(0));
+            Assert.That(_service.IsGameplayTutorialCompleted(), Is.False);
         }
     }
 }

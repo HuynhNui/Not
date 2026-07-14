@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 6;
+        public const int CurrentSchemaVersion = 7;
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -80,7 +80,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 seenCutsceneIds = new List<string>();
             }
 
-            RemoveDuplicateOrInvalidUpgradeEntries();
+            RemoveDuplicateOrInvalidUpgradeEntries(sourceSchemaVersion);
             EnsureAllUpgradeEntries();
             NormalizeSeenCutsceneIds();
         }
@@ -210,9 +210,10 @@ namespace _Project.Scripts.Systems.SaveSystem
             }
         }
 
-        private void RemoveDuplicateOrInvalidUpgradeEntries()
+        private void RemoveDuplicateOrInvalidUpgradeEntries(int sourceSchemaVersion)
         {
             var seenTypes = new HashSet<string>();
+            bool loggedProjectileMigration = false;
 
             for (int index = upgradeLevels.Count - 1; index >= 0; index--)
             {
@@ -224,6 +225,20 @@ namespace _Project.Scripts.Systems.SaveSystem
                 {
                     upgradeLevels.RemoveAt(index);
                     continue;
+                }
+
+                if (sourceSchemaVersion < 7
+                    && upgradeType == PlayerMetaUpgradeType.ProjectileCount
+                    && entry.level > 3)
+                {
+                    entry.level = 3;
+                    if (!loggedProjectileMigration
+                        && (Application.isEditor || Debug.isDebugBuild))
+                    {
+                        loggedProjectileMigration = true;
+                        Debug.Log(
+                            "[META MIGRATION] ProjectileCount level 5 -> 3; max projectile value preserved at 6.");
+                    }
                 }
 
                 entry.level = Mathf.Clamp(entry.level, 0, PlayerMetaUpgradeService.GetMaxLevel(upgradeType));

@@ -58,7 +58,7 @@ namespace TrueGate.PlayModeTests
         public IEnumerator ProjectileMetaLevels_ApplyConfiguredRuntimeProjectileCounts()
         {
             int[] levels = { 0, 1, 2, 3, 4, 5 };
-            int[] expectedProjectiles = { 1, 2, 3, 4, 4, 4 };
+            int[] expectedProjectiles = { 1, 2, 4, 6, 6, 6 };
 
             for (int index = 0; index < levels.Length; index++)
             {
@@ -127,13 +127,13 @@ namespace TrueGate.PlayModeTests
                 apply.Invoke(null, new object[] { main, controller });
                 apply.Invoke(null, new object[] { main, controller });
 
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(6));
 
                 var followers = (IList)GetProperty(controller, "Followers");
                 Assert.That(followers.Count, Is.EqualTo(1));
                 Component follower = (Component)followers[0];
                 Component followerSpawner = (Component)GetProperty(follower, "BulletSpawner");
-                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(4));
+                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(6));
                 yield return null;
             }
             finally
@@ -169,7 +169,7 @@ namespace TrueGate.PlayModeTests
                     "ApplyToPlayer",
                     BindingFlags.Public | BindingFlags.Static);
                 apply.Invoke(null, new object[] { main, controller });
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(6));
 
                 Component runtimeController = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Gates.GateRuntimeEffectController"));
@@ -183,10 +183,10 @@ namespace TrueGate.PlayModeTests
                     FindDefaultGateEntryById("major_projectile"));
 
                 Invoke(runtimeController, "Apply", gateConfig);
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(5));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(7));
 
                 apply.Invoke(null, new object[] { main, controller });
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(6));
                 yield return null;
             }
             finally

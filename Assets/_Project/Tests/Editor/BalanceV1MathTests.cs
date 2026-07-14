@@ -320,15 +320,15 @@ namespace _Project.Tests.Editor
         public void MajorChance_UsesExpectedRunPhases()
         {
             Assert.That(GateSystem.GetMajorChance(59f), Is.EqualTo(0f));
-            Assert.That(GateSystem.GetMajorChance(60f), Is.EqualTo(0.15f));
-            Assert.That(GateSystem.GetMajorChance(180f), Is.EqualTo(0.2f));
-            Assert.That(GateSystem.GetMajorChance(300f), Is.EqualTo(0.25f));
+            Assert.That(GateSystem.GetMajorChance(60f), Is.EqualTo(0.25f));
+            Assert.That(GateSystem.GetMajorChance(180f), Is.EqualTo(0.4f));
+            Assert.That(GateSystem.GetMajorChance(300f), Is.EqualTo(0.6f));
             Assert.That(
                 GateSystem.ShouldSpawnMajor(4, 60f, 15f, 60f, 0.1f),
                 Is.True);
             Assert.That(
                 GateSystem.ShouldSpawnMajor(4, 60f, 15f, 60f, 0.2f),
-                Is.False);
+                Is.True);
         }
 
         [Test]
@@ -941,21 +941,23 @@ namespace _Project.Tests.Editor
                 Is.EqualTo(20f).Within(0.0001f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 5),
-                Is.EqualTo(4f));
+                Is.EqualTo(6f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.SquadSize, 5),
                 Is.EqualTo(12f));
 
-            for (int level = 0; level <= PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount); level++)
+            int[] expectedProjectiles = { 1, 2, 4, 6, 6, 6 };
+            for (int level = 0; level < expectedProjectiles.Length; level++)
             {
                 Assert.That(
                     PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, level),
-                    Is.EqualTo(level + 1));
+                    Is.EqualTo(expectedProjectiles[level]));
             }
 
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
-            Assert.That(PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 4), Is.EqualTo(4f));
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.MoveSpeed), Is.EqualTo(0));
+            Assert.That(PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 4), Is.EqualTo(6f));
         }
 
         [Test]
@@ -973,10 +975,10 @@ namespace _Project.Tests.Editor
                 Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(100));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 1);
-                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(550));
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(250));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 2);
-                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2200));
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(550));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 3);
                 Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(0));
