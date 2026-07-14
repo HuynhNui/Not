@@ -20,8 +20,22 @@ namespace _Project.Scripts.Gameplay.Gates
         private PlayerController _playerController;
         private RuntimeEnemySpawnerSystem _enemySpawnerSystem;
         private RuntimeRunStatsTracker _runStatsTracker;
+        private GateScalingProfile _gateScalingProfile;
 
         public GateTimedModifierSet TimedModifiers => _timedModifiers;
+        public float IncomingDamageMultiplier => GetCappedCombinedModifier(
+            BalanceEffectType.IncomingDamageMultiplier);
+        public float EnemySpeedMultiplier => GetCappedCombinedModifier(
+            BalanceEffectType.EnemySpeedMultiplier);
+        public float EnemyPressureMultiplier => GetCappedCombinedModifier(
+            BalanceEffectType.EnemyPressureMultiplier);
+
+        public void SetGateScalingProfile(GateScalingProfile profile)
+        {
+            _gateScalingProfile = profile;
+            _gateScalingProfile?.ValidateValues();
+            ApplyCombinedModifiers();
+        }
 
         public void Configure(
             MainPlayerUnit mainPlayerUnit,
@@ -81,7 +95,7 @@ namespace _Project.Scripts.Gameplay.Gates
             switch (effect.EffectType)
             {
                 case BalanceEffectType.DamageMultiplier:
-                    _mainPlayerUnit.SetDamage(_mainPlayerUnit.Damage * effect.Magnitude);
+                    _mainPlayerUnit.SetDamage(ClampDamage(_mainPlayerUnit.Damage * effect.Magnitude));
                     SyncFollowers(
                         syncDamage: true,
                         syncFireRate: false,
@@ -90,16 +104,16 @@ namespace _Project.Scripts.Gameplay.Gates
                         syncProjectileCount: false);
                     break;
                 case BalanceEffectType.FireRateFlat:
-                    _mainPlayerUnit.SetFireRate(_mainPlayerUnit.FireRate + effect.Magnitude);
+                    _mainPlayerUnit.SetFireRate(ClampFireRate(_mainPlayerUnit.FireRate + effect.Magnitude));
                     SyncFollowers(false, true, false, false, false);
                     break;
                 case BalanceEffectType.FireRateMultiplier:
-                    _mainPlayerUnit.SetFireRate(_mainPlayerUnit.FireRate * effect.Magnitude);
+                    _mainPlayerUnit.SetFireRate(ClampFireRate(_mainPlayerUnit.FireRate * effect.Magnitude));
                     SyncFollowers(false, true, false, false, false);
                     break;
                 case BalanceEffectType.MaxHpMultiplier:
                     _mainPlayerUnit.SetMaxHp(
-                        _mainPlayerUnit.MaxHp * effect.Magnitude,
+                        ClampMaxHp(_mainPlayerUnit.MaxHp * effect.Magnitude),
                         healByDelta: true);
                     SyncFollowers(false, false, true, true, false);
                     break;
@@ -154,7 +168,7 @@ namespace _Project.Scripts.Gameplay.Gates
             int nextProjectileCount = Mathf.Clamp(
                 _mainPlayerUnit.BulletSpawner.ProjectileCount + Mathf.RoundToInt(amount),
                 1,
-                MaxProjectileCount);
+                ActiveProjectileCap);
             _mainPlayerUnit.BulletSpawner.SetProjectileCount(nextProjectileCount);
             SyncFollowers(false, false, false, false, true);
         }
@@ -169,7 +183,7 @@ namespace _Project.Scripts.Gameplay.Gates
             int next = Mathf.Clamp(
                 _playerController.CurrentSquadCount + Mathf.RoundToInt(amount),
                 1,
-                _playerController.MaxSquadCount);
+                Mathf.Min(_playerController.MaxSquadCount, ActiveSquadCap));
             _playerController.SetSquadCount(
                 next,
                 next > _playerController.CurrentSquadCount
@@ -195,17 +209,71 @@ namespace _Project.Scripts.Gameplay.Gates
         private void ApplyCombinedModifiers()
         {
             _playerController?.SetGateIncomingDamageMultiplier(
-                _timedModifiers.GetCombinedMultiplier(
-                    BalanceEffectType.IncomingDamageMultiplier));
+                IncomingDamageMultiplier);
             _enemySpawnerSystem?.SetGateSpeedMultiplier(
-                _timedModifiers.GetCombinedMultiplier(
-                    BalanceEffectType.EnemySpeedMultiplier));
+                EnemySpeedMultiplier);
             _enemySpawnerSystem?.SetGatePressureMultiplier(
-                _timedModifiers.GetCombinedMultiplier(
-                    BalanceEffectType.EnemyPressureMultiplier));
+                EnemyPressureMultiplier);
             _runStatsTracker?.SetCoinRewardMultiplier(
                 _timedModifiers.GetCombinedMultiplier(
                     BalanceEffectType.CoinRewardMultiplier));
+        }
+
+        private GateRunStatCaps ActiveCaps => _gateScalingProfile != null
+            ? _gateScalingProfile.RunStatCaps
+            : null;
+
+        private int ActiveProjectileCap => ActiveCaps != null
+            ? Mathf.Min(MaxProjectileCount, ActiveCaps.ProjectileCount)
+            : MaxProjectileCount;
+
+        private int ActiveSquadCap => ActiveCaps != null
+            ? ActiveCaps.SquadCount
+            : int.MaxValue;
+
+        private float ClampDamage(float value)
+        {
+            return ActiveCaps != null
+                ? Mathf.Min(value, ActiveCaps.Damage)
+                : value;
+        }
+
+        private float ClampFireRate(float value)
+        {
+            return ActiveCaps != null
+                ? Mathf.Min(value, ActiveCaps.FireRate)
+                : value;
+        }
+
+        private float ClampMaxHp(float value)
+        {
+            return ActiveCaps != null
+                ? Mathf.Min(value, ActiveCaps.MaxHp)
+                : value;
+        }
+
+        private float GetCappedCombinedModifier(BalanceEffectType effectType)
+        {
+            float value = _timedModifiers.GetCombinedMultiplier(effectType);
+            GateRunStatCaps caps = ActiveCaps;
+            if (caps == null)
+            {
+                return value;
+            }
+
+            return effectType switch
+            {
+                BalanceEffectType.IncomingDamageMultiplier => Mathf.Min(
+                    value,
+                    caps.MaxIncomingDamageMultiplier),
+                BalanceEffectType.EnemyPressureMultiplier => Mathf.Min(
+                    value,
+                    caps.MaxEnemyPressureMultiplier),
+                BalanceEffectType.EnemySpeedMultiplier => Mathf.Max(
+                    value,
+                    caps.MinEnemySpeedMultiplier),
+                _ => value
+            };
         }
     }
 

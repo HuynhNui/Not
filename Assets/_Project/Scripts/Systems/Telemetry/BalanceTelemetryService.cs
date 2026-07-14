@@ -40,6 +40,9 @@ namespace _Project.Scripts.Systems.Telemetry
         private int _promotionCount;
         private int _startingSquadCount;
         private int _previousSnapshotKills;
+        private string _runMode = "standard";
+        private string _benchmarkProfileId = string.Empty;
+        private PlayerRunStartStats _configuredStartStats;
         private float _firstHitSeconds = -1f;
         private float _firstFollowerDeathSeconds = -1f;
         private float _peakEffectiveDpsEstimate;
@@ -73,6 +76,16 @@ namespace _Project.Scripts.Systems.Telemetry
 
             Subscribe();
             EnsureWriter();
+        }
+
+        public void SetRunContext(
+            string runMode,
+            string benchmarkProfileId,
+            PlayerRunStartStats startStats)
+        {
+            _runMode = string.IsNullOrWhiteSpace(runMode) ? "standard" : runMode.Trim();
+            _benchmarkProfileId = benchmarkProfileId ?? string.Empty;
+            _configuredStartStats = startStats;
         }
 
         public void BeginRun()
@@ -125,6 +138,8 @@ namespace _Project.Scripts.Systems.Telemetry
                 runEndedUtc = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
                 buildVersion = Application.version,
                 balanceVersion = BalanceVersion,
+                runMode = _runMode,
+                benchmarkProfileId = _benchmarkProfileId,
                 survivalSeconds = snapshot.SurvivalTime,
                 enemyKills = snapshot.EnemyKills,
                 coinRewardPoints = runStatsTracker != null
@@ -133,6 +148,10 @@ namespace _Project.Scripts.Systems.Telemetry
                 coinsEarned = snapshot.CoinsEarned,
                 score = snapshot.Score,
                 walletCoins = snapshot.WalletCoins,
+                startingDamage = _configuredStartStats.Damage,
+                startingFireRate = _configuredStartStats.FireRate,
+                startingMaxHp = _configuredStartStats.MaxHp,
+                startingProjectileCount = _configuredStartStats.ProjectileCount,
                 startingSquadCount = _startingSquadCount,
                 endingSquadCount = playerController != null
                     ? playerController.CurrentSquadCount
@@ -204,6 +223,8 @@ namespace _Project.Scripts.Systems.Telemetry
                 gateSystem.GateShown += HandleGateShown;
                 gateSystem.GateSelected -= HandleGateSelected;
                 gateSystem.GateSelected += HandleGateSelected;
+                gateSystem.MajorRollEvaluated -= HandleMajorRollEvaluated;
+                gateSystem.MajorRollEvaluated += HandleMajorRollEvaluated;
             }
         }
 
@@ -224,6 +245,7 @@ namespace _Project.Scripts.Systems.Telemetry
             {
                 gateSystem.GateShown -= HandleGateShown;
                 gateSystem.GateSelected -= HandleGateSelected;
+                gateSystem.MajorRollEvaluated -= HandleMajorRollEvaluated;
             }
         }
 
@@ -290,6 +312,24 @@ namespace _Project.Scripts.Systems.Telemetry
 
             _gateSelectedCount++;
             RecordGateEvent("gate_selected", gateSet, -1, gate);
+        }
+
+        private void HandleMajorRollEvaluated(_Project.Scripts.Systems.GateSystem.MajorGateRollTelemetry telemetry)
+        {
+            if (!_isRunActive)
+            {
+                return;
+            }
+
+            RecordEvent(
+                "major_roll",
+                gateSet: telemetry.GateSet,
+                value: telemetry.Chance,
+                majorRollEligible: telemetry.IsEligible,
+                majorRollSpawned: telemetry.Spawned,
+                majorRollForced: telemetry.WasForced,
+                majorConsecutiveMisses: telemetry.ConsecutiveMisses,
+                majorFailureReason: telemetry.FailureReason);
         }
 
         private void CaptureSnapshot(bool force)
@@ -369,7 +409,12 @@ namespace _Project.Scripts.Systems.Telemetry
                 activeThreat = enemySpawnerSystem != null
                     ? enemySpawnerSystem.CurrentActiveThreat
                     : 0f,
-                gateSetCount = gateSystem != null ? gateSystem.GateSetCount : 0
+                gateSetCount = gateSystem != null ? gateSystem.GateSetCount : 0,
+                gatePhase = gateSystem != null ? gateSystem.CurrentPhaseId : string.Empty,
+                majorEligibleRolls = gateSystem != null ? gateSystem.MajorEligibleRolls : 0,
+                majorOffers = gateSystem != null ? gateSystem.MajorOffers : 0,
+                majorPityForcedOffers = gateSystem != null ? gateSystem.MajorPityForcedOffers : 0,
+                maxConsecutiveMajorMisses = gateSystem != null ? gateSystem.MaxConsecutiveMajorMisses : 0
             });
 
             _snapshotCount++;
@@ -382,6 +427,34 @@ namespace _Project.Scripts.Systems.Telemetry
             int laneIndex,
             GateConfig gate)
         {
+            GateRuntimeEffect primaryEffect = null;
+            GateRuntimeEffect secondaryEffect = null;
+            GateRuntimeEffect drawbackEffect = null;
+            if (gate != null && gate.RuntimeEffects != null)
+            {
+                for (int index = 0; index < gate.RuntimeEffects.Count; index++)
+                {
+                    GateRuntimeEffect effect = gate.RuntimeEffects[index];
+                    if (effect == null)
+                    {
+                        continue;
+                    }
+
+                    if (effect.IsDrawback)
+                    {
+                        drawbackEffect ??= effect;
+                    }
+                    else if (primaryEffect == null)
+                    {
+                        primaryEffect = effect;
+                    }
+                    else
+                    {
+                        secondaryEffect ??= effect;
+                    }
+                }
+            }
+
             RecordEvent(
                 eventName,
                 gate != null ? gate.GateId : string.Empty,
@@ -389,7 +462,17 @@ namespace _Project.Scripts.Systems.Telemetry
                 gate != null ? gate.GetDisplayText() : string.Empty,
                 gateSet,
                 laneIndex,
-                gate != null ? gate.Amount : 0f);
+                gate != null ? gate.Amount : 0f,
+                gatePhase: gate != null ? gate.ResolvedPhaseId : string.Empty,
+                primaryEffectType: primaryEffect != null ? primaryEffect.EffectType.ToString() : string.Empty,
+                primaryMagnitude: primaryEffect != null ? primaryEffect.Magnitude : 0f,
+                primaryDuration: primaryEffect != null ? primaryEffect.DurationSeconds : 0f,
+                secondaryEffectType: secondaryEffect != null ? secondaryEffect.EffectType.ToString() : string.Empty,
+                secondaryMagnitude: secondaryEffect != null ? secondaryEffect.Magnitude : 0f,
+                secondaryDuration: secondaryEffect != null ? secondaryEffect.DurationSeconds : 0f,
+                drawbackEffectType: drawbackEffect != null ? drawbackEffect.EffectType.ToString() : string.Empty,
+                drawbackMagnitude: drawbackEffect != null ? drawbackEffect.Magnitude : 0f,
+                drawbackDuration: drawbackEffect != null ? drawbackEffect.DurationSeconds : 0f);
         }
 
         private void RecordEvent(
@@ -399,7 +482,22 @@ namespace _Project.Scripts.Systems.Telemetry
             string gateLabel = "",
             int gateSet = 0,
             int laneIndex = -1,
-            float value = 0f)
+            float value = 0f,
+            string gatePhase = "",
+            string primaryEffectType = "",
+            float primaryMagnitude = 0f,
+            float primaryDuration = 0f,
+            string secondaryEffectType = "",
+            float secondaryMagnitude = 0f,
+            float secondaryDuration = 0f,
+            string drawbackEffectType = "",
+            float drawbackMagnitude = 0f,
+            float drawbackDuration = 0f,
+            bool majorRollEligible = false,
+            bool majorRollSpawned = false,
+            bool majorRollForced = false,
+            int majorConsecutiveMisses = 0,
+            string majorFailureReason = "")
         {
             _writer.BufferEvent(new BalanceTelemetryEvent
             {
@@ -408,13 +506,30 @@ namespace _Project.Scripts.Systems.Telemetry
                 utc = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
                 buildVersion = Application.version,
                 balanceVersion = BalanceVersion,
+                runMode = _runMode,
+                benchmarkProfileId = _benchmarkProfileId,
                 elapsedSeconds = ElapsedSeconds,
                 gateId = gateId,
                 gateCategory = gateCategory,
                 gateLabel = gateLabel,
+                gatePhase = gatePhase,
                 gateSet = gateSet,
                 laneIndex = laneIndex,
                 value = value,
+                primaryEffectType = primaryEffectType,
+                primaryMagnitude = primaryMagnitude,
+                primaryDuration = primaryDuration,
+                secondaryEffectType = secondaryEffectType,
+                secondaryMagnitude = secondaryMagnitude,
+                secondaryDuration = secondaryDuration,
+                drawbackEffectType = drawbackEffectType,
+                drawbackMagnitude = drawbackMagnitude,
+                drawbackDuration = drawbackDuration,
+                majorRollEligible = majorRollEligible,
+                majorRollSpawned = majorRollSpawned,
+                majorRollForced = majorRollForced,
+                majorConsecutiveMisses = majorConsecutiveMisses,
+                majorFailureReason = majorFailureReason,
                 enemyKills = runStatsTracker != null ? runStatsTracker.EnemyKills : 0,
                 squadCount = playerController != null ? playerController.CurrentSquadCount : 0
             });
@@ -461,8 +576,10 @@ namespace _Project.Scripts.Systems.Telemetry
         private static readonly string[] SummaryHeader =
         {
             "run_id", "run_started_utc", "run_ended_utc", "build_version",
-            "balance_version", "survival_seconds", "enemy_kills",
-            "coin_reward_points", "coins_earned", "score", "wallet_coins",
+            "balance_version", "run_mode", "benchmark_profile_id",
+            "survival_seconds", "enemy_kills", "coin_reward_points",
+            "coins_earned", "score", "wallet_coins", "starting_damage",
+            "starting_fire_rate", "starting_max_hp", "starting_projectile_count",
             "starting_squad", "ending_squad", "gates_shown", "gates_selected",
             "first_hit_seconds", "follower_deaths", "promotions", "snapshot_count",
             "peak_effective_dps_estimate", "peak_damage", "peak_projectile_count",
@@ -476,7 +593,9 @@ namespace _Project.Scripts.Systems.Telemetry
             "damage", "fire_rate", "projectile_count", "effective_dps_estimate",
             "projectile_factor", "squad_factor", "follower_damage_scale",
             "main_damage_per_projectile", "kills_since_previous_snapshot",
-            "active_enemies", "visible_enemies", "active_threat", "gate_set_count"
+            "active_enemies", "visible_enemies", "active_threat", "gate_set_count",
+            "gate_phase", "major_eligible_rolls", "major_offers",
+            "major_pity_forced_offers", "max_consecutive_major_misses"
         };
 
         private readonly string _directoryPath;
@@ -611,13 +730,30 @@ namespace _Project.Scripts.Systems.Telemetry
         public string utc;
         public string buildVersion;
         public string balanceVersion;
+        public string runMode;
+        public string benchmarkProfileId;
         public float elapsedSeconds;
         public string gateId;
         public string gateCategory;
         public string gateLabel;
+        public string gatePhase;
         public int gateSet;
         public int laneIndex;
         public float value;
+        public string primaryEffectType;
+        public float primaryMagnitude;
+        public float primaryDuration;
+        public string secondaryEffectType;
+        public float secondaryMagnitude;
+        public float secondaryDuration;
+        public string drawbackEffectType;
+        public float drawbackMagnitude;
+        public float drawbackDuration;
+        public bool majorRollEligible;
+        public bool majorRollSpawned;
+        public bool majorRollForced;
+        public int majorConsecutiveMisses;
+        public string majorFailureReason;
         public int enemyKills;
         public int squadCount;
     }
@@ -629,12 +765,18 @@ namespace _Project.Scripts.Systems.Telemetry
         public string runEndedUtc;
         public string buildVersion;
         public string balanceVersion;
+        public string runMode;
+        public string benchmarkProfileId;
         public float survivalSeconds;
         public int enemyKills;
         public float coinRewardPoints;
         public int coinsEarned;
         public int score;
         public int walletCoins;
+        public float startingDamage;
+        public float startingFireRate;
+        public float startingMaxHp;
+        public int startingProjectileCount;
         public int startingSquadCount;
         public int endingSquadCount;
         public int gateShownCount;
@@ -657,12 +799,18 @@ namespace _Project.Scripts.Systems.Telemetry
                 BalanceTelemetryWriter.EscapeCsv(runEndedUtc),
                 BalanceTelemetryWriter.EscapeCsv(buildVersion),
                 BalanceTelemetryWriter.EscapeCsv(balanceVersion),
+                BalanceTelemetryWriter.EscapeCsv(runMode),
+                BalanceTelemetryWriter.EscapeCsv(benchmarkProfileId),
                 F(survivalSeconds),
                 enemyKills,
                 F(coinRewardPoints),
                 coinsEarned,
                 score,
                 walletCoins,
+                F(startingDamage),
+                F(startingFireRate),
+                F(startingMaxHp),
+                startingProjectileCount,
                 startingSquadCount,
                 endingSquadCount,
                 gateShownCount,
@@ -708,6 +856,11 @@ namespace _Project.Scripts.Systems.Telemetry
         public int visibleEnemies;
         public float activeThreat;
         public int gateSetCount;
+        public string gatePhase;
+        public int majorEligibleRolls;
+        public int majorOffers;
+        public int majorPityForcedOffers;
+        public int maxConsecutiveMajorMisses;
 
         public string ToCsv()
         {
@@ -733,7 +886,12 @@ namespace _Project.Scripts.Systems.Telemetry
                 activeEnemies,
                 visibleEnemies,
                 F(activeThreat),
-                gateSetCount);
+                gateSetCount,
+                BalanceTelemetryWriter.EscapeCsv(gatePhase),
+                majorEligibleRolls,
+                majorOffers,
+                majorPityForcedOffers,
+                maxConsecutiveMajorMisses);
         }
 
         private static string F(float value)

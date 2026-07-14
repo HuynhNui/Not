@@ -4,6 +4,7 @@ using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Gates;
 using _Project.Scripts.Gameplay.Player;
+using _Project.Scripts.Systems.Balance;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using RuntimeEnemySpawnerSystem =
@@ -21,6 +22,7 @@ namespace _Project.Scripts.Systems.GateSystem
         [SerializeField] private GateLogic gatePrefab;
         [SerializeField] private float spawnIntervalSeconds = 20f;
         [SerializeField] private GatePoolConfig gatePoolConfig;
+        [SerializeField] private GateScalingProfile gateScalingProfile;
         [SerializeField] private bool useLegacyOfferGeneration;
         [SerializeField] private float spawnAboveCameraOffset = 1.25f;
         [SerializeField] private bool useViewportLanes = true;
@@ -80,8 +82,13 @@ namespace _Project.Scripts.Systems.GateSystem
         private readonly List<GateOfferCandidate> _neutralCandidateBuffer = new List<GateOfferCandidate>();
         private readonly List<BalanceGateCategory> _lastSpawnCategories =
             new List<BalanceGateCategory>();
-        private readonly Dictionary<string, GateConfig> _runtimeConfigCache =
-            new Dictionary<string, GateConfig>();
+        private readonly Dictionary<RuntimeGateConfigKey, GateConfig> _runtimeConfigCache =
+            new Dictionary<RuntimeGateConfigKey, GateConfig>();
+        private int _consecutiveMajorEligibleMisses;
+        private int _majorEligibleRolls;
+        private int _majorOffers;
+        private int _majorPityForcedOffers;
+        private int _maxConsecutiveMajorMisses;
         private static readonly string[] TutorialDefaultGateIds =
         {
             "stable_damage",
@@ -91,6 +98,7 @@ namespace _Project.Scripts.Systems.GateSystem
 
         public event Action<int, int, GateConfig> GateShown;
         public event Action<int, GateConfig> GateSelected;
+        public event Action<MajorGateRollTelemetry> MajorRollEvaluated;
 
         public float RunElapsedSeconds => _runElapsedSeconds;
         public int GateSetCount => _gateSetCount;
@@ -101,15 +109,33 @@ namespace _Project.Scripts.Systems.GateSystem
         public float MajorGateCadenceSeconds => gatePoolConfig != null
             ? gatePoolConfig.MajorGateCadenceSeconds
             : GatePoolConfig.DefaultMajorGateCadenceSeconds;
-        public float CurrentMajorChance => GetMajorChance(_runElapsedSeconds);
+        public float CurrentMajorChance => gateScalingProfile != null
+            ? gateScalingProfile.GetMajorChance(_runElapsedSeconds)
+            : GetMajorChance(_runElapsedSeconds);
         public IReadOnlyList<BalanceGateCategory> LastSpawnCategories => _lastSpawnCategories;
+        public string CurrentPhaseId => gateScalingProfile != null
+            ? gateScalingProfile.EvaluatePhase(_runElapsedSeconds).PhaseId
+            : string.Empty;
+        public int MajorEligibleRolls => _majorEligibleRolls;
+        public int MajorOffers => _majorOffers;
+        public int MajorPityForcedOffers => _majorPityForcedOffers;
+        public int MaxConsecutiveMajorMisses => _maxConsecutiveMajorMisses;
 
         public void SetGatePoolConfig(GatePoolConfig value)
         {
             if (value != null)
             {
                 gatePoolConfig = value;
+                ClearRuntimeConfigCache();
             }
+        }
+
+        public void SetGateScalingProfile(GateScalingProfile value)
+        {
+            gateScalingProfile = value;
+            gateScalingProfile?.ValidateValues();
+            ClearRuntimeConfigCache();
+            runtimeEffectController?.SetGateScalingProfile(gateScalingProfile);
         }
 
         private void Awake()
@@ -141,9 +167,11 @@ namespace _Project.Scripts.Systems.GateSystem
             }
 
             runtimeEffectController.Configure(mainPlayerUnit, playerController, enemySpawnerSystem);
+            runtimeEffectController.SetGateScalingProfile(gateScalingProfile);
             _nextSpawnTime = GateCadenceSeconds;
             _runElapsedSeconds = 0f;
             _gateSetCount = 0;
+            ResetMajorRuntimeState();
             _spawningEnabled = false;
             _isGateSetActive = false;
             _choiceLocked = false;
@@ -176,6 +204,7 @@ namespace _Project.Scripts.Systems.GateSystem
             _runElapsedSeconds = 0f;
             _gateSetCount = 0;
             _nextSpawnTime = GateCadenceSeconds;
+            ResetMajorRuntimeState();
             _spawningEnabled = true;
             runtimeEffectController?.BeginRun();
         }
@@ -545,34 +574,57 @@ namespace _Project.Scripts.Systems.GateSystem
                 BalanceGateCategory.Risky
             };
 
-            if (ShouldSpawnMajor(
-                    _gateSetCount,
-                    _runElapsedSeconds,
-                    GateCadenceSeconds,
-                    MajorGateCadenceSeconds,
-                    Random.value))
+            MajorRollResult majorRoll = EvaluateMajorForCurrentSet(Random.value);
+            if (majorRoll.MajorSpawned)
             {
-                int replaceIndex = Random.value < 0.5f ? 0 : 2;
-                categories[replaceIndex] = BalanceGateCategory.Major;
+                categories[0] = BalanceGateCategory.Major;
             }
 
             for (int index = 0; index < categories.Count; index++)
             {
                 BalanceGateCategory category = categories[index];
-                BalanceGateEntry entry = PickBalanceEntry(category, _runElapsedSeconds);
+                BalanceGateEntry entry = PickBalanceEntry(
+                    category,
+                    _runElapsedSeconds,
+                    requireApplicable: true);
+                if (entry == null && category == BalanceGateCategory.Major)
+                {
+                    category = BalanceGateCategory.Stable;
+                    entry = PickBalanceEntry(category, _runElapsedSeconds, requireApplicable: true);
+                }
+
+                if (entry == null)
+                {
+                    entry = PickBalanceEntry(category, _runElapsedSeconds, requireApplicable: false);
+                }
+
+                if (entry == null && category != BalanceGateCategory.Stable)
+                {
+                    category = BalanceGateCategory.Stable;
+                    entry = PickBalanceEntry(category, _runElapsedSeconds, requireApplicable: true)
+                        ?? PickBalanceEntry(category, _runElapsedSeconds, requireApplicable: false);
+                }
+
                 if (entry == null)
                 {
                     continue;
                 }
 
+                ResolvedGateEntry resolved = ResolveGateEntry(entry, _runElapsedSeconds);
+                if (!resolved.IsValid)
+                {
+                    continue;
+                }
+
                 _lastSpawnCategories.Add(category);
-                _spawnConfigBuffer.Add(GetOrCreateRuntimeConfig(entry));
+                _spawnConfigBuffer.Add(GetOrCreateRuntimeConfig(resolved, _runElapsedSeconds));
             }
         }
 
         private BalanceGateEntry PickBalanceEntry(
             BalanceGateCategory category,
-            float elapsedSeconds)
+            float elapsedSeconds,
+            bool requireApplicable)
         {
             IReadOnlyList<BalanceGateEntry> source = gatePoolConfig != null
                 && gatePoolConfig.Entries != null
@@ -586,7 +638,8 @@ namespace _Project.Scripts.Systems.GateSystem
                 BalanceGateEntry entry = source[index];
                 if (entry != null
                     && entry.Category == category
-                    && elapsedSeconds >= entry.MinTimeSeconds)
+                    && elapsedSeconds >= entry.MinTimeSeconds
+                    && (!requireApplicable || IsGateApplicable(entry, elapsedSeconds)))
                 {
                     totalWeight += entry.Weight;
                 }
@@ -604,7 +657,8 @@ namespace _Project.Scripts.Systems.GateSystem
                 BalanceGateEntry entry = source[index];
                 if (entry == null
                     || entry.Category != category
-                    || elapsedSeconds < entry.MinTimeSeconds)
+                    || elapsedSeconds < entry.MinTimeSeconds
+                    || (requireApplicable && !IsGateApplicable(entry, elapsedSeconds)))
                 {
                     continue;
                 }
@@ -621,17 +675,144 @@ namespace _Project.Scripts.Systems.GateSystem
 
         private GateConfig GetOrCreateRuntimeConfig(BalanceGateEntry entry)
         {
-            if (_runtimeConfigCache.TryGetValue(entry.GateId, out GateConfig cached)
+            ResolvedGateEntry resolved = ResolveGateEntry(entry, _runElapsedSeconds);
+            return GetOrCreateRuntimeConfig(resolved, _runElapsedSeconds);
+        }
+
+        private ResolvedGateEntry ResolveGateEntry(BalanceGateEntry entry, float elapsedSeconds)
+        {
+            return gateScalingProfile != null
+                ? gateScalingProfile.Resolve(entry, elapsedSeconds)
+                : ResolvedGateEntry.FromBase(entry, string.Empty);
+        }
+
+        private GateConfig GetOrCreateRuntimeConfig(ResolvedGateEntry entry, float elapsedSeconds)
+        {
+            if (!entry.IsValid)
+            {
+                return null;
+            }
+
+            var key = new RuntimeGateConfigKey(entry, elapsedSeconds);
+            if (_runtimeConfigCache.TryGetValue(key, out GateConfig cached)
                 && cached != null)
             {
                 return cached;
             }
 
             GateConfig config = ScriptableObject.CreateInstance<GateConfig>();
-            config.name = $"RuntimeGate_{entry.GateId}";
-            config.ConfigureRuntime(entry);
-            _runtimeConfigCache[entry.GateId] = config;
+            config.name = string.IsNullOrWhiteSpace(entry.PhaseId)
+                ? $"RuntimeGate_{entry.GateId}"
+                : $"RuntimeGate_{entry.GateId}_{entry.PhaseId}";
+            config.ConfigureRuntime(entry, elapsedSeconds);
+            _runtimeConfigCache[key] = config;
             return config;
+        }
+
+        private bool IsGateApplicable(BalanceGateEntry entry, float elapsedSeconds)
+        {
+            if (entry == null)
+            {
+                return false;
+            }
+
+            GateConfig config = GetOrCreateRuntimeConfig(
+                ResolveGateEntry(entry, elapsedSeconds),
+                elapsedSeconds);
+            var before = GateStatSnapshot.FromRuntime(mainPlayerUnit, playerController);
+            GateRunStatCaps caps = gateScalingProfile != null
+                ? gateScalingProfile.RunStatCaps
+                : null;
+            GateEffectPreviewResult preview = GateEffectPreview.Preview(
+                config,
+                before,
+                caps,
+                maxProjectileCount,
+                maxPlayerCount);
+
+            if (preview.HasStatChange)
+            {
+                return true;
+            }
+
+            return entry.EffectType == BalanceEffectType.HealMissingHpRatio
+                || entry.EffectType == BalanceEffectType.BarrierHits
+                || entry.EffectType == BalanceEffectType.EnemySpeedMultiplier
+                || entry.EffectType == BalanceEffectType.CoinRewardMultiplier;
+        }
+
+        private bool HasApplicableEntry(BalanceGateCategory category, float elapsedSeconds)
+        {
+            IReadOnlyList<BalanceGateEntry> source = gatePoolConfig != null
+                && gatePoolConfig.Entries != null
+                && gatePoolConfig.Entries.Count > 0
+                    ? gatePoolConfig.Entries
+                    : GatePoolConfig.CreateDefaultEntries();
+
+            for (int index = 0; index < source.Count; index++)
+            {
+                BalanceGateEntry entry = source[index];
+                if (entry != null
+                    && entry.Category == category
+                    && elapsedSeconds >= entry.MinTimeSeconds
+                    && IsGateApplicable(entry, elapsedSeconds))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private MajorRollResult EvaluateMajorForCurrentSet(float randomValue)
+        {
+            bool eligible = IsMajorEligibilitySet(
+                _gateSetCount,
+                GateCadenceSeconds,
+                MajorGateCadenceSeconds);
+            float chance = CurrentMajorChance;
+            MajorGateSettings settings = gateScalingProfile != null
+                ? gateScalingProfile.MajorSettings
+                : new MajorGateSettings();
+            MajorRollResult result = MajorRollResult.Evaluate(
+                eligible,
+                chance,
+                randomValue,
+                _consecutiveMajorEligibleMisses,
+                settings.GuaranteedAfterEligibleMisses,
+                HasApplicableEntry(BalanceGateCategory.Major, _runElapsedSeconds));
+
+            if (result.IsEligible)
+            {
+                _majorEligibleRolls++;
+                _consecutiveMajorEligibleMisses = result.ConsecutiveMissesAfter;
+                _maxConsecutiveMajorMisses = Mathf.Max(
+                    _maxConsecutiveMajorMisses,
+                    _consecutiveMajorEligibleMisses);
+
+                if (result.MajorSpawned)
+                {
+                    _majorOffers++;
+                }
+
+                if (result.WasForced)
+                {
+                    _majorPityForcedOffers++;
+                }
+            }
+
+            MajorRollEvaluated?.Invoke(new MajorGateRollTelemetry(
+                _gateSetCount,
+                _runElapsedSeconds,
+                eligible,
+                chance,
+                randomValue,
+                result.MajorSpawned,
+                result.WasForced,
+                _consecutiveMajorEligibleMisses,
+                result.FailureReason));
+
+            return result;
         }
 
         private GateLogic SpawnGateInstance(
@@ -736,15 +917,15 @@ namespace _Project.Scripts.Systems.GateSystem
 
             if (elapsedSeconds < 180f)
             {
-                return 0.15f;
+                return 0.25f;
             }
 
             if (elapsedSeconds < 300f)
             {
-                return 0.2f;
+                return 0.4f;
             }
 
-            return 0.25f;
+            return 0.6f;
         }
 
         public static bool ShouldSpawnMajor(
@@ -754,11 +935,17 @@ namespace _Project.Scripts.Systems.GateSystem
             float majorCadenceSeconds,
             float randomValue)
         {
-            return IsMajorEligibilitySet(
-                    gateSetNumber,
-                    gateCadenceSeconds,
-                    majorCadenceSeconds)
-                && randomValue < GetMajorChance(elapsedSeconds);
+            return MajorRollResult.Evaluate(
+                    IsMajorEligibilitySet(
+                        gateSetNumber,
+                        gateCadenceSeconds,
+                        majorCadenceSeconds),
+                    GetMajorChance(elapsedSeconds),
+                    randomValue,
+                    0,
+                    0,
+                    true)
+                .MajorSpawned;
         }
 
         private void BuildCandidateBuffers()
@@ -978,7 +1165,16 @@ namespace _Project.Scripts.Systems.GateSystem
             return config;
         }
 
-        private void OnDestroy()
+        private void ResetMajorRuntimeState()
+        {
+            _consecutiveMajorEligibleMisses = 0;
+            _majorEligibleRolls = 0;
+            _majorOffers = 0;
+            _majorPityForcedOffers = 0;
+            _maxConsecutiveMajorMisses = 0;
+        }
+
+        private void ClearRuntimeConfigCache()
         {
             foreach (GateConfig config in _runtimeConfigCache.Values)
             {
@@ -989,6 +1185,11 @@ namespace _Project.Scripts.Systems.GateSystem
             }
 
             _runtimeConfigCache.Clear();
+        }
+
+        private void OnDestroy()
+        {
+            ClearRuntimeConfigCache();
         }
 
         private void ResolveGameplayCamera()
@@ -1259,6 +1460,124 @@ namespace _Project.Scripts.Systems.GateSystem
             return StatTarget == other.StatTarget
                 && OperationType == other.OperationType
                 && Mathf.Approximately(Amount, other.Amount);
+        }
+    }
+
+    internal readonly struct RuntimeGateConfigKey : IEquatable<RuntimeGateConfigKey>
+    {
+        private readonly string _gateId;
+        private readonly string _phaseId;
+        private readonly int _elapsedBucket;
+        private readonly BalanceGateCategory _category;
+        private readonly BalanceEffectType _effectType;
+        private readonly int _magnitude;
+        private readonly int _duration;
+        private readonly BalanceEffectType _secondaryEffectType;
+        private readonly int _secondaryMagnitude;
+        private readonly int _secondaryDuration;
+        private readonly BalanceEffectType _drawbackType;
+        private readonly int _drawbackMagnitude;
+        private readonly int _drawbackDuration;
+
+        public RuntimeGateConfigKey(ResolvedGateEntry entry, float elapsedSeconds)
+        {
+            _gateId = entry.GateId ?? string.Empty;
+            _phaseId = entry.PhaseId ?? string.Empty;
+            _elapsedBucket = Mathf.FloorToInt(Mathf.Max(0f, elapsedSeconds));
+            _category = entry.Category;
+            _effectType = entry.EffectType;
+            _magnitude = Quantize(entry.Magnitude);
+            _duration = Quantize(entry.DurationSeconds);
+            _secondaryEffectType = entry.SecondaryEffectType;
+            _secondaryMagnitude = Quantize(entry.SecondaryMagnitude);
+            _secondaryDuration = Quantize(entry.SecondaryDurationSeconds);
+            _drawbackType = entry.DrawbackType;
+            _drawbackMagnitude = Quantize(entry.DrawbackMagnitude);
+            _drawbackDuration = Quantize(entry.DrawbackDurationSeconds);
+        }
+
+        public bool Equals(RuntimeGateConfigKey other)
+        {
+            return string.Equals(_gateId, other._gateId, StringComparison.Ordinal)
+                && string.Equals(_phaseId, other._phaseId, StringComparison.Ordinal)
+                && _elapsedBucket == other._elapsedBucket
+                && _category == other._category
+                && _effectType == other._effectType
+                && _magnitude == other._magnitude
+                && _duration == other._duration
+                && _secondaryEffectType == other._secondaryEffectType
+                && _secondaryMagnitude == other._secondaryMagnitude
+                && _secondaryDuration == other._secondaryDuration
+                && _drawbackType == other._drawbackType
+                && _drawbackMagnitude == other._drawbackMagnitude
+                && _drawbackDuration == other._drawbackDuration;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RuntimeGateConfigKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + StringComparer.Ordinal.GetHashCode(_gateId);
+                hash = hash * 31 + StringComparer.Ordinal.GetHashCode(_phaseId);
+                hash = hash * 31 + _elapsedBucket;
+                hash = hash * 31 + (int)_category;
+                hash = hash * 31 + (int)_effectType;
+                hash = hash * 31 + _magnitude;
+                hash = hash * 31 + _duration;
+                hash = hash * 31 + (int)_secondaryEffectType;
+                hash = hash * 31 + _secondaryMagnitude;
+                hash = hash * 31 + _secondaryDuration;
+                hash = hash * 31 + (int)_drawbackType;
+                hash = hash * 31 + _drawbackMagnitude;
+                hash = hash * 31 + _drawbackDuration;
+                return hash;
+            }
+        }
+
+        private static int Quantize(float value)
+        {
+            return Mathf.RoundToInt(value * 1000f);
+        }
+    }
+
+    public readonly struct MajorGateRollTelemetry
+    {
+        public readonly int GateSet;
+        public readonly float ElapsedSeconds;
+        public readonly bool IsEligible;
+        public readonly float Chance;
+        public readonly float RandomValue;
+        public readonly bool Spawned;
+        public readonly bool WasForced;
+        public readonly int ConsecutiveMisses;
+        public readonly string FailureReason;
+
+        public MajorGateRollTelemetry(
+            int gateSet,
+            float elapsedSeconds,
+            bool isEligible,
+            float chance,
+            float randomValue,
+            bool spawned,
+            bool wasForced,
+            int consecutiveMisses,
+            string failureReason)
+        {
+            GateSet = gateSet;
+            ElapsedSeconds = Mathf.Max(0f, elapsedSeconds);
+            IsEligible = isEligible;
+            Chance = Mathf.Clamp01(chance);
+            RandomValue = Mathf.Clamp01(randomValue);
+            Spawned = spawned;
+            WasForced = wasForced;
+            ConsecutiveMisses = Mathf.Max(0, consecutiveMisses);
+            FailureReason = failureReason ?? string.Empty;
         }
     }
 

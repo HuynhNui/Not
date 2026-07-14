@@ -19,6 +19,8 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
         [SerializeField] private string gateId;
         [SerializeField] private BalanceGateCategory category = BalanceGateCategory.Stable;
         [SerializeField] private List<GateRuntimeEffect> runtimeEffects = new List<GateRuntimeEffect>();
+        [SerializeField] private string resolvedPhaseId;
+        [SerializeField] private float resolvedElapsedSeconds;
 
         public GateStatTarget StatTarget => statTarget;
         public GateOperationType OperationType => operationType;
@@ -26,6 +28,8 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
         public string DisplayLabel => displayLabel;
         public string GateId => gateId;
         public BalanceGateCategory Category => category;
+        public string ResolvedPhaseId => resolvedPhaseId;
+        public float ResolvedElapsedSeconds => resolvedElapsedSeconds;
         public IReadOnlyList<GateRuntimeEffect> RuntimeEffects => runtimeEffects;
         public bool HasRuntimeEffects => runtimeEffects != null && runtimeEffects.Count > 0;
         public bool IsBuff => operationType == GateOperationType.Add || operationType == GateOperationType.Multiply;
@@ -44,6 +48,12 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
             {
                 displayLabel = runtimeDisplayLabel;
                 autoGenerateLabel = false;
+                gateId = string.Empty;
+                category = BalanceGateCategory.Stable;
+                resolvedPhaseId = string.Empty;
+                resolvedElapsedSeconds = 0f;
+                runtimeEffects ??= new List<GateRuntimeEffect>();
+                runtimeEffects.Clear();
                 return;
             }
 
@@ -51,6 +61,8 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
             autoGenerateLabel = true;
             gateId = string.Empty;
             category = BalanceGateCategory.Stable;
+            resolvedPhaseId = string.Empty;
+            resolvedElapsedSeconds = 0f;
             runtimeEffects ??= new List<GateRuntimeEffect>();
             runtimeEffects.Clear();
         }
@@ -66,6 +78,8 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
             category = entry.Category;
             displayLabel = entry.DisplayLabel;
             autoGenerateLabel = false;
+            resolvedPhaseId = string.Empty;
+            resolvedElapsedSeconds = 0f;
             operationType = category == BalanceGateCategory.Risky
                 ? GateOperationType.Subtract
                 : GateOperationType.Add;
@@ -81,6 +95,41 @@ namespace _Project.Scripts.Data.ScriptableObjects.GateConfigs
                 entry.DrawbackType,
                 entry.DrawbackMagnitude,
                 entry.DrawbackDurationSeconds,
+                true);
+        }
+
+        public void ConfigureRuntime(ResolvedGateEntry resolved, float elapsedSeconds)
+        {
+            if (!resolved.IsValid)
+            {
+                return;
+            }
+
+            gateId = resolved.GateId;
+            category = resolved.Category;
+            displayLabel = resolved.DisplayLabel;
+            autoGenerateLabel = false;
+            resolvedPhaseId = resolved.PhaseId;
+            resolvedElapsedSeconds = Mathf.Max(0f, elapsedSeconds);
+            operationType = category == BalanceGateCategory.Risky
+                ? GateOperationType.Subtract
+                : GateOperationType.Add;
+            runtimeEffects ??= new List<GateRuntimeEffect>();
+            runtimeEffects.Clear();
+            AddRuntimeEffect(
+                resolved.EffectType,
+                resolved.Magnitude,
+                resolved.DurationSeconds,
+                false);
+            AddRuntimeEffect(
+                resolved.SecondaryEffectType,
+                resolved.SecondaryMagnitude,
+                resolved.SecondaryDurationSeconds,
+                false);
+            AddRuntimeEffect(
+                resolved.DrawbackType,
+                resolved.DrawbackMagnitude,
+                resolved.DrawbackDurationSeconds,
                 true);
         }
 

@@ -33,6 +33,7 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private BalanceBootstrapConfig balanceConfig;
         [SerializeField] private EconomyConfig economyConfig;
         [SerializeField] private BalanceTelemetryConfig telemetryConfig;
+        [SerializeField] private BalanceBenchmarkProfile benchmarkProfile;
         [SerializeField] private BalanceTelemetryService telemetryService;
         [SerializeField] private PlayerController playerController;
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
@@ -41,6 +42,7 @@ namespace _Project.Scripts.Core.GameLoop
 
         private bool _isGameOver;
         private bool _isRunActive;
+        private bool _isBenchmarkRun;
         private static bool _startRunAfterReload;
         private static bool _showUpdateOnboardingAfterReload;
 
@@ -171,7 +173,8 @@ namespace _Project.Scripts.Core.GameLoop
             _startRunAfterReload = false;
             _showUpdateOnboardingAfterReload = false;
 
-            if (TryPlayInitialStoryCutscene(shouldStartRunAfterReload, shouldShowUpdateOnboardingAfterReload))
+            if (!ShouldSuppressBenchmarkStory()
+                && TryPlayInitialStoryCutscene(shouldStartRunAfterReload, shouldShowUpdateOnboardingAfterReload))
             {
                 return;
             }
@@ -217,6 +220,7 @@ namespace _Project.Scripts.Core.GameLoop
                 balanceConfig.RunPressureConfig,
                 balanceConfig.EnemyRoleConfigs);
             gateSystem?.SetGatePoolConfig(balanceConfig.GatePoolConfig);
+            gateSystem?.SetGateScalingProfile(balanceConfig.GateScalingProfile);
 
             economyConfig = balanceConfig.EconomyConfig != null
                 ? balanceConfig.EconomyConfig
@@ -224,6 +228,9 @@ namespace _Project.Scripts.Core.GameLoop
             telemetryConfig = balanceConfig.TelemetryConfig != null
                 ? balanceConfig.TelemetryConfig
                 : telemetryConfig;
+            benchmarkProfile = balanceConfig.BenchmarkProfile != null
+                ? balanceConfig.BenchmarkProfile
+                : benchmarkProfile;
         }
 
         private void Awake()
@@ -250,7 +257,9 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void RequestStartRun()
         {
-            if (tutorialManager != null && tutorialManager.ShouldRunGameplayTutorial())
+            if (!ShouldSuppressBenchmarkTutorial()
+                && tutorialManager != null
+                && tutorialManager.ShouldRunGameplayTutorial())
             {
                 tutorialManager.StartGameplayTutorial();
                 return;
@@ -264,6 +273,8 @@ namespace _Project.Scripts.Core.GameLoop
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = true;
+            _isBenchmarkRun = false;
+            runStatsTracker?.SetPersistenceSuppressed(false);
 
             if (playerController != null && !playerController.gameObject.activeSelf)
             {
@@ -277,6 +288,10 @@ namespace _Project.Scripts.Core.GameLoop
             }
 
             playerController?.ResetRunPosition();
+            telemetryService?.SetRunContext(
+                "tutorial",
+                string.Empty,
+                PlayerMetaUpgradeService.BuildCurrentRunStartStats());
             runStatsTracker?.BeginRun();
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.BeginRun();
@@ -293,6 +308,7 @@ namespace _Project.Scripts.Core.GameLoop
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = true;
+            _isBenchmarkRun = IsBenchmarkProfileActive();
 
             if (playerController != null && !playerController.gameObject.activeSelf)
             {
@@ -320,10 +336,20 @@ namespace _Project.Scripts.Core.GameLoop
             if (mainPlayerUnit != null)
             {
                 mainPlayerUnit.Initialize();
-                PlayerMetaUpgradeService.ApplyToPlayer(mainPlayerUnit, playerController);
+                PlayerRunStartStats startStats = _isBenchmarkRun
+                    ? benchmarkProfile.ToRunStartStats()
+                    : PlayerMetaUpgradeService.BuildCurrentRunStartStats();
+                PlayerMetaUpgradeService.ApplyStatsToPlayer(startStats, mainPlayerUnit, playerController);
+                telemetryService?.SetRunContext(
+                    _isBenchmarkRun ? "benchmark" : "standard",
+                    _isBenchmarkRun ? benchmarkProfile.ProfileId : string.Empty,
+                    startStats);
             }
 
             playerController?.ResetRunPosition();
+            runStatsTracker?.SetPersistenceSuppressed(
+                _isBenchmarkRun
+                && (benchmarkProfile.SuppressSaveCommit || benchmarkProfile.SuppressWalletReward));
             runStatsTracker?.BeginRun();
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.BeginRun();
@@ -416,7 +442,8 @@ namespace _Project.Scripts.Core.GameLoop
             }
 
             Action afterStory = () => CompleteRunEnd(snapshot, runStatsTracker != null);
-            if (TryPlayPostRunStoryCutscene(snapshot, runStatsTracker != null, afterStory))
+            if (!ShouldSuppressBenchmarkStory()
+                && TryPlayPostRunStoryCutscene(snapshot, runStatsTracker != null, afterStory))
             {
                 return;
             }
@@ -426,7 +453,9 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void CompleteRunEnd(RunStatsSnapshot snapshot, bool hasSnapshot)
         {
-            if (tutorialManager != null && tutorialManager.ShouldRunUpdateOnboardingAfterFirstDeath())
+            if (!ShouldSuppressBenchmarkTutorial()
+                && tutorialManager != null
+                && tutorialManager.ShouldRunUpdateOnboardingAfterFirstDeath())
             {
                 RouteToMainMenuForUpdateOnboarding();
                 return;
@@ -516,6 +545,21 @@ namespace _Project.Scripts.Core.GameLoop
             }
 
             uiSystem?.ShowGameOver();
+        }
+
+        private bool IsBenchmarkProfileActive()
+        {
+            return benchmarkProfile != null && benchmarkProfile.IsActive;
+        }
+
+        private bool ShouldSuppressBenchmarkStory()
+        {
+            return IsBenchmarkProfileActive() && benchmarkProfile.SuppressStoryProgress;
+        }
+
+        private bool ShouldSuppressBenchmarkTutorial()
+        {
+            return IsBenchmarkProfileActive() && benchmarkProfile.SuppressTutorialProgress;
         }
     }
 }

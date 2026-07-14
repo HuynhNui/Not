@@ -1,0 +1,566 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a574f9a7873ed884e83ae05091ef7b66, type: 3}
+  m_Name: GateScalingProfile_v1_2_benchmark
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.GateScalingProfile
+  profileVersion: balance-v1.2.0-benchmark
+  phases:
+  - phaseId: early
+    startSeconds: 0
+    overrides:
+    - gateId: stable_damage
+      displayLabel: DAMAGE +10%
+      magnitude: 1.1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_fire_rate
+      displayLabel: FIRE RATE +0.2
+      magnitude: 0.2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_vitality
+      displayLabel: MAX HP +8%
+      magnitude: 1.08
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_repair
+      displayLabel: REPAIR 20%
+      magnitude: 0.2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_barrier
+      displayLabel: BARRIER 1 HIT
+      magnitude: 1
+      durationSeconds: 15
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_freeze
+      displayLabel: FREEZE 20S
+      magnitude: 0.75
+      durationSeconds: 20
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: risky_glass_cannon
+      displayLabel: GLASS CANNON
+      magnitude: 1.25
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.2
+      drawbackDurationSeconds: 0
+    - gateId: risky_bullet_storm
+      displayLabel: BULLET STORM
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0.88
+      drawbackDurationSeconds: 0
+    - gateId: risky_reinforcement
+      displayLabel: REINFORCEMENT
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.15
+      drawbackDurationSeconds: 0
+    - gateId: risky_bounty
+      displayLabel: BOUNTY 30S
+      magnitude: 1.5
+      durationSeconds: 30
+      secondaryMagnitude: 1.15
+      secondaryDurationSeconds: 30
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_projectile
+      displayLabel: PROJECTILE +1
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_recruit
+      displayLabel: RECRUIT +1
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_overclock
+      displayLabel: OVERCLOCK
+      magnitude: 1.15
+      durationSeconds: 0
+      secondaryMagnitude: 1.08
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+  - phaseId: growth
+    startSeconds: 120
+    overrides:
+    - gateId: stable_damage
+      displayLabel: DAMAGE +12%
+      magnitude: 1.12
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_fire_rate
+      displayLabel: FIRE RATE +0.3
+      magnitude: 0.3
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_vitality
+      displayLabel: MAX HP +10%
+      magnitude: 1.1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_repair
+      displayLabel: REPAIR 25%
+      magnitude: 0.25
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_barrier
+      displayLabel: BARRIER 1 HIT
+      magnitude: 1
+      durationSeconds: 18
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_freeze
+      displayLabel: FREEZE 22S
+      magnitude: 0.72
+      durationSeconds: 22
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: risky_glass_cannon
+      displayLabel: GLASS CANNON
+      magnitude: 1.3
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.18
+      drawbackDurationSeconds: 0
+    - gateId: risky_bullet_storm
+      displayLabel: BULLET STORM
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0.9
+      drawbackDurationSeconds: 0
+    - gateId: risky_reinforcement
+      displayLabel: REINFORCEMENT
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.13
+      drawbackDurationSeconds: 0
+    - gateId: risky_bounty
+      displayLabel: BOUNTY 30S
+      magnitude: 1.5
+      durationSeconds: 30
+      secondaryMagnitude: 1.15
+      secondaryDurationSeconds: 30
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_projectile
+      displayLabel: PROJECTILE +1
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_recruit
+      displayLabel: RECRUIT +1
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_overclock
+      displayLabel: OVERCLOCK
+      magnitude: 1.2
+      durationSeconds: 0
+      secondaryMagnitude: 1.1
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+  - phaseId: pressure
+    startSeconds: 240
+    overrides:
+    - gateId: stable_damage
+      displayLabel: DAMAGE +15%
+      magnitude: 1.15
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_fire_rate
+      displayLabel: FIRE RATE +0.4
+      magnitude: 0.4
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_vitality
+      displayLabel: MAX HP +12%
+      magnitude: 1.12
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_repair
+      displayLabel: REPAIR 30%
+      magnitude: 0.3
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_barrier
+      displayLabel: BARRIER 2 HIT
+      magnitude: 2
+      durationSeconds: 18
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_freeze
+      displayLabel: FREEZE 25S
+      magnitude: 0.68
+      durationSeconds: 25
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: risky_glass_cannon
+      displayLabel: GLASS CANNON
+      magnitude: 1.35
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.16
+      drawbackDurationSeconds: 0
+    - gateId: risky_bullet_storm
+      displayLabel: BULLET STORM
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0.92
+      drawbackDurationSeconds: 0
+    - gateId: risky_reinforcement
+      displayLabel: REINFORCEMENT
+      magnitude: 1
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.1
+      drawbackDurationSeconds: 0
+    - gateId: risky_bounty
+      displayLabel: BOUNTY 30S
+      magnitude: 1.5
+      durationSeconds: 30
+      secondaryMagnitude: 1.15
+      secondaryDurationSeconds: 30
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_projectile
+      displayLabel: PROJECTILE +2
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_recruit
+      displayLabel: RECRUIT +2
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_overclock
+      displayLabel: OVERCLOCK
+      magnitude: 1.25
+      durationSeconds: 0
+      secondaryMagnitude: 1.12
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+  - phaseId: late
+    startSeconds: 360
+    overrides:
+    - gateId: stable_damage
+      displayLabel: DAMAGE +18%
+      magnitude: 1.18
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_fire_rate
+      displayLabel: FIRE RATE +0.5
+      magnitude: 0.5
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_vitality
+      displayLabel: MAX HP +15%
+      magnitude: 1.15
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_repair
+      displayLabel: REPAIR 40%
+      magnitude: 0.4
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_barrier
+      displayLabel: BARRIER 2 HIT
+      magnitude: 2
+      durationSeconds: 22
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_freeze
+      displayLabel: FREEZE 28S
+      magnitude: 0.64
+      durationSeconds: 28
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: risky_glass_cannon
+      displayLabel: GLASS CANNON
+      magnitude: 1.4
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.14
+      drawbackDurationSeconds: 0
+    - gateId: risky_bullet_storm
+      displayLabel: BULLET STORM
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0.94
+      drawbackDurationSeconds: 0
+    - gateId: risky_reinforcement
+      displayLabel: REINFORCEMENT
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.08
+      drawbackDurationSeconds: 0
+    - gateId: risky_bounty
+      displayLabel: BOUNTY 30S
+      magnitude: 1.5
+      durationSeconds: 30
+      secondaryMagnitude: 1.15
+      secondaryDurationSeconds: 30
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_projectile
+      displayLabel: PROJECTILE +2
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_recruit
+      displayLabel: RECRUIT +2
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_overclock
+      displayLabel: OVERCLOCK
+      magnitude: 1.3
+      durationSeconds: 0
+      secondaryMagnitude: 1.15
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+  - phaseId: endgame
+    startSeconds: 480
+    overrides:
+    - gateId: stable_damage
+      displayLabel: DAMAGE +20%
+      magnitude: 1.2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_fire_rate
+      displayLabel: FIRE RATE +0.6
+      magnitude: 0.6
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: stable_vitality
+      displayLabel: MAX HP +18%
+      magnitude: 1.18
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_repair
+      displayLabel: REPAIR 50%
+      magnitude: 0.5
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_barrier
+      displayLabel: BARRIER 3 HIT
+      magnitude: 3
+      durationSeconds: 25
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: utility_freeze
+      displayLabel: FREEZE 30S
+      magnitude: 0.6
+      durationSeconds: 30
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: risky_glass_cannon
+      displayLabel: GLASS CANNON
+      magnitude: 1.45
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.12
+      drawbackDurationSeconds: 0
+    - gateId: risky_bullet_storm
+      displayLabel: BULLET STORM
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0.96
+      drawbackDurationSeconds: 0
+    - gateId: risky_reinforcement
+      displayLabel: REINFORCEMENT
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 1.05
+      drawbackDurationSeconds: 0
+    - gateId: risky_bounty
+      displayLabel: BOUNTY 30S
+      magnitude: 1.5
+      durationSeconds: 30
+      secondaryMagnitude: 1.15
+      secondaryDurationSeconds: 30
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_projectile
+      displayLabel: PROJECTILE +2
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_recruit
+      displayLabel: RECRUIT +2
+      magnitude: 2
+      durationSeconds: 0
+      secondaryMagnitude: 0
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+    - gateId: major_overclock
+      displayLabel: OVERCLOCK
+      magnitude: 1.35
+      durationSeconds: 0
+      secondaryMagnitude: 1.18
+      secondaryDurationSeconds: 0
+      drawbackMagnitude: 0
+      drawbackDurationSeconds: 0
+  majorSettings:
+    unlockSeconds: 60
+    earlyChance: 0.25
+    midChance: 0.4
+    lateChance: 0.6
+    guaranteedAfterEligibleMisses: 2
+  runStatCaps:
+    damage: 3.5
+    fireRate: 8.5
+    maxHp: 36
+    projectileCount: 9
+    squadCount: 16
+    maxIncomingDamageMultiplier: 1.75
+    maxEnemyPressureMultiplier: 1.5
+    minEnemySpeedMultiplier: 0.5

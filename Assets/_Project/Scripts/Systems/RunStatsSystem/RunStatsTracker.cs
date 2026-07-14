@@ -26,6 +26,7 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         private int _killScore;
         private int _eliteBonusScore;
         private float _coinRewardMultiplier = 1f;
+        private bool _suppressPersistence;
         [SerializeField] private EconomyConfig economyConfig;
 
         public float SurvivalTime => _survivalTime;
@@ -63,6 +64,11 @@ namespace _Project.Scripts.Systems.RunStatsSystem
         public void SetEconomyConfig(EconomyConfig config)
         {
             economyConfig = config;
+        }
+
+        public void SetPersistenceSuppressed(bool suppress)
+        {
+            _suppressPersistence = suppress;
         }
 
         private void OnDestroy()
@@ -104,7 +110,10 @@ namespace _Project.Scripts.Systems.RunStatsSystem
 
             _isTracking = false;
             _coinsEarned = CalculateFinalCoins();
-            SaveBestStats();
+            if (!_suppressPersistence)
+            {
+                SaveBestStats();
+            }
         }
 
         public RunStatsSnapshot CreateSnapshot()

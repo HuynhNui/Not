@@ -41450,9 +41450,10 @@ MonoBehaviour:
   uiSystem: {fileID: 1128062107}
   levelSystem: {fileID: 0}
   runStatsTracker: {fileID: 0}
-  balanceConfig: {fileID: 11400000, guid: d2a535cec495c814c9cac4c8d4434c93, type: 2}
+  balanceConfig: {fileID: 11400000, guid: e6f7cd773d5dc294f8ac055ea9ba719c, type: 2}
   economyConfig: {fileID: 11400000, guid: 9b66f54d30185c74282cb4c4221958bf, type: 2}
   telemetryConfig: {fileID: 11400000, guid: 7c85369c4a53c0e4481e21e53e2f0783, type: 2}
+  benchmarkProfile: {fileID: 0}
   telemetryService: {fileID: 0}
   playerController: {fileID: 479990533}
   mainPlayerUnit: {fileID: 289232676}
@@ -41473,6 +41474,7 @@ MonoBehaviour:
   gatePrefab: {fileID: 656434872190376722, guid: afd5054dc2a64914faf938e084243748, type: 3}
   spawnIntervalSeconds: 12
   gatePoolConfig: {fileID: 11400000, guid: e45b70737a6a01a4e9263864804157fb, type: 2}
+  gateScalingProfile: {fileID: 0}
   useLegacyOfferGeneration: 0
   spawnAboveCameraOffset: 1.25
   useViewportLanes: 1

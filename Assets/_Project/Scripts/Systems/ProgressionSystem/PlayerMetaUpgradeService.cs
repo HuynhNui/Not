@@ -13,7 +13,6 @@ namespace _Project.Scripts.Systems.ProgressionSystem
     public static class PlayerMetaUpgradeService
     {
         public const int MaxUpgradeLevel = PlayerMetaBalanceConfig.DefaultMaxLevel;
-        public const int ProjectileCountMaxUpgradeLevel = 3;
         [Obsolete("Balance v1 uses explicit level values instead of a shared multiplier.")]
         public const float UpgradeMultiplier = 1.5f;
         private static PlayerMetaBalanceConfig _balanceConfig;
@@ -65,9 +64,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static int GetMaxLevel(PlayerMetaUpgradeType type)
         {
-            return type == PlayerMetaUpgradeType.ProjectileCount
-                ? ProjectileCountMaxUpgradeLevel
-                : MaxUpgradeLevel;
+            return MaxUpgradeLevel;
         }
 
         public static bool IsMaxLevel(PlayerMetaUpgradeType type)
@@ -102,9 +99,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             }
 
             int nextLevel = level + 1;
-            return type == PlayerMetaUpgradeType.ProjectileCount
-                ? GetProjectileCountCost(nextLevel)
-                : GetLevelData(nextLevel).Cost;
+            return GetLevelData(nextLevel).Cost;
         }
 
         public static float GetCurrentValue(PlayerMetaUpgradeType type)
@@ -181,21 +176,37 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static void ApplyToPlayer(MainPlayerUnit mainPlayerUnit, PlayerController playerController)
         {
+            ApplyStatsToPlayer(BuildCurrentRunStartStats(), mainPlayerUnit, playerController);
+        }
+
+        public static PlayerRunStartStats BuildCurrentRunStartStats()
+        {
+            return new PlayerRunStartStats(
+                GetCurrentValue(PlayerMetaUpgradeType.Damage),
+                GetCurrentValue(PlayerMetaUpgradeType.FireRate),
+                GetCurrentValue(PlayerMetaUpgradeType.MaxHp),
+                Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount)),
+                Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize)));
+        }
+
+        public static void ApplyStatsToPlayer(
+            PlayerRunStartStats stats,
+            MainPlayerUnit mainPlayerUnit,
+            PlayerController playerController)
+        {
             if (mainPlayerUnit == null)
             {
                 return;
             }
 
-            mainPlayerUnit.SetDamage(GetCurrentValue(PlayerMetaUpgradeType.Damage));
-            mainPlayerUnit.SetFireRate(GetCurrentValue(PlayerMetaUpgradeType.FireRate));
-            mainPlayerUnit.SetMaxHp(GetCurrentValue(PlayerMetaUpgradeType.MaxHp), healByDelta: true);
+            mainPlayerUnit.SetDamage(stats.Damage);
+            mainPlayerUnit.SetFireRate(stats.FireRate);
+            mainPlayerUnit.SetMaxHp(stats.MaxHp, healByDelta: true);
             mainPlayerUnit.RestoreFullHealth();
 
             if (mainPlayerUnit.BulletSpawner != null)
             {
-                int projectileCount = Mathf.RoundToInt(
-                    GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount));
-                mainPlayerUnit.BulletSpawner.SetProjectileCount(projectileCount);
+                mainPlayerUnit.BulletSpawner.SetProjectileCount(stats.ProjectileCount);
             }
 
             if (playerController != null)
@@ -206,7 +217,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 }
 
                 playerController.SetSquadCount(
-                    Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize)),
+                    stats.SquadSize,
                     1f);
             }
 
@@ -232,16 +243,6 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             return _balanceConfig != null
                 ? _balanceConfig.GetLevelData(safeLevel)
                 : PlayerMetaBalanceConfig.GetDefaultLevelData(safeLevel);
-        }
-
-        private static int GetProjectileCountCost(int level)
-        {
-            return level switch
-            {
-                2 => GetLevelData(3).Cost,
-                3 => GetLevelData(5).Cost,
-                _ => GetLevelData(level).Cost
-            };
         }
 
         private static void SyncFollowersFromMain(PlayerController playerController, MainPlayerUnit mainPlayerUnit)
