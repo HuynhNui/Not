@@ -33,13 +33,13 @@ namespace _Project.Cutscenes
 
         private static readonly Rule[] Rules =
         {
-            new Rule(StoryCutsceneIds.BootSequence, null, 0, 0f, 0, 0),
-            new Rule(StoryCutsceneIds.FirstDeathRecovery, StoryCutsceneIds.BootSequence, 1, 0f, 0, 0),
-            new Rule(StoryCutsceneIds.EnemyDoesNotCharge, StoryCutsceneIds.FirstDeathRecovery, 3, 30f, 100, 0),
-            new Rule(StoryCutsceneIds.GateMemoryLeak, StoryCutsceneIds.EnemyDoesNotCharge, 20, 180f, 0, 0),
-            new Rule(StoryCutsceneIds.HumanCommand, StoryCutsceneIds.GateMemoryLeak, 35, 300f, 0, 1000),
-            new Rule(StoryCutsceneIds.SystemFatigue, StoryCutsceneIds.HumanCommand, 50, 360f, 0, 0),
-            new Rule(StoryCutsceneIds.FinalChoicePreChoice, StoryCutsceneIds.SystemFatigue, 70, 420f, 0, 0)
+            new Rule(StoryCutsceneIds.BootSequence, null, 0, int.MaxValue, 0f, 0, 0),
+            new Rule(StoryCutsceneIds.FirstDeathRecovery, StoryCutsceneIds.BootSequence, 1, int.MaxValue, 0f, 0, 0),
+            new Rule(StoryCutsceneIds.EnemyDoesNotCharge, StoryCutsceneIds.FirstDeathRecovery, 3, int.MaxValue, 30f, 100, 0),
+            new Rule(StoryCutsceneIds.GateMemoryLeak, StoryCutsceneIds.EnemyDoesNotCharge, 10, int.MaxValue, 180f, 0, 0),
+            new Rule(StoryCutsceneIds.HumanCommand, StoryCutsceneIds.GateMemoryLeak, 20, int.MaxValue, 300f, 0, 1000),
+            new Rule(StoryCutsceneIds.SystemFatigue, StoryCutsceneIds.HumanCommand, 35, int.MaxValue, 360f, 0, 0),
+            new Rule(StoryCutsceneIds.FinalChoicePreChoice, StoryCutsceneIds.SystemFatigue, 0, 50, 420f, 0, 0)
         };
 
         public static bool TryGetFirstEligible(
@@ -116,6 +116,7 @@ namespace _Project.Cutscenes
             }
 
             return context.LoopCount >= rule.MinLoopCount
+                && context.LoopCount <= rule.MaxLoopCount
                 && context.SurvivalSeconds >= rule.MinSurvivalSeconds
                 && context.RunKills >= rule.MinRunKills
                 && context.TotalKills >= rule.MinTotalKills;
@@ -127,6 +128,7 @@ namespace _Project.Cutscenes
                 string cutsceneId,
                 string requiredSeenCutsceneId,
                 int minLoopCount,
+                int maxLoopCount,
                 float minSurvivalSeconds,
                 int minRunKills,
                 int minTotalKills)
@@ -134,6 +136,7 @@ namespace _Project.Cutscenes
                 CutsceneId = cutsceneId;
                 RequiredSeenCutsceneId = requiredSeenCutsceneId;
                 MinLoopCount = minLoopCount;
+                MaxLoopCount = maxLoopCount;
                 MinSurvivalSeconds = minSurvivalSeconds;
                 MinRunKills = minRunKills;
                 MinTotalKills = minTotalKills;
@@ -142,6 +145,7 @@ namespace _Project.Cutscenes
             public string CutsceneId { get; }
             public string RequiredSeenCutsceneId { get; }
             public int MinLoopCount { get; }
+            public int MaxLoopCount { get; }
             public float MinSurvivalSeconds { get; }
             public int MinRunKills { get; }
             public int MinTotalKills { get; }

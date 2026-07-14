@@ -5637,7 +5637,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33ede9f619d261448961263ad6504ca4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Gameplay.Combat.BulletSpawner
-  bulletPrefab: {fileID: 6177185498926041475, guid: 160e2a92faff0f043aa475a569f9d2e4, type: 3}
+  bulletPrefab: {fileID: 6177185498926041475, guid: 3574792e08e94e4a8c47da2fb97c4875, type: 3}
   firePoint: {fileID: 474146237}
   fireRate: 4
   damage: 100000
@@ -5647,18 +5647,18 @@ MonoBehaviour:
   forceVerticalDirection: 1
   poolSystem: {fileID: 2100000003}
   visualTierDamage: 0
-  combatScalingConfig: {fileID: 11400000, guid: 18efea314560a2144b291217328b3f0b, type: 2}
+  combatScalingConfig: {fileID: 11400000, guid: 096a3ac0564d51d408140beedc85ae21, type: 2}
   projectileSortingOrderOffset: 500
   visualTiers:
-  - minDamage: 1.3
+  - minDamage: 0
     bulletPrefab: {fileID: 6177185498926041475, guid: 3574792e08e94e4a8c47da2fb97c4875, type: 3}
-  - minDamage: 1.6
+  - minDamage: 1.3
     bulletPrefab: {fileID: 6177185498926041475, guid: a09993cc40bc490f95a2253d6be4c726, type: 3}
-  - minDamage: 1.9
+  - minDamage: 1.6
     bulletPrefab: {fileID: 6177185498926041475, guid: ffaa143ff47a4ce9af6ef280371dffa0, type: 3}
-  - minDamage: 2.5
+  - minDamage: 1.9
     bulletPrefab: {fileID: 6177185498926041475, guid: c11d505573ce4d6095b787b842475119, type: 3}
-  - minDamage: 3.25
+  - minDamage: 2.5
     bulletPrefab: {fileID: 6177185498926041475, guid: 4b0427de8d3e4441afaa81f57d9c37e2, type: 3}
   defaultModifierConfigs: []
 --- !u!4 &289232678
@@ -9242,7 +9242,7 @@ MonoBehaviour:
   rearArcDegrees: 140
   fallbackHurtboxRadius: 0.1
   autoFire: 1
-  combatScalingConfig: {fileID: 11400000, guid: 18efea314560a2144b291217328b3f0b, type: 2}
+  combatScalingConfig: {fileID: 11400000, guid: 096a3ac0564d51d408140beedc85ae21, type: 2}
 --- !u!4 &479990534
 Transform:
   m_ObjectHideFlags: 0
@@ -12116,7 +12116,7 @@ RectTransform:
   m_GameObject: {fileID: 608041769}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.0137805, y: 1.0137805, z: 1.0137805}
+  m_LocalScale: {x: 0.9190532, y: 0.9190532, z: 0.9190532}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1014810352}
@@ -41450,9 +41450,9 @@ MonoBehaviour:
   uiSystem: {fileID: 1128062107}
   levelSystem: {fileID: 0}
   runStatsTracker: {fileID: 0}
-  balanceConfig: {fileID: 11400000, guid: 67a9debaa4c1b77448aa832032983d56, type: 2}
+  balanceConfig: {fileID: 11400000, guid: d2a535cec495c814c9cac4c8d4434c93, type: 2}
   economyConfig: {fileID: 11400000, guid: 9b66f54d30185c74282cb4c4221958bf, type: 2}
-  telemetryConfig: {fileID: 11400000, guid: b407d11cdf6e3cc4a8127c804072bda3, type: 2}
+  telemetryConfig: {fileID: 11400000, guid: 7c85369c4a53c0e4481e21e53e2f0783, type: 2}
   telemetryService: {fileID: 0}
   playerController: {fileID: 479990533}
   mainPlayerUnit: {fileID: 289232676}

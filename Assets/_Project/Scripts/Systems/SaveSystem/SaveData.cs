@@ -219,14 +219,14 @@ namespace _Project.Scripts.Systems.SaveSystem
                 UpgradeLevelSaveEntry entry = upgradeLevels[index];
                 if (entry == null
                     || string.IsNullOrWhiteSpace(entry.upgradeType)
-                    || !Enum.TryParse(entry.upgradeType, out PlayerMetaUpgradeType _)
+                    || !Enum.TryParse(entry.upgradeType, out PlayerMetaUpgradeType upgradeType)
                     || !seenTypes.Add(entry.upgradeType))
                 {
                     upgradeLevels.RemoveAt(index);
                     continue;
                 }
 
-                entry.level = Mathf.Clamp(entry.level, 0, PlayerMetaUpgradeService.MaxUpgradeLevel);
+                entry.level = Mathf.Clamp(entry.level, 0, PlayerMetaUpgradeService.GetMaxLevel(upgradeType));
             }
         }
 

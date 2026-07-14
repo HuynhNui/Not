@@ -576,8 +576,9 @@ namespace _Project.Scripts.Systems.UISystem
                 bool isMaxLevel = PlayerMetaUpgradeService.IsMaxLevel(row.UpgradeType);
                 float currentValue = PlayerMetaUpgradeService.GetCurrentValue(row.UpgradeType);
                 float nextValue = PlayerMetaUpgradeService.GetNextValue(row.UpgradeType);
+                int maxLevel = PlayerMetaUpgradeService.GetMaxLevel(row.UpgradeType);
 
-                SetText(row.LevelText, $"LV. {level}/{PlayerMetaUpgradeService.MaxUpgradeLevel}");
+                SetText(row.LevelText, $"LV. {level}/{maxLevel}");
                 SetText(
                     row.CurrentValueText,
                     PlayerMetaUpgradeService.FormatValue(row.UpgradeType, currentValue));

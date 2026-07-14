@@ -242,7 +242,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             EnsureLoaded();
 
             if (!PlayerMetaUpgradeService.IsSupportedUpgrade(type)
-                || _data.GetUpgradeLevel(type) >= PlayerMetaUpgradeService.MaxUpgradeLevel)
+                || _data.GetUpgradeLevel(type) >= PlayerMetaUpgradeService.GetMaxLevel(type))
             {
                 return false;
             }

@@ -7,7 +7,7 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Combat Scaling Config")]
     public sealed class CombatScalingConfig : ScriptableObject
     {
-        public const string DefaultConfigVersion = "balance-v1.1.0";
+        public const string DefaultConfigVersion = "balance-v1.1.1";
 
         [SerializeField] private string configVersion = DefaultConfigVersion;
         [SerializeField] private float fireSoftCapStart = 6f;

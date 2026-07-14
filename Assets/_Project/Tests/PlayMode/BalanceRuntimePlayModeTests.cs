@@ -57,8 +57,8 @@ namespace TrueGate.PlayModeTests
         [UnityTest]
         public IEnumerator ProjectileMetaLevels_ApplyConfiguredRuntimeProjectileCounts()
         {
-            int[] levels = { 0, 1, 3, 5 };
-            int[] expectedProjectiles = { 5, 6, 10, 16 };
+            int[] levels = { 0, 1, 2, 3, 4, 5 };
+            int[] expectedProjectiles = { 1, 2, 3, 4, 4, 4 };
 
             for (int index = 0; index < levels.Length; index++)
             {
@@ -127,13 +127,13 @@ namespace TrueGate.PlayModeTests
                 apply.Invoke(null, new object[] { main, controller });
                 apply.Invoke(null, new object[] { main, controller });
 
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(16));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
 
                 var followers = (IList)GetProperty(controller, "Followers");
                 Assert.That(followers.Count, Is.EqualTo(1));
                 Component follower = (Component)followers[0];
                 Component followerSpawner = (Component)GetProperty(follower, "BulletSpawner");
-                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(16));
+                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(4));
                 yield return null;
             }
             finally
@@ -169,7 +169,7 @@ namespace TrueGate.PlayModeTests
                     "ApplyToPlayer",
                     BindingFlags.Public | BindingFlags.Static);
                 apply.Invoke(null, new object[] { main, controller });
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(16));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
 
                 Component runtimeController = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Gates.GateRuntimeEffectController"));
@@ -183,10 +183,10 @@ namespace TrueGate.PlayModeTests
                     FindDefaultGateEntryById("major_projectile"));
 
                 Invoke(runtimeController, "Apply", gateConfig);
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(17));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(5));
 
                 apply.Invoke(null, new object[] { main, controller });
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(16));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
                 yield return null;
             }
             finally
@@ -199,6 +199,46 @@ namespace TrueGate.PlayModeTests
                 ResetTestSaveService();
                 UnityEngine.Object.Destroy(squadObject);
                 DeleteDirectory(saveDirectory);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ProjectileVolley_SpawnsConfiguredShotCount()
+        {
+            int[] projectileCounts = { 1, 4, 6 };
+
+            for (int caseIndex = 0; caseIndex < projectileCounts.Length; caseIndex++)
+            {
+                int projectileCount = projectileCounts[caseIndex];
+                GameObject spawnerObject = new GameObject($"VolleySpawner{projectileCount}Test");
+                GameObject firePointObject = new GameObject("FirePoint");
+                GameObject prefabObject = new GameObject("Bullet_Tier_00");
+
+                try
+                {
+                    Component spawner = spawnerObject.AddComponent(
+                        RuntimeType("_Project.Scripts.Gameplay.Combat.BulletSpawner"));
+                    Component bulletPrefab = prefabObject.AddComponent(
+                        RuntimeType("_Project.Scripts.Gameplay.Combat.Bullet"));
+                    firePointObject.transform.SetParent(spawnerObject.transform, false);
+
+                    SetField(spawner, "bulletPrefab", bulletPrefab);
+                    Invoke(spawner, "SetFirePoint", firePointObject.transform);
+                    Invoke(spawner, "Initialize", 1f, 4f);
+                    Invoke(spawner, "SetProjectileCount", projectileCount);
+                    Invoke(spawner, "Shoot");
+
+                    Assert.That(
+                        CountSceneObjectsNamed("Bullet_Tier_00"),
+                        Is.EqualTo(projectileCount + 1));
+                    yield return null;
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(spawnerObject);
+                    UnityEngine.Object.DestroyImmediate(prefabObject);
+                    DestroySpawnedObjectsNamed("Bullet_Tier_00");
+                }
             }
         }
 
@@ -526,6 +566,35 @@ namespace TrueGate.PlayModeTests
                 fieldName,
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(target, value);
+        }
+
+        private static int CountSceneObjectsNamed(string baseName)
+        {
+            int count = 0;
+            foreach (GameObject candidate in UnityEngine.Object.FindObjectsByType<GameObject>(
+                         FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
+            {
+                if (candidate.name == baseName || candidate.name == $"{baseName}(Clone)")
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static void DestroySpawnedObjectsNamed(string baseName)
+        {
+            foreach (GameObject candidate in UnityEngine.Object.FindObjectsByType<GameObject>(
+                         FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
+            {
+                if (candidate.name == $"{baseName}(Clone)")
+                {
+                    UnityEngine.Object.DestroyImmediate(candidate);
+                }
+            }
         }
 
         private static string CreateTempDirectory(string suffix)

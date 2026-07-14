@@ -13,6 +13,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
     public static class PlayerMetaUpgradeService
     {
         public const int MaxUpgradeLevel = PlayerMetaBalanceConfig.DefaultMaxLevel;
+        public const int ProjectileCountMaxUpgradeLevel = 3;
         [Obsolete("Balance v1 uses explicit level values instead of a shared multiplier.")]
         public const float UpgradeMultiplier = 1.5f;
         private static PlayerMetaBalanceConfig _balanceConfig;
@@ -46,7 +47,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 "BULLET",
                 "Projectile Count",
                 "Increases bullets per shot.",
-                5f,
+                1f,
                 true),
             new UpgradeDefinition(
                 PlayerMetaUpgradeType.SquadSize,
@@ -59,12 +60,19 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static int GetLevel(PlayerMetaUpgradeType type)
         {
-            return Mathf.Clamp(SaveService.Instance.GetUpgradeLevel(type), 0, MaxUpgradeLevel);
+            return Mathf.Clamp(SaveService.Instance.GetUpgradeLevel(type), 0, GetMaxLevel(type));
+        }
+
+        public static int GetMaxLevel(PlayerMetaUpgradeType type)
+        {
+            return type == PlayerMetaUpgradeType.ProjectileCount
+                ? ProjectileCountMaxUpgradeLevel
+                : MaxUpgradeLevel;
         }
 
         public static bool IsMaxLevel(PlayerMetaUpgradeType type)
         {
-            return GetLevel(type) >= MaxUpgradeLevel;
+            return GetLevel(type) >= GetMaxLevel(type);
         }
 
         public static bool IsSupportedUpgrade(PlayerMetaUpgradeType type)
@@ -88,7 +96,15 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             }
 
             int level = GetLevel(type);
-            return level >= MaxUpgradeLevel ? 0 : GetLevelData(level + 1).Cost;
+            if (level >= GetMaxLevel(type))
+            {
+                return 0;
+            }
+
+            int nextLevel = level + 1;
+            return type == PlayerMetaUpgradeType.ProjectileCount
+                ? GetProjectileCountCost(nextLevel)
+                : GetLevelData(nextLevel).Cost;
         }
 
         public static float GetCurrentValue(PlayerMetaUpgradeType type)
@@ -98,18 +114,18 @@ namespace _Project.Scripts.Systems.ProgressionSystem
 
         public static float GetNextValue(PlayerMetaUpgradeType type)
         {
-            int nextLevel = Mathf.Min(MaxUpgradeLevel, GetLevel(type) + 1);
+            int nextLevel = Mathf.Min(GetMaxLevel(type), GetLevel(type) + 1);
             return GetValueForLevel(type, nextLevel);
         }
 
         public static float CalculateMaxValue(PlayerMetaUpgradeType type)
         {
-            return GetValueForLevel(type, MaxUpgradeLevel);
+            return GetValueForLevel(type, GetMaxLevel(type));
         }
 
         public static float GetValueForLevel(PlayerMetaUpgradeType type, int level)
         {
-            PlayerMetaLevelData levelData = GetLevelData(level);
+            PlayerMetaLevelData levelData = GetLevelData(Mathf.Clamp(level, 0, GetMaxLevel(type)));
 
             return type switch
             {
@@ -216,6 +232,16 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             return _balanceConfig != null
                 ? _balanceConfig.GetLevelData(safeLevel)
                 : PlayerMetaBalanceConfig.GetDefaultLevelData(safeLevel);
+        }
+
+        private static int GetProjectileCountCost(int level)
+        {
+            return level switch
+            {
+                2 => GetLevelData(3).Cost,
+                3 => GetLevelData(5).Cost,
+                _ => GetLevelData(level).Cost
+            };
         }
 
         private static void SyncFollowersFromMain(PlayerController playerController, MainPlayerUnit mainPlayerUnit)

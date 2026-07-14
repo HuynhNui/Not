@@ -85,16 +85,16 @@ namespace _Project.Tests.Editor
         [Test]
         public void FullMetaEffectiveDps_RemainsInsideTargetRange()
         {
-            float baseline = BalanceV1Math.EffectiveDps(1f, 4f, 5, 1);
-            float fullMeta = BalanceV1Math.EffectiveDps(1.9f, 6.4f, 16, 12);
+            float baseline = BalanceV1Math.EffectiveDps(1f, 4f, 1, 1);
+            float fullMeta = BalanceV1Math.EffectiveDps(1.9f, 6.4f, 6, 12);
             float ratio = fullMeta / baseline;
 
-            Assert.That(baseline, Is.EqualTo(20f).Within(0.0001f));
-            Assert.That(fullMeta, Is.EqualTo(231.8f).Within(0.1f));
+            Assert.That(baseline, Is.EqualTo(15.06f).Within(0.01f));
+            Assert.That(fullMeta, Is.EqualTo(178.68f).Within(0.1f));
             Assert.That(ratio, Is.InRange(11f, 12.2f));
             Assert.That(
-                BalanceV1Math.DamagePerMainBullet(1.9f, 16),
-                Is.EqualTo(0.803f).Within(0.001f));
+                BalanceV1Math.DamagePerMainBullet(1.9f, 6),
+                Is.EqualTo(1.651f).Within(0.001f));
         }
 
         [Test]
@@ -646,7 +646,7 @@ namespace _Project.Tests.Editor
                 StoryCutsceneUnlockRules.IsEligible(
                     StoryCutsceneIds.GateMemoryLeak,
                     saveData,
-                    new StoryCutsceneProgressContext(20, 179.9f, 0, 100)),
+                    new StoryCutsceneProgressContext(10, 179.9f, 0, 100)),
                 Is.False);
 
             saveData.MarkCutsceneSeen(StoryCutsceneIds.EnemyDoesNotCharge);
@@ -655,7 +655,7 @@ namespace _Project.Tests.Editor
                 StoryCutsceneUnlockRules.IsEligible(
                     StoryCutsceneIds.GateMemoryLeak,
                     saveData,
-                    new StoryCutsceneProgressContext(20, 180f, 0, 100)),
+                    new StoryCutsceneProgressContext(10, 180f, 0, 100)),
                 Is.True);
         }
 
@@ -687,14 +687,66 @@ namespace _Project.Tests.Editor
                 StoryCutsceneUnlockRules.IsEligible(
                     StoryCutsceneIds.HumanCommand,
                     saveData,
-                    new StoryCutsceneProgressContext(35, 300f, 0, 999)),
+                    new StoryCutsceneProgressContext(20, 300f, 0, 999)),
                 Is.False);
             Assert.That(
                 StoryCutsceneUnlockRules.IsEligible(
                     StoryCutsceneIds.HumanCommand,
                     saveData,
-                    new StoryCutsceneProgressContext(35, 300f, 0, 1000)),
+                    new StoryCutsceneProgressContext(20, 300f, 0, 1000)),
                 Is.True);
+        }
+
+        [Test]
+        public void StoryCutsceneUnlockRules_UseUpdatedLoopThresholds()
+        {
+            SaveData saveData = SaveData.CreateNew(1000);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.BootSequence);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.FirstDeathRecovery);
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.EnemyDoesNotCharge);
+
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.GateMemoryLeak,
+                    saveData,
+                    new StoryCutsceneProgressContext(9, 180f, 0, 1000)),
+                Is.False);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.GateMemoryLeak,
+                    saveData,
+                    new StoryCutsceneProgressContext(10, 180f, 0, 1000)),
+                Is.True);
+
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.GateMemoryLeak);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.HumanCommand,
+                    saveData,
+                    new StoryCutsceneProgressContext(20, 300f, 0, 1000)),
+                Is.True);
+
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.HumanCommand);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.SystemFatigue,
+                    saveData,
+                    new StoryCutsceneProgressContext(35, 360f, 0, 1000)),
+                Is.True);
+
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.SystemFatigue);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoicePreChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(50, 420f, 0, 1000)),
+                Is.True);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoicePreChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(51, 420f, 0, 1000)),
+                Is.False);
         }
 
         [Test]
@@ -865,7 +917,7 @@ namespace _Project.Tests.Editor
                 Assert.That(config.Levels.Count, Is.EqualTo(6));
                 Assert.That(fullMeta.Damage, Is.EqualTo(1.9f).Within(0.0001f));
                 Assert.That(fullMeta.FireRate, Is.EqualTo(6.4f).Within(0.0001f));
-                Assert.That(fullMeta.ProjectileCount, Is.EqualTo(16));
+                Assert.That(fullMeta.ProjectileCount, Is.EqualTo(6));
                 Assert.That(fullMeta.SquadSize, Is.EqualTo(12));
                 Assert.That(fullMeta.Cost, Is.EqualTo(2200));
             }
@@ -889,10 +941,57 @@ namespace _Project.Tests.Editor
                 Is.EqualTo(20f).Within(0.0001f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 5),
-                Is.EqualTo(16f));
+                Is.EqualTo(4f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.SquadSize, 5),
                 Is.EqualTo(12f));
+
+            for (int level = 0; level <= PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount); level++)
+            {
+                Assert.That(
+                    PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, level),
+                    Is.EqualTo(level + 1));
+            }
+
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
+            Assert.That(PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 4), Is.EqualTo(4f));
+        }
+
+        [Test]
+        public void PlayerMetaUpgradeService_ProjectileCountUsesThreeLevelsAndCustomCosts()
+        {
+            string directoryPath = Path.Combine(
+                Path.GetTempPath(),
+                $"true-gate-projectile-cost-test-{System.Guid.NewGuid():N}");
+            SaveService service = SaveService.CreateForTests(directoryPath);
+
+            try
+            {
+                SaveService.SetInstanceForTests(service);
+                service.EnsureLoaded();
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(100));
+
+                service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 1);
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(550));
+
+                service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 2);
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2200));
+
+                service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 3);
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(0));
+
+                service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.Damage, 1);
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.Damage), Is.EqualTo(250));
+            }
+            finally
+            {
+                SaveService.SetInstanceForTests(null);
+                if (Directory.Exists(directoryPath))
+                {
+                    Directory.Delete(directoryPath, recursive: true);
+                }
+            }
         }
 
         [Test]
@@ -934,11 +1033,19 @@ namespace _Project.Tests.Editor
                 var serializedSpawner = new SerializedObject(spawner);
                 SerializedProperty tiers = serializedSpawner.FindProperty("visualTiers");
                 tiers.arraySize = 5;
-                float[] thresholds = { 1.3f, 1.6f, 1.9f, 2.5f, 3.25f };
+                float[] thresholds = { 0f, 1.3f, 1.6f, 1.9f, 2.5f };
+                string[] names =
+                {
+                    "Bullet_Tier_00",
+                    "Bullet_Tier_10",
+                    "Bullet_Tier_20",
+                    "Bullet_Tier_50",
+                    "Bullet_Tier_100"
+                };
 
                 for (int index = 0; index < thresholds.Length; index++)
                 {
-                    bulletObjects[index] = new GameObject($"BulletTier{index}");
+                    bulletObjects[index] = new GameObject(names[index]);
                     Bullet bullet = bulletObjects[index].AddComponent<Bullet>();
                     SerializedProperty tier = tiers.GetArrayElementAtIndex(index);
                     tier.FindPropertyRelative("minDamage").floatValue = thresholds[index];
@@ -947,14 +1054,16 @@ namespace _Project.Tests.Editor
 
                 serializedSpawner.ApplyModifiedPropertiesWithoutUndo();
 
-                Assert.That(spawner.ResolveVisualTierIndex(1.29f), Is.EqualTo(-1));
-                Assert.That(spawner.ResolveVisualTierIndex(1.3f), Is.EqualTo(0));
-                Assert.That(spawner.ResolveVisualTierIndex(1.59f), Is.EqualTo(0));
-                Assert.That(spawner.ResolveVisualTierIndex(1.6f), Is.EqualTo(1));
-                Assert.That(spawner.ResolveVisualTierIndex(1.89f), Is.EqualTo(1));
-                Assert.That(spawner.ResolveVisualTierIndex(1.9f), Is.EqualTo(2));
-                Assert.That(spawner.ResolveVisualTierIndex(2.49f), Is.EqualTo(2));
-                Assert.That(spawner.ResolveVisualTierIndex(2.5f), Is.EqualTo(3));
+                Assert.That(spawner.ResolveVisualTierIndex(0f), Is.EqualTo(0));
+                Assert.That(spawner.ResolveVisualTierIndex(1f), Is.EqualTo(0));
+                Assert.That(spawner.ResolveVisualTierIndex(1.29f), Is.EqualTo(0));
+                Assert.That(spawner.ResolveVisualTierIndex(1.3f), Is.EqualTo(1));
+                Assert.That(spawner.ResolveVisualTierIndex(1.59f), Is.EqualTo(1));
+                Assert.That(spawner.ResolveVisualTierIndex(1.6f), Is.EqualTo(2));
+                Assert.That(spawner.ResolveVisualTierIndex(1.89f), Is.EqualTo(2));
+                Assert.That(spawner.ResolveVisualTierIndex(1.9f), Is.EqualTo(3));
+                Assert.That(spawner.ResolveVisualTierIndex(2.49f), Is.EqualTo(3));
+                Assert.That(spawner.ResolveVisualTierIndex(2.5f), Is.EqualTo(4));
 
                 spawner.SetVisualTierDamage(1.9f);
                 int tierBeforeProjectileUpgrade = spawner.ResolveVisualTierIndex(spawner.VisualTierDamage);
@@ -970,6 +1079,44 @@ namespace _Project.Tests.Editor
                 {
                     Object.DestroyImmediate(bulletObjects[index]);
                 }
+            }
+        }
+
+        [Test]
+        public void BulletSpawner_FallbackUsesLowestValidVisualTierBeforeSerializedFallback()
+        {
+            var spawnerObject = new GameObject("BulletVisualFallbackTest");
+            BulletSpawner spawner = spawnerObject.AddComponent<BulletSpawner>();
+            var placeholderObject = new GameObject("Bullet_Tier_10");
+            var tierObject = new GameObject("Bullet_Tier_00");
+
+            try
+            {
+                Bullet placeholder = placeholderObject.AddComponent<Bullet>();
+                Bullet tierBullet = tierObject.AddComponent<Bullet>();
+                var serializedSpawner = new SerializedObject(spawner);
+                serializedSpawner.FindProperty("bulletPrefab").objectReferenceValue = placeholder;
+                SerializedProperty tiers = serializedSpawner.FindProperty("visualTiers");
+                tiers.arraySize = 1;
+                SerializedProperty tier = tiers.GetArrayElementAtIndex(0);
+                tier.FindPropertyRelative("minDamage").floatValue = 1.3f;
+                tier.FindPropertyRelative("bulletPrefab").objectReferenceValue = tierBullet;
+                serializedSpawner.ApplyModifiedPropertiesWithoutUndo();
+
+                MethodInfo getPrefab = typeof(BulletSpawner).GetMethod(
+                    "GetBulletPrefabForCurrentTier",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(getPrefab, Is.Not.Null);
+
+                Bullet resolved = (Bullet)getPrefab.Invoke(spawner, null);
+
+                Assert.That(resolved, Is.EqualTo(tierBullet));
+            }
+            finally
+            {
+                Object.DestroyImmediate(spawnerObject);
+                Object.DestroyImmediate(placeholderObject);
+                Object.DestroyImmediate(tierObject);
             }
         }
 

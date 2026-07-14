@@ -28,6 +28,15 @@ namespace _Project.Scripts.Gameplay.Combat
         [SerializeField] private List<BulletVisualTier> visualTiers = new List<BulletVisualTier>();
         [SerializeField] private List<BulletModifierConfig> defaultModifierConfigs = new List<BulletModifierConfig>();
 
+        private static readonly string[] OfficialBulletPrefabNames =
+        {
+            "Bullet_Tier_00",
+            "Bullet_Tier_10",
+            "Bullet_Tier_20",
+            "Bullet_Tier_50",
+            "Bullet_Tier_100"
+        };
+
         private readonly List<BulletModifierConfig> _runtimeModifierConfigs = new List<BulletModifierConfig>();
         private readonly List<BulletModifierConfig> _activeModifierBuffer = new List<BulletModifierConfig>();
         private float _nextShotTime;
@@ -298,9 +307,76 @@ namespace _Project.Scripts.Gameplay.Combat
         private Bullet GetBulletPrefabForCurrentTier()
         {
             int tierIndex = ResolveVisualTierIndex(visualTierDamage);
-            return tierIndex >= 0 && tierIndex < visualTiers.Count
-                ? visualTiers[tierIndex].BulletPrefab
-                : bulletPrefab;
+            if (tierIndex >= 0 && tierIndex < visualTiers.Count)
+            {
+                return visualTiers[tierIndex].BulletPrefab;
+            }
+
+            Bullet lowestTierPrefab = GetLowestValidVisualTierPrefab();
+            return lowestTierPrefab != null ? lowestTierPrefab : bulletPrefab;
+        }
+
+        private Bullet GetLowestValidVisualTierPrefab()
+        {
+            Bullet selectedPrefab = null;
+            float selectedMinDamage = float.PositiveInfinity;
+
+            for (int index = 0; index < visualTiers.Count; index++)
+            {
+                BulletVisualTier tier = visualTiers[index];
+                if (tier == null || tier.BulletPrefab == null)
+                {
+                    continue;
+                }
+
+                if (tier.MinDamage >= selectedMinDamage)
+                {
+                    continue;
+                }
+
+                selectedMinDamage = tier.MinDamage;
+                selectedPrefab = tier.BulletPrefab;
+            }
+
+            return selectedPrefab;
+        }
+
+        private void OnValidate()
+        {
+            ValidateOfficialBulletPrefab(bulletPrefab, "bulletPrefab");
+
+            for (int index = 0; index < visualTiers.Count; index++)
+            {
+                BulletVisualTier tier = visualTiers[index];
+                ValidateOfficialBulletPrefab(
+                    tier != null ? tier.BulletPrefab : null,
+                    $"visualTiers[{index}].bulletPrefab");
+            }
+        }
+
+        private void ValidateOfficialBulletPrefab(Bullet prefab, string fieldName)
+        {
+            if (prefab == null || IsOfficialBulletPrefabName(prefab.name))
+            {
+                return;
+            }
+
+            Debug.LogError(
+                $"{name}: {fieldName} must reference an official Bullet_Tier_X prefab, not '{prefab.name}'.",
+                this);
+        }
+
+        private static bool IsOfficialBulletPrefabName(string prefabName)
+        {
+            for (int index = 0; index < OfficialBulletPrefabNames.Length; index++)
+            {
+                if (string.Equals(prefabName, OfficialBulletPrefabNames[index], StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private IReadOnlyList<BulletModifierConfig> BuildModifierConfigBuffer()
