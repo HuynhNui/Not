@@ -9,7 +9,7 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Gate Scaling Profile")]
     public sealed class GateScalingProfile : ScriptableObject
     {
-        [SerializeField] private string profileVersion = "balance-v1.2.0-benchmark";
+        [SerializeField] private string profileVersion = "balance-v1.3.0-survival-bridge";
         [SerializeField] private List<GateScalingPhase> phases = CreateDefaultPhases();
         [SerializeField] private MajorGateSettings majorSettings = new MajorGateSettings();
         [SerializeField] private GateRunStatCaps runStatCaps = new GateRunStatCaps();
@@ -67,7 +67,7 @@ namespace _Project.Scripts.Data.Balance
         {
             if (string.IsNullOrWhiteSpace(profileVersion))
             {
-                profileVersion = "balance-v1.2.0-benchmark";
+                profileVersion = "balance-v1.3.0-survival-bridge";
             }
 
             EnsureDefaults();
@@ -119,82 +119,82 @@ namespace _Project.Scripts.Data.Balance
             {
                 GateScalingPhase.Create("early", 0f, new []
                 {
-                    O("stable_damage", "DAMAGE +10%", 1.10f),
-                    O("stable_fire_rate", "FIRE RATE +0.2", 0.20f),
-                    O("stable_vitality", "MAX HP +8%", 1.08f),
+                    O("stable_damage", "DAMAGE +10%", 1.10f, offerWeightMultiplier: 1.0f),
+                    O("stable_fire_rate", "FIRE RATE +0.2", 0.20f, offerWeightMultiplier: 1.0f),
+                    O("stable_vitality", "MAX HP +8%", 1.08f, offerWeightMultiplier: 1.0f),
                     O("utility_repair", "REPAIR 20%", 0.20f),
                     O("utility_barrier", "BARRIER 1 HIT", 1f, 15f),
                     O("utility_freeze", "FREEZE 20S", 0.75f, 20f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.25f, 0f, 0f, 0f, 1.20f),
-                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.88f),
-                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.15f),
+                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.90f, 20f),
+                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.15f, 25f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +1", 1f),
-                    O("major_recruit", "RECRUIT +1", 1f),
+                    O("major_projectile", "PROJECTILE +2", 2f),
+                    O("major_recruit", "RECRUIT +2", 2f),
                     O("major_overclock", "OVERCLOCK", 1.15f, 0f, 1.08f)
                 }),
-                GateScalingPhase.Create("growth", 120f, new []
+                GateScalingPhase.Create("growth", 90f, new []
                 {
-                    O("stable_damage", "DAMAGE +12%", 1.12f),
-                    O("stable_fire_rate", "FIRE RATE +0.3", 0.30f),
-                    O("stable_vitality", "MAX HP +10%", 1.10f),
+                    O("stable_damage", "DAMAGE +12%", 1.12f, offerWeightMultiplier: 1.5f),
+                    O("stable_fire_rate", "FIRE RATE +0.3", 0.30f, offerWeightMultiplier: 1.5f),
+                    O("stable_vitality", "MAX HP +10%", 1.10f, offerWeightMultiplier: 1.0f),
                     O("utility_repair", "REPAIR 25%", 0.25f),
                     O("utility_barrier", "BARRIER 1 HIT", 1f, 18f),
                     O("utility_freeze", "FREEZE 22S", 0.72f, 22f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.30f, 0f, 0f, 0f, 1.18f),
-                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.90f),
-                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.13f),
+                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.92f, 20f),
+                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.12f, 25f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +1", 1f),
-                    O("major_recruit", "RECRUIT +1", 1f),
+                    O("major_projectile", "PROJECTILE +2", 2f),
+                    O("major_recruit", "RECRUIT +2", 2f),
                     O("major_overclock", "OVERCLOCK", 1.20f, 0f, 1.10f)
                 }),
-                GateScalingPhase.Create("pressure", 240f, new []
+                GateScalingPhase.Create("pressure", 180f, new []
                 {
-                    O("stable_damage", "DAMAGE +15%", 1.15f),
-                    O("stable_fire_rate", "FIRE RATE +0.4", 0.40f),
-                    O("stable_vitality", "MAX HP +12%", 1.12f),
+                    O("stable_damage", "DAMAGE +15%", 1.15f, offerWeightMultiplier: 2.0f),
+                    O("stable_fire_rate", "FIRE RATE +0.4", 0.40f, offerWeightMultiplier: 2.0f),
+                    O("stable_vitality", "MAX HP +12%", 1.12f, offerWeightMultiplier: 1.25f),
                     O("utility_repair", "REPAIR 30%", 0.30f),
                     O("utility_barrier", "BARRIER 2 HIT", 2f, 18f),
                     O("utility_freeze", "FREEZE 25S", 0.68f, 25f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.35f, 0f, 0f, 0f, 1.16f),
-                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.92f),
-                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.10f),
+                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.94f, 20f),
+                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.10f, 20f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
                     O("major_projectile", "PROJECTILE +2", 2f),
                     O("major_recruit", "RECRUIT +2", 2f),
                     O("major_overclock", "OVERCLOCK", 1.25f, 0f, 1.12f)
                 }),
-                GateScalingPhase.Create("late", 360f, new []
+                GateScalingPhase.Create("late", 300f, new []
                 {
-                    O("stable_damage", "DAMAGE +18%", 1.18f),
-                    O("stable_fire_rate", "FIRE RATE +0.5", 0.50f),
-                    O("stable_vitality", "MAX HP +15%", 1.15f),
+                    O("stable_damage", "DAMAGE +18%", 1.18f, offerWeightMultiplier: 2.0f),
+                    O("stable_fire_rate", "FIRE RATE +0.5", 0.50f, offerWeightMultiplier: 2.0f),
+                    O("stable_vitality", "MAX HP +15%", 1.15f, offerWeightMultiplier: 1.5f),
                     O("utility_repair", "REPAIR 40%", 0.40f),
                     O("utility_barrier", "BARRIER 2 HIT", 2f, 22f),
                     O("utility_freeze", "FREEZE 28S", 0.64f, 28f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.40f, 0f, 0f, 0f, 1.14f),
-                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.94f),
-                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.08f),
+                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.96f, 15f),
+                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.08f, 20f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +2", 2f),
-                    O("major_recruit", "RECRUIT +2", 2f),
+                    O("major_projectile", "PROJECTILE +3", 3f),
+                    O("major_recruit", "RECRUIT +3", 3f),
                     O("major_overclock", "OVERCLOCK", 1.30f, 0f, 1.15f)
                 }),
-                GateScalingPhase.Create("endgame", 480f, new []
+                GateScalingPhase.Create("endgame", 420f, new []
                 {
-                    O("stable_damage", "DAMAGE +20%", 1.20f),
-                    O("stable_fire_rate", "FIRE RATE +0.6", 0.60f),
-                    O("stable_vitality", "MAX HP +18%", 1.18f),
+                    O("stable_damage", "DAMAGE +20%", 1.20f, offerWeightMultiplier: 1.5f),
+                    O("stable_fire_rate", "FIRE RATE +0.6", 0.60f, offerWeightMultiplier: 1.5f),
+                    O("stable_vitality", "MAX HP +18%", 1.18f, offerWeightMultiplier: 2.0f),
                     O("utility_repair", "REPAIR 50%", 0.50f),
                     O("utility_barrier", "BARRIER 3 HIT", 3f, 25f),
                     O("utility_freeze", "FREEZE 30S", 0.60f, 30f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.45f, 0f, 0f, 0f, 1.12f),
-                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.96f),
-                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.05f),
+                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.98f, 15f),
+                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.05f, 15f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +2", 2f),
-                    O("major_recruit", "RECRUIT +2", 2f),
+                    O("major_projectile", "PROJECTILE +3", 3f),
+                    O("major_recruit", "RECRUIT +3", 3f),
                     O("major_overclock", "OVERCLOCK", 1.35f, 0f, 1.18f)
                 })
             };
@@ -208,7 +208,8 @@ namespace _Project.Scripts.Data.Balance
             float secondaryMagnitude = 0f,
             float secondaryDuration = 0f,
             float drawbackMagnitude = 0f,
-            float drawbackDuration = 0f)
+            float drawbackDuration = 0f,
+            float offerWeightMultiplier = 1f)
         {
             return new GatePhaseOverride(
                 gateId,
@@ -218,7 +219,8 @@ namespace _Project.Scripts.Data.Balance
                 secondaryMagnitude,
                 secondaryDuration,
                 drawbackMagnitude,
-                drawbackDuration);
+                drawbackDuration,
+                offerWeightMultiplier);
         }
     }
 
@@ -292,6 +294,7 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private float secondaryDurationSeconds;
         [SerializeField] private float drawbackMagnitude;
         [SerializeField] private float drawbackDurationSeconds;
+        [SerializeField] private float offerWeightMultiplier = 1f;
 
         public string GateId => gateId;
         public string DisplayLabel => displayLabel;
@@ -301,6 +304,7 @@ namespace _Project.Scripts.Data.Balance
         public float SecondaryDurationSeconds => secondaryDurationSeconds;
         public float DrawbackMagnitude => drawbackMagnitude;
         public float DrawbackDurationSeconds => drawbackDurationSeconds;
+        public float OfferWeightMultiplier => Mathf.Max(0.01f, offerWeightMultiplier);
 
         public GatePhaseOverride(
             string gateId,
@@ -310,7 +314,8 @@ namespace _Project.Scripts.Data.Balance
             float secondaryMagnitude,
             float secondaryDurationSeconds,
             float drawbackMagnitude,
-            float drawbackDurationSeconds)
+            float drawbackDurationSeconds,
+            float offerWeightMultiplier = 1f)
         {
             this.gateId = gateId;
             this.displayLabel = displayLabel;
@@ -320,6 +325,7 @@ namespace _Project.Scripts.Data.Balance
             this.secondaryDurationSeconds = secondaryDurationSeconds;
             this.drawbackMagnitude = drawbackMagnitude;
             this.drawbackDurationSeconds = drawbackDurationSeconds;
+            this.offerWeightMultiplier = offerWeightMultiplier;
             Validate();
         }
 
@@ -333,6 +339,9 @@ namespace _Project.Scripts.Data.Balance
             secondaryDurationSeconds = Mathf.Max(0f, secondaryDurationSeconds);
             drawbackMagnitude = Mathf.Max(0f, drawbackMagnitude);
             drawbackDurationSeconds = Mathf.Max(0f, drawbackDurationSeconds);
+            offerWeightMultiplier = offerWeightMultiplier <= 0f
+                ? 1f
+                : Mathf.Max(0.01f, offerWeightMultiplier);
         }
     }
 
@@ -343,7 +352,7 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private float earlyChance = 0.25f;
         [SerializeField] private float midChance = 0.40f;
         [SerializeField] private float lateChance = 0.60f;
-        [SerializeField] private int guaranteedAfterEligibleMisses = 2;
+        [SerializeField] private int guaranteedAfterEligibleMisses = 1;
 
         public float UnlockSeconds => unlockSeconds;
         public float EarlyChance => earlyChance;
@@ -430,6 +439,7 @@ namespace _Project.Scripts.Data.Balance
         public readonly BalanceEffectType DrawbackType;
         public readonly float DrawbackMagnitude;
         public readonly float DrawbackDurationSeconds;
+        public readonly float OfferWeightMultiplier;
 
         public ResolvedGateEntry(
             string gateId,
@@ -444,7 +454,8 @@ namespace _Project.Scripts.Data.Balance
             float secondaryDurationSeconds,
             BalanceEffectType drawbackType,
             float drawbackMagnitude,
-            float drawbackDurationSeconds)
+            float drawbackDurationSeconds,
+            float offerWeightMultiplier = 1f)
         {
             GateId = gateId ?? string.Empty;
             PhaseId = phaseId ?? string.Empty;
@@ -459,6 +470,7 @@ namespace _Project.Scripts.Data.Balance
             DrawbackType = drawbackType;
             DrawbackMagnitude = Mathf.Max(0f, drawbackMagnitude);
             DrawbackDurationSeconds = Mathf.Max(0f, drawbackDurationSeconds);
+            OfferWeightMultiplier = Mathf.Max(0.01f, offerWeightMultiplier);
         }
 
         public bool IsValid => !string.IsNullOrWhiteSpace(GateId);
@@ -478,7 +490,8 @@ namespace _Project.Scripts.Data.Balance
                 entry.SecondaryDurationSeconds,
                 entry.DrawbackType,
                 entry.DrawbackMagnitude,
-                entry.DrawbackDurationSeconds);
+                entry.DrawbackDurationSeconds,
+                1f);
         }
 
         public static ResolvedGateEntry FromOverride(
@@ -499,7 +512,8 @@ namespace _Project.Scripts.Data.Balance
                 gateOverride.SecondaryDurationSeconds,
                 entry.DrawbackType,
                 gateOverride.DrawbackMagnitude,
-                gateOverride.DrawbackDurationSeconds);
+                gateOverride.DrawbackDurationSeconds,
+                gateOverride.OfferWeightMultiplier);
         }
     }
 

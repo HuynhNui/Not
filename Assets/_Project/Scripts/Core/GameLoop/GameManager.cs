@@ -227,8 +227,8 @@ namespace _Project.Scripts.Core.GameLoop
             telemetryConfig = balanceConfig.TelemetryConfig != null
                 ? balanceConfig.TelemetryConfig
                 : telemetryConfig;
-            benchmarkProfile = balanceConfig.BenchmarkProfile != null
-                ? balanceConfig.BenchmarkProfile
+            benchmarkProfile = balanceConfig.ActiveBenchmarkProfile != null
+                ? balanceConfig.ActiveBenchmarkProfile
                 : benchmarkProfile;
         }
 
@@ -294,6 +294,7 @@ namespace _Project.Scripts.Core.GameLoop
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.BeginRun();
             enemySpawnerSystem?.SetSpawningEnabled(false);
+            gateSystem?.SetBenchmarkMode(false);
             gateSystem?.BeginRun();
             gateSystem?.SetSpawningEnabled(false);
             telemetryService?.BeginRun();
@@ -315,6 +316,7 @@ namespace _Project.Scripts.Core.GameLoop
 
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.SetSpawningEnabled(true);
+            gateSystem?.SetBenchmarkMode(_isBenchmarkRun);
             gateSystem?.SetSpawningEnabled(true);
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
@@ -325,6 +327,7 @@ namespace _Project.Scripts.Core.GameLoop
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = true;
+            _isBenchmarkRun = IsBenchmarkProfileActive();
 
             if (playerController != null && !playerController.gameObject.activeSelf)
             {
@@ -352,6 +355,7 @@ namespace _Project.Scripts.Core.GameLoop
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.BeginRun();
             enemySpawnerSystem?.SetSpawningEnabled(true);
+            gateSystem?.SetBenchmarkMode(_isBenchmarkRun);
             gateSystem?.BeginRun();
             telemetryService?.BeginRun();
             gameStateMachine?.SetState(GameState.Playing);

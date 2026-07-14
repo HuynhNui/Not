@@ -89,6 +89,7 @@ namespace _Project.Scripts.Systems.GateSystem
         private int _majorOffers;
         private int _majorPityForcedOffers;
         private int _maxConsecutiveMajorMisses;
+        private bool _isBenchmarkMode;
         private static readonly string[] TutorialDefaultGateIds =
         {
             "stable_damage",
@@ -120,6 +121,9 @@ namespace _Project.Scripts.Systems.GateSystem
         public int MajorOffers => _majorOffers;
         public int MajorPityForcedOffers => _majorPityForcedOffers;
         public int MaxConsecutiveMajorMisses => _maxConsecutiveMajorMisses;
+        public GateRunStatCaps CurrentRunStatCaps => gateScalingProfile != null
+            ? gateScalingProfile.RunStatCaps
+            : null;
 
         public void SetGatePoolConfig(GatePoolConfig value)
         {
@@ -136,6 +140,11 @@ namespace _Project.Scripts.Systems.GateSystem
             gateScalingProfile?.ValidateValues();
             ClearRuntimeConfigCache();
             runtimeEffectController?.SetGateScalingProfile(gateScalingProfile);
+        }
+
+        public void SetBenchmarkMode(bool isBenchmarkMode)
+        {
+            _isBenchmarkMode = isBenchmarkMode && (Application.isEditor || Debug.isDebugBuild);
         }
 
         private void Awake()
@@ -639,9 +648,10 @@ namespace _Project.Scripts.Systems.GateSystem
                 if (entry != null
                     && entry.Category == category
                     && elapsedSeconds >= entry.MinTimeSeconds
+                    && IsEntryAllowedForCurrentRun(entry)
                     && (!requireApplicable || IsGateApplicable(entry, elapsedSeconds)))
                 {
-                    totalWeight += entry.Weight;
+                    totalWeight += GetResolvedOfferWeight(entry, elapsedSeconds);
                 }
             }
 
@@ -658,12 +668,13 @@ namespace _Project.Scripts.Systems.GateSystem
                 if (entry == null
                     || entry.Category != category
                     || elapsedSeconds < entry.MinTimeSeconds
+                    || !IsEntryAllowedForCurrentRun(entry)
                     || (requireApplicable && !IsGateApplicable(entry, elapsedSeconds)))
                 {
                     continue;
                 }
 
-                accumulated += entry.Weight;
+                accumulated += GetResolvedOfferWeight(entry, elapsedSeconds);
                 if (roll <= accumulated)
                 {
                     return entry;
@@ -755,6 +766,7 @@ namespace _Project.Scripts.Systems.GateSystem
                 if (entry != null
                     && entry.Category == category
                     && elapsedSeconds >= entry.MinTimeSeconds
+                    && IsEntryAllowedForCurrentRun(entry)
                     && IsGateApplicable(entry, elapsedSeconds))
                 {
                     return true;
@@ -813,6 +825,28 @@ namespace _Project.Scripts.Systems.GateSystem
                 result.FailureReason));
 
             return result;
+        }
+
+        private bool IsEntryAllowedForCurrentRun(BalanceGateEntry entry)
+        {
+            if (entry == null)
+            {
+                return false;
+            }
+
+            return !_isBenchmarkMode
+                || !string.Equals(entry.GateId, "risky_bounty", StringComparison.Ordinal);
+        }
+
+        private float GetResolvedOfferWeight(BalanceGateEntry entry, float elapsedSeconds)
+        {
+            if (entry == null)
+            {
+                return 0f;
+            }
+
+            ResolvedGateEntry resolved = ResolveGateEntry(entry, elapsedSeconds);
+            return Mathf.Max(0f, entry.Weight) * resolved.OfferWeightMultiplier;
         }
 
         private GateLogic SpawnGateInstance(

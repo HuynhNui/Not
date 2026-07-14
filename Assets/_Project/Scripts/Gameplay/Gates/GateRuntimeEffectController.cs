@@ -16,6 +16,8 @@ namespace _Project.Scripts.Gameplay.Gates
         private const int MaxProjectileCount = 50;
 
         private readonly GateTimedModifierSet _timedModifiers = new GateTimedModifierSet();
+        private readonly List<GateTemporaryStatModifier> _temporaryStatModifiers =
+            new List<GateTemporaryStatModifier>();
         private MainPlayerUnit _mainPlayerUnit;
         private PlayerController _playerController;
         private RuntimeEnemySpawnerSystem _enemySpawnerSystem;
@@ -52,6 +54,7 @@ namespace _Project.Scripts.Gameplay.Gates
         public void BeginRun()
         {
             _timedModifiers.Clear();
+            _temporaryStatModifiers.Clear();
             ApplyCombinedModifiers();
         }
 
@@ -61,6 +64,8 @@ namespace _Project.Scripts.Gameplay.Gates
             {
                 ApplyCombinedModifiers();
             }
+
+            TickTemporaryStatModifiers(Time.deltaTime);
         }
 
         public void Apply(GateConfig config)
@@ -88,6 +93,13 @@ namespace _Project.Scripts.Gameplay.Gates
         private void ApplyEffect(GateRuntimeEffect effect)
         {
             if (effect == null)
+            {
+                return;
+            }
+
+            if (effect.IsDrawback
+                && effect.DurationSeconds > 0f
+                && TryApplyTemporaryStatModifier(effect))
             {
                 return;
             }
@@ -189,6 +201,68 @@ namespace _Project.Scripts.Gameplay.Gates
                 next > _playerController.CurrentSquadCount
                     ? _playerController.RecruitSpawnHpRatio
                     : 1f);
+        }
+
+        private bool TryApplyTemporaryStatModifier(GateRuntimeEffect effect)
+        {
+            switch (effect.EffectType)
+            {
+                case BalanceEffectType.DamageMultiplier:
+                    _mainPlayerUnit.SetDamage(ClampDamage(_mainPlayerUnit.Damage * effect.Magnitude));
+                    SyncFollowers(true, false, false, false, false);
+                    _temporaryStatModifiers.Add(new GateTemporaryStatModifier(
+                        effect.EffectType,
+                        effect.Magnitude,
+                        effect.DurationSeconds));
+                    return true;
+                case BalanceEffectType.FireRateMultiplier:
+                    _mainPlayerUnit.SetFireRate(ClampFireRate(_mainPlayerUnit.FireRate * effect.Magnitude));
+                    SyncFollowers(false, true, false, false, false);
+                    _temporaryStatModifiers.Add(new GateTemporaryStatModifier(
+                        effect.EffectType,
+                        effect.Magnitude,
+                        effect.DurationSeconds));
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private void TickTemporaryStatModifiers(float deltaTime)
+        {
+            float safeDeltaTime = Mathf.Max(0f, deltaTime);
+            for (int index = _temporaryStatModifiers.Count - 1; index >= 0; index--)
+            {
+                GateTemporaryStatModifier modifier = _temporaryStatModifiers[index];
+                modifier.RemainingSeconds -= safeDeltaTime;
+                if (modifier.RemainingSeconds > 0f)
+                {
+                    continue;
+                }
+
+                RevertTemporaryStatModifier(modifier);
+                _temporaryStatModifiers.RemoveAt(index);
+            }
+        }
+
+        private void RevertTemporaryStatModifier(GateTemporaryStatModifier modifier)
+        {
+            if (_mainPlayerUnit == null || modifier.Magnitude <= 0f)
+            {
+                return;
+            }
+
+            switch (modifier.EffectType)
+            {
+                case BalanceEffectType.DamageMultiplier:
+                    _mainPlayerUnit.SetDamage(ClampDamage(_mainPlayerUnit.Damage / modifier.Magnitude));
+                    SyncFollowers(true, false, false, false, false);
+                    break;
+                case BalanceEffectType.FireRateMultiplier:
+                    _mainPlayerUnit.SetFireRate(ClampFireRate(_mainPlayerUnit.FireRate / modifier.Magnitude));
+                    SyncFollowers(false, true, false, false, false);
+                    break;
+            }
         }
 
         private void SyncFollowers(
@@ -356,6 +430,23 @@ namespace _Project.Scripts.Gameplay.Gates
             EffectType = effectType;
             Magnitude = magnitude;
             RemainingSeconds = remainingSeconds;
+        }
+    }
+
+    internal sealed class GateTemporaryStatModifier
+    {
+        public readonly BalanceEffectType EffectType;
+        public readonly float Magnitude;
+        public float RemainingSeconds;
+
+        public GateTemporaryStatModifier(
+            BalanceEffectType effectType,
+            float magnitude,
+            float remainingSeconds)
+        {
+            EffectType = effectType;
+            Magnitude = Mathf.Max(0.01f, magnitude);
+            RemainingSeconds = Mathf.Max(0f, remainingSeconds);
         }
     }
 }

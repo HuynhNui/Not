@@ -166,7 +166,25 @@ namespace _Project.Scripts.Systems.Telemetry
                 peakDamage = _peakDamage,
                 peakProjectileCount = _peakProjectileCount,
                 peakSquadCount = _peakSquadCount,
-                firstFollowerDeathSeconds = _firstFollowerDeathSeconds
+                firstFollowerDeathSeconds = _firstFollowerDeathSeconds,
+                endingDamage = mainPlayerUnit != null ? mainPlayerUnit.Damage : 0f,
+                endingFireRate = mainPlayerUnit != null ? mainPlayerUnit.FireRate : 0f,
+                endingMaxHp = mainPlayerUnit != null ? mainPlayerUnit.MaxHp : 0f,
+                endingProjectileCount = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+                    ? mainPlayerUnit.BulletSpawner.ProjectileCount
+                    : 0,
+                endingEffectiveDpsEstimate = EstimateEffectiveDps(),
+                endingTotalSquadCurrentHp = GetTotalSquadCurrentHp(),
+                endingTotalSquadMaxHp = GetTotalSquadMaxHp(),
+                endingIncomingDamageMultiplier = playerController != null
+                    ? playerController.GateIncomingDamageMultiplier
+                    : 1f,
+                endingEnemyPressureMultiplier = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.GatePressureMultiplier
+                    : 1f,
+                endingEnemySpeedMultiplier = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.GateSpeedMultiplier
+                    : 1f
             });
 
             _writer.Flush();
@@ -311,7 +329,8 @@ namespace _Project.Scripts.Systems.Telemetry
             }
 
             _gateSelectedCount++;
-            RecordGateEvent("gate_selected", gateSet, -1, gate);
+            GateEffectPreviewResult preview = PreviewGate(gate);
+            RecordGateEvent("gate_selected", gateSet, -1, gate, preview);
         }
 
         private void HandleMajorRollEvaluated(_Project.Scripts.Systems.GateSystem.MajorGateRollTelemetry telemetry)
@@ -391,6 +410,8 @@ namespace _Project.Scripts.Systems.Telemetry
                 squadCount = squadCount,
                 currentHp = mainPlayerUnit != null ? mainPlayerUnit.CurrentHp : 0f,
                 maxHp = mainPlayerUnit != null ? mainPlayerUnit.MaxHp : 0f,
+                totalSquadCurrentHp = GetTotalSquadCurrentHp(),
+                totalSquadMaxHp = GetTotalSquadMaxHp(),
                 damage = damage,
                 fireRate = fireRate,
                 projectileCount = projectileCount,
@@ -409,6 +430,33 @@ namespace _Project.Scripts.Systems.Telemetry
                 activeThreat = enemySpawnerSystem != null
                     ? enemySpawnerSystem.CurrentActiveThreat
                     : 0f,
+                activeEnemyCap = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.CurrentMaxActiveEnemies
+                    : 0,
+                minimumVisibleEnemies = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.CurrentMinimumVisibleEnemies
+                    : 0,
+                rawSpawnPerSecond = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.CurrentRawSpawnPerSecond
+                    : 0f,
+                threatBudget = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.CurrentThreatBudget
+                    : 0f,
+                activeEnemyRatio = enemySpawnerSystem != null && enemySpawnerSystem.CurrentMaxActiveEnemies > 0
+                    ? enemySpawnerSystem.ActiveEnemyCount / (float)enemySpawnerSystem.CurrentMaxActiveEnemies
+                    : 0f,
+                visibleEnemyRatio = enemySpawnerSystem != null && enemySpawnerSystem.CurrentMinimumVisibleEnemies > 0
+                    ? enemySpawnerSystem.VisibleEnemyCount / (float)enemySpawnerSystem.CurrentMinimumVisibleEnemies
+                    : 0f,
+                incomingDamageMultiplier = playerController != null
+                    ? playerController.GateIncomingDamageMultiplier
+                    : 1f,
+                enemyPressureMultiplier = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.GatePressureMultiplier
+                    : 1f,
+                enemySpeedMultiplier = enemySpawnerSystem != null
+                    ? enemySpawnerSystem.GateSpeedMultiplier
+                    : 1f,
                 gateSetCount = gateSystem != null ? gateSystem.GateSetCount : 0,
                 gatePhase = gateSystem != null ? gateSystem.CurrentPhaseId : string.Empty,
                 majorEligibleRolls = gateSystem != null ? gateSystem.MajorEligibleRolls : 0,
@@ -425,7 +473,8 @@ namespace _Project.Scripts.Systems.Telemetry
             string eventName,
             int gateSet,
             int laneIndex,
-            GateConfig gate)
+            GateConfig gate,
+            GateEffectPreviewResult? preview = null)
         {
             GateRuntimeEffect primaryEffect = null;
             GateRuntimeEffect secondaryEffect = null;
@@ -472,7 +521,20 @@ namespace _Project.Scripts.Systems.Telemetry
                 secondaryDuration: secondaryEffect != null ? secondaryEffect.DurationSeconds : 0f,
                 drawbackEffectType: drawbackEffect != null ? drawbackEffect.EffectType.ToString() : string.Empty,
                 drawbackMagnitude: drawbackEffect != null ? drawbackEffect.Magnitude : 0f,
-                drawbackDuration: drawbackEffect != null ? drawbackEffect.DurationSeconds : 0f);
+                drawbackDuration: drawbackEffect != null ? drawbackEffect.DurationSeconds : 0f,
+                beforeDamage: preview.HasValue ? preview.Value.Before.Damage : 0f,
+                beforeFireRate: preview.HasValue ? preview.Value.Before.FireRate : 0f,
+                beforeMaxHp: preview.HasValue ? preview.Value.Before.MaxHp : 0f,
+                beforeProjectileCount: preview.HasValue ? preview.Value.Before.ProjectileCount : 0,
+                beforeSquadCount: preview.HasValue ? preview.Value.Before.SquadCount : 0,
+                beforeEffectiveDps: preview.HasValue ? EstimateEffectiveDps(preview.Value.Before) : 0f,
+                afterDamage: preview.HasValue ? preview.Value.After.Damage : 0f,
+                afterFireRate: preview.HasValue ? preview.Value.After.FireRate : 0f,
+                afterMaxHp: preview.HasValue ? preview.Value.After.MaxHp : 0f,
+                afterProjectileCount: preview.HasValue ? preview.Value.After.ProjectileCount : 0,
+                afterSquadCount: preview.HasValue ? preview.Value.After.SquadCount : 0,
+                afterEffectiveDps: preview.HasValue ? EstimateEffectiveDps(preview.Value.After) : 0f,
+                wasCapped: preview.HasValue && preview.Value.WasCapped);
         }
 
         private void RecordEvent(
@@ -493,6 +555,19 @@ namespace _Project.Scripts.Systems.Telemetry
             string drawbackEffectType = "",
             float drawbackMagnitude = 0f,
             float drawbackDuration = 0f,
+            float beforeDamage = 0f,
+            float beforeFireRate = 0f,
+            float beforeMaxHp = 0f,
+            int beforeProjectileCount = 0,
+            int beforeSquadCount = 0,
+            float beforeEffectiveDps = 0f,
+            float afterDamage = 0f,
+            float afterFireRate = 0f,
+            float afterMaxHp = 0f,
+            int afterProjectileCount = 0,
+            int afterSquadCount = 0,
+            float afterEffectiveDps = 0f,
+            bool wasCapped = false,
             bool majorRollEligible = false,
             bool majorRollSpawned = false,
             bool majorRollForced = false,
@@ -525,6 +600,19 @@ namespace _Project.Scripts.Systems.Telemetry
                 drawbackEffectType = drawbackEffectType,
                 drawbackMagnitude = drawbackMagnitude,
                 drawbackDuration = drawbackDuration,
+                beforeDamage = beforeDamage,
+                beforeFireRate = beforeFireRate,
+                beforeMaxHp = beforeMaxHp,
+                beforeProjectileCount = beforeProjectileCount,
+                beforeSquadCount = beforeSquadCount,
+                beforeEffectiveDps = beforeEffectiveDps,
+                afterDamage = afterDamage,
+                afterFireRate = afterFireRate,
+                afterMaxHp = afterMaxHp,
+                afterProjectileCount = afterProjectileCount,
+                afterSquadCount = afterSquadCount,
+                afterEffectiveDps = afterEffectiveDps,
+                wasCapped = wasCapped,
                 majorRollEligible = majorRollEligible,
                 majorRollSpawned = majorRollSpawned,
                 majorRollForced = majorRollForced,
@@ -533,6 +621,84 @@ namespace _Project.Scripts.Systems.Telemetry
                 enemyKills = runStatsTracker != null ? runStatsTracker.EnemyKills : 0,
                 squadCount = playerController != null ? playerController.CurrentSquadCount : 0
             });
+        }
+
+        private GateEffectPreviewResult PreviewGate(GateConfig gate)
+        {
+            GateStatSnapshot before = GateStatSnapshot.FromRuntime(mainPlayerUnit, playerController);
+            GateRunStatCaps caps = gateSystem != null ? gateSystem.CurrentRunStatCaps : null;
+            return GateEffectPreview.Preview(gate, before, caps, 50, 50);
+        }
+
+        private float EstimateEffectiveDps()
+        {
+            int projectileCount = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+                ? mainPlayerUnit.BulletSpawner.ProjectileCount
+                : 0;
+            int squadCount = playerController != null ? playerController.CurrentSquadCount : 0;
+            return EstimateEffectiveDps(new GateStatSnapshot(
+                mainPlayerUnit != null ? mainPlayerUnit.Damage : 0f,
+                mainPlayerUnit != null ? mainPlayerUnit.FireRate : 0f,
+                mainPlayerUnit != null ? mainPlayerUnit.MaxHp : 0f,
+                projectileCount,
+                squadCount));
+        }
+
+        private float EstimateEffectiveDps(GateStatSnapshot snapshot)
+        {
+            CombatScalingConfig combatConfig = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+                ? mainPlayerUnit.BulletSpawner.CurrentCombatScalingConfig
+                : null;
+            return BalanceV1Math.EffectiveDps(
+                snapshot.Damage,
+                snapshot.FireRate,
+                snapshot.ProjectileCount,
+                snapshot.SquadCount,
+                combatConfig);
+        }
+
+        private float GetTotalSquadCurrentHp()
+        {
+            float total = mainPlayerUnit != null && !mainPlayerUnit.IsDead
+                ? mainPlayerUnit.CurrentHp
+                : 0f;
+            if (playerController == null || playerController.Followers == null)
+            {
+                return total;
+            }
+
+            for (int index = 0; index < playerController.Followers.Count; index++)
+            {
+                FollowerUnit follower = playerController.Followers[index];
+                if (follower != null && !follower.IsDead)
+                {
+                    total += follower.CurrentHp;
+                }
+            }
+
+            return total;
+        }
+
+        private float GetTotalSquadMaxHp()
+        {
+            float total = mainPlayerUnit != null && !mainPlayerUnit.IsDead
+                ? mainPlayerUnit.MaxHp
+                : 0f;
+            if (playerController == null || playerController.Followers == null)
+            {
+                return total;
+            }
+
+            for (int index = 0; index < playerController.Followers.Count; index++)
+            {
+                FollowerUnit follower = playerController.Followers[index];
+                if (follower != null && !follower.IsDead)
+                {
+                    total += follower.MaxHp;
+                }
+            }
+
+            return total;
         }
 
         private void EnsureWriter()
@@ -583,17 +749,26 @@ namespace _Project.Scripts.Systems.Telemetry
             "starting_squad", "ending_squad", "gates_shown", "gates_selected",
             "first_hit_seconds", "follower_deaths", "promotions", "snapshot_count",
             "peak_effective_dps_estimate", "peak_damage", "peak_projectile_count",
-            "peak_squad_count", "first_follower_death_seconds"
+            "peak_squad_count", "first_follower_death_seconds", "ending_damage",
+            "ending_fire_rate", "ending_max_hp", "ending_projectile_count",
+            "ending_effective_dps_estimate", "ending_total_squad_current_hp",
+            "ending_total_squad_max_hp", "ending_incoming_damage_multiplier",
+            "ending_enemy_pressure_multiplier", "ending_enemy_speed_multiplier"
         };
 
         private static readonly string[] SnapshotHeader =
         {
             "run_id", "elapsed_seconds", "enemy_kills", "coin_reward_points",
             "rounded_run_coins", "score", "squad_count", "current_hp", "max_hp",
-            "damage", "fire_rate", "projectile_count", "effective_dps_estimate",
+            "total_squad_current_hp", "total_squad_max_hp", "damage", "fire_rate",
+            "projectile_count", "effective_dps_estimate",
             "projectile_factor", "squad_factor", "follower_damage_scale",
             "main_damage_per_projectile", "kills_since_previous_snapshot",
-            "active_enemies", "visible_enemies", "active_threat", "gate_set_count",
+            "active_enemies", "visible_enemies", "active_threat",
+            "active_enemy_cap", "minimum_visible_enemies", "raw_spawn_per_second",
+            "threat_budget", "active_enemy_ratio", "visible_enemy_ratio",
+            "incoming_damage_multiplier", "enemy_pressure_multiplier",
+            "enemy_speed_multiplier", "gate_set_count",
             "gate_phase", "major_eligible_rolls", "major_offers",
             "major_pity_forced_offers", "max_consecutive_major_misses"
         };
@@ -749,6 +924,19 @@ namespace _Project.Scripts.Systems.Telemetry
         public string drawbackEffectType;
         public float drawbackMagnitude;
         public float drawbackDuration;
+        public float beforeDamage;
+        public float beforeFireRate;
+        public float beforeMaxHp;
+        public int beforeProjectileCount;
+        public int beforeSquadCount;
+        public float beforeEffectiveDps;
+        public float afterDamage;
+        public float afterFireRate;
+        public float afterMaxHp;
+        public int afterProjectileCount;
+        public int afterSquadCount;
+        public float afterEffectiveDps;
+        public bool wasCapped;
         public bool majorRollEligible;
         public bool majorRollSpawned;
         public bool majorRollForced;
@@ -790,6 +978,16 @@ namespace _Project.Scripts.Systems.Telemetry
         public int peakProjectileCount;
         public int peakSquadCount;
         public float firstFollowerDeathSeconds;
+        public float endingDamage;
+        public float endingFireRate;
+        public float endingMaxHp;
+        public int endingProjectileCount;
+        public float endingEffectiveDpsEstimate;
+        public float endingTotalSquadCurrentHp;
+        public float endingTotalSquadMaxHp;
+        public float endingIncomingDamageMultiplier;
+        public float endingEnemyPressureMultiplier;
+        public float endingEnemySpeedMultiplier;
 
         public string ToCsv()
         {
@@ -823,7 +1021,17 @@ namespace _Project.Scripts.Systems.Telemetry
                 F(peakDamage),
                 peakProjectileCount,
                 peakSquadCount,
-                F(firstFollowerDeathSeconds));
+                F(firstFollowerDeathSeconds),
+                F(endingDamage),
+                F(endingFireRate),
+                F(endingMaxHp),
+                endingProjectileCount,
+                F(endingEffectiveDpsEstimate),
+                F(endingTotalSquadCurrentHp),
+                F(endingTotalSquadMaxHp),
+                F(endingIncomingDamageMultiplier),
+                F(endingEnemyPressureMultiplier),
+                F(endingEnemySpeedMultiplier));
         }
 
         private static string F(float value)
@@ -843,6 +1051,8 @@ namespace _Project.Scripts.Systems.Telemetry
         public int squadCount;
         public float currentHp;
         public float maxHp;
+        public float totalSquadCurrentHp;
+        public float totalSquadMaxHp;
         public float damage;
         public float fireRate;
         public int projectileCount;
@@ -855,6 +1065,15 @@ namespace _Project.Scripts.Systems.Telemetry
         public int activeEnemies;
         public int visibleEnemies;
         public float activeThreat;
+        public int activeEnemyCap;
+        public int minimumVisibleEnemies;
+        public float rawSpawnPerSecond;
+        public float threatBudget;
+        public float activeEnemyRatio;
+        public float visibleEnemyRatio;
+        public float incomingDamageMultiplier;
+        public float enemyPressureMultiplier;
+        public float enemySpeedMultiplier;
         public int gateSetCount;
         public string gatePhase;
         public int majorEligibleRolls;
@@ -874,6 +1093,8 @@ namespace _Project.Scripts.Systems.Telemetry
                 squadCount,
                 F(currentHp),
                 F(maxHp),
+                F(totalSquadCurrentHp),
+                F(totalSquadMaxHp),
                 F(damage),
                 F(fireRate),
                 projectileCount,
@@ -886,6 +1107,15 @@ namespace _Project.Scripts.Systems.Telemetry
                 activeEnemies,
                 visibleEnemies,
                 F(activeThreat),
+                activeEnemyCap,
+                minimumVisibleEnemies,
+                F(rawSpawnPerSecond),
+                F(threatBudget),
+                F(activeEnemyRatio),
+                F(visibleEnemyRatio),
+                F(incomingDamageMultiplier),
+                F(enemyPressureMultiplier),
+                F(enemySpeedMultiplier),
                 gateSetCount,
                 BalanceTelemetryWriter.EscapeCsv(gatePhase),
                 majorEligibleRolls,

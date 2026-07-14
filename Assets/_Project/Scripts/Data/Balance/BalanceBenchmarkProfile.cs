@@ -2,6 +2,12 @@ using UnityEngine;
 
 namespace _Project.Scripts.Data.Balance
 {
+    public enum BalanceBenchmarkPreset
+    {
+        FullMetaStart,
+        RunCapStart
+    }
+
     [CreateAssetMenu(
         fileName = "BalanceBenchmarkProfile",
         menuName = "Chibi Pixel Gate/Balance/Balance Benchmark Profile")]

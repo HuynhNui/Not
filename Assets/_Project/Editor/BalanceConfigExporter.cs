@@ -14,7 +14,7 @@ internal static class BalanceConfigExporter
 {
     private const string OutputPath = "Tools/Balance/output/true_gate_balance_v1.json";
     private const string BenchmarkBootstrapPath =
-        "Assets/_Project/Data/Balance/V1_2_Benchmark/BalanceBootstrapConfig_v1_2_benchmark.asset";
+        "Assets/_Project/Data/Balance/V1_3_Survival/BalanceBootstrapConfig_v1_3_survival_bridge.asset";
 
     [MenuItem("Tools/Balance/Export True Gate V1 Config")]
     private static void Export()
@@ -74,7 +74,7 @@ internal static class BalanceConfigExporter
         GatePoolConfig gates = bootstrap.GatePoolConfig;
         EconomyConfig economy = bootstrap.EconomyConfig;
         GateScalingProfile gateScaling = bootstrap.GateScalingProfile;
-        BalanceBenchmarkProfile benchmark = bootstrap.BenchmarkProfile;
+        BalanceBenchmarkProfile benchmark = bootstrap.ActiveBenchmarkProfile;
 
         combat?.ValidateValues();
         meta?.ValidateValues();
@@ -101,11 +101,15 @@ internal static class BalanceConfigExporter
             gateSchedule = gates != null ? BuildGateSchedule(gates, gateScaling) : new List<GateScheduleExport>(),
             gateEntries = gates != null ? BuildGateEntries(gates) : new List<GateEntryExport>(),
             gateScaling = gateScaling != null ? BuildGateScaling(gateScaling) : null,
+            benchmarkPreset = bootstrap.BenchmarkPreset.ToString(),
             benchmark = benchmark != null ? BuildBenchmark(benchmark, combat) : null,
+            runCapBenchmark = bootstrap.RunCapBenchmarkProfile != null
+                ? BuildBenchmark(bootstrap.RunCapBenchmarkProfile, combat)
+                : null,
             economy = economy != null ? BuildEconomy(economy) : null
         };
 
-        string jsonPath = Path.Combine(outputDirectory, "true_gate_balance_v1_2_1_benchmark.json");
+        string jsonPath = Path.Combine(outputDirectory, $"true_gate_{safeVersion}.json");
         string phasePath = Path.Combine(outputDirectory, "gate_phase_values.csv");
         string curvePath = Path.Combine(outputDirectory, "benchmark_target_curve.csv");
         File.WriteAllText(jsonPath, JsonUtility.ToJson(export, prettyPrint: true));
@@ -373,7 +377,8 @@ internal static class BalanceConfigExporter
                     secondaryMagnitude = gateOverride.SecondaryMagnitude,
                     secondaryDurationSeconds = gateOverride.SecondaryDurationSeconds,
                     drawbackMagnitude = gateOverride.DrawbackMagnitude,
-                    drawbackDurationSeconds = gateOverride.DrawbackDurationSeconds
+                    drawbackDurationSeconds = gateOverride.DrawbackDurationSeconds,
+                    offerWeightMultiplier = gateOverride.OfferWeightMultiplier
                 });
             }
 
@@ -554,7 +559,9 @@ internal static class BalanceConfigExporter
         public List<GateScheduleExport> gateSchedule;
         public List<GateEntryExport> gateEntries;
         public GateScalingExport gateScaling;
+        public string benchmarkPreset;
         public BenchmarkExport benchmark;
+        public BenchmarkExport runCapBenchmark;
         public EconomyExport economy;
     }
 
@@ -681,6 +688,7 @@ internal static class BalanceConfigExporter
         public float secondaryDurationSeconds;
         public float drawbackMagnitude;
         public float drawbackDurationSeconds;
+        public float offerWeightMultiplier;
     }
 
     [Serializable]

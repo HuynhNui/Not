@@ -26,35 +26,63 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void MajorRollResult_ForcesAfterTwoEligibleMisses()
+        public void MajorRollResult_ForcesAfterOneEligibleMiss()
         {
             MajorRollResult firstMiss = MajorRollResult.Evaluate(
                 isEligible: true,
                 chance: 0f,
                 randomValue: 1f,
                 consecutiveMisses: 0,
-                guaranteedAfterMisses: 2,
-                hasApplicableMajor: true);
-            MajorRollResult secondMiss = MajorRollResult.Evaluate(
-                isEligible: true,
-                chance: 0f,
-                randomValue: 1f,
-                consecutiveMisses: firstMiss.ConsecutiveMissesAfter,
-                guaranteedAfterMisses: 2,
+                guaranteedAfterMisses: 1,
                 hasApplicableMajor: true);
             MajorRollResult forced = MajorRollResult.Evaluate(
                 isEligible: true,
                 chance: 0f,
                 randomValue: 1f,
-                consecutiveMisses: secondMiss.ConsecutiveMissesAfter,
-                guaranteedAfterMisses: 2,
+                consecutiveMisses: firstMiss.ConsecutiveMissesAfter,
+                guaranteedAfterMisses: 1,
                 hasApplicableMajor: true);
 
             Assert.False(firstMiss.MajorSpawned);
-            Assert.False(secondMiss.MajorSpawned);
             Assert.True(forced.MajorSpawned);
             Assert.True(forced.WasForced);
             Assert.AreEqual(0, forced.ConsecutiveMissesAfter);
+        }
+
+        [Test]
+        public void Resolve_UsesSurvivalBridgePhaseTimingAndWeights()
+        {
+            GateScalingProfile profile = ScriptableObject.CreateInstance<GateScalingProfile>();
+            BalanceGateEntry baseEntry = FindDefaultEntry("stable_fire_rate");
+
+            Assert.AreEqual("growth", profile.Resolve(baseEntry, 90f).PhaseId);
+            Assert.AreEqual("pressure", profile.Resolve(baseEntry, 180f).PhaseId);
+            Assert.AreEqual("late", profile.Resolve(baseEntry, 300f).PhaseId);
+            ResolvedGateEntry endgame = profile.Resolve(baseEntry, 420f);
+
+            Assert.AreEqual("endgame", endgame.PhaseId);
+            Assert.AreEqual(1.5f, endgame.OfferWeightMultiplier, 0.0001f);
+
+            Object.DestroyImmediate(profile);
+        }
+
+        [Test]
+        public void Resolve_UsesTemporaryRiskyDrawbacks()
+        {
+            GateScalingProfile profile = ScriptableObject.CreateInstance<GateScalingProfile>();
+            BalanceGateEntry bulletStorm = FindDefaultEntry("risky_bullet_storm");
+            BalanceGateEntry reinforcement = FindDefaultEntry("risky_reinforcement");
+
+            ResolvedGateEntry pressureBulletStorm = profile.Resolve(bulletStorm, 180f);
+            ResolvedGateEntry earlyReinforcement = profile.Resolve(reinforcement, 0f);
+
+            Assert.AreEqual(2f, pressureBulletStorm.Magnitude, 0.0001f);
+            Assert.AreEqual(0.94f, pressureBulletStorm.DrawbackMagnitude, 0.0001f);
+            Assert.AreEqual(20f, pressureBulletStorm.DrawbackDurationSeconds, 0.0001f);
+            Assert.AreEqual(1.15f, earlyReinforcement.DrawbackMagnitude, 0.0001f);
+            Assert.AreEqual(25f, earlyReinforcement.DrawbackDurationSeconds, 0.0001f);
+
+            Object.DestroyImmediate(profile);
         }
 
         [Test]

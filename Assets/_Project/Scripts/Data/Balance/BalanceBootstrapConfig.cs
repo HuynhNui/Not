@@ -14,6 +14,8 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private GatePoolConfig gatePoolConfig;
         [SerializeField] private GateScalingProfile gateScalingProfile;
         [SerializeField] private BalanceBenchmarkProfile benchmarkProfile;
+        [SerializeField] private BalanceBenchmarkPreset benchmarkPreset = BalanceBenchmarkPreset.FullMetaStart;
+        [SerializeField] private BalanceBenchmarkProfile runCapBenchmarkProfile;
         [SerializeField] private RunPressureConfig runPressureConfig;
         [SerializeField] private EconomyConfig economyConfig;
         [SerializeField] private BalanceTelemetryConfig telemetryConfig;
@@ -25,6 +27,23 @@ namespace _Project.Scripts.Data.Balance
         public GatePoolConfig GatePoolConfig => gatePoolConfig;
         public GateScalingProfile GateScalingProfile => gateScalingProfile;
         public BalanceBenchmarkProfile BenchmarkProfile => benchmarkProfile;
+        public BalanceBenchmarkProfile FullMetaBenchmarkProfile => benchmarkProfile;
+        public BalanceBenchmarkPreset BenchmarkPreset => benchmarkPreset;
+        public BalanceBenchmarkProfile RunCapBenchmarkProfile => runCapBenchmarkProfile;
+        public BalanceBenchmarkProfile ActiveBenchmarkProfile
+        {
+            get
+            {
+                if (!Application.isEditor && !Debug.isDebugBuild)
+                {
+                    return benchmarkProfile;
+                }
+
+                return benchmarkPreset == BalanceBenchmarkPreset.RunCapStart
+                    ? runCapBenchmarkProfile != null ? runCapBenchmarkProfile : benchmarkProfile
+                    : benchmarkProfile;
+            }
+        }
         public RunPressureConfig RunPressureConfig => runPressureConfig;
         public EconomyConfig EconomyConfig => economyConfig;
         public BalanceTelemetryConfig TelemetryConfig => telemetryConfig;
