@@ -1,0 +1,3 @@
+checkpoint,damage,fire_rate,max_hp,projectile_count,squad_count,effective_dps,estimated_base_projectile_emissions_per_second
+start,1.9,6.4,20,6,12,178.676,459.871
+run_caps,6.5,7,36,7,13,707.243,630

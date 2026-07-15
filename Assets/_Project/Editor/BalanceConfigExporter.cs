@@ -14,7 +14,7 @@ internal static class BalanceConfigExporter
 {
     private const string OutputPath = "Tools/Balance/output/true_gate_balance_v1.json";
     private const string BenchmarkBootstrapPath =
-        "Assets/_Project/Data/Balance/V1_3_Survival/BalanceBootstrapConfig_v1_3_survival_bridge.asset";
+        "Assets/_Project/Data/Balance/V1_3_3_EliteSquad/BalanceBootstrapConfig_v1_3_3_EliteSquad.asset";
 
     [MenuItem("Tools/Balance/Export True Gate V1 Config")]
     private static void Export()
@@ -103,8 +103,11 @@ internal static class BalanceConfigExporter
             gateScaling = gateScaling != null ? BuildGateScaling(gateScaling) : null,
             benchmarkPreset = bootstrap.BenchmarkPreset.ToString(),
             benchmark = benchmark != null ? BuildBenchmark(benchmark, combat) : null,
-            runCapBenchmark = bootstrap.RunCapBenchmarkProfile != null
+            oldRunCapBenchmark = bootstrap.RunCapBenchmarkProfile != null
                 ? BuildBenchmark(bootstrap.RunCapBenchmarkProfile, combat)
+                : null,
+            damageForwardCapBenchmark = bootstrap.DamageForwardCapBenchmarkProfile != null
+                ? BuildBenchmark(bootstrap.DamageForwardCapBenchmarkProfile, combat)
                 : null,
             economy = economy != null ? BuildEconomy(economy) : null
         };
@@ -157,7 +160,8 @@ internal static class BalanceConfigExporter
             projectileCoverageCoefficient = config.ProjectileCoverageCoefficient,
             squadCoverageCoefficient = config.SquadCoverageCoefficient,
             followerHpRatio = config.FollowerHpRatio,
-            recruitSpawnHpRatio = config.RecruitSpawnHpRatio
+            recruitSpawnHpRatio = config.RecruitSpawnHpRatio,
+            squadPowerModel = config.SquadPowerModel.ToString()
         };
     }
 
@@ -187,7 +191,7 @@ internal static class BalanceConfigExporter
                     combat),
                 durability = data.MaxHp * BalanceV1Math.SquadDurabilityFactor(
                     data.SquadSize,
-                    combat.FollowerHpRatio)
+                    combat)
             });
         }
 
@@ -441,6 +445,13 @@ internal static class BalanceConfigExporter
                     stats.SquadSize,
                     combat)
                 : 0f,
+            estimatedBaseProjectileEmissionsPerSecond = combat != null
+                ? BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                    stats.FireRate,
+                    stats.ProjectileCount,
+                    stats.SquadSize,
+                    combat)
+                : 0f,
             suppressSaveCommit = benchmark.SuppressSaveCommit,
             suppressWalletReward = benchmark.SuppressWalletReward,
             suppressStoryProgress = benchmark.SuppressStoryProgress,
@@ -484,7 +495,7 @@ internal static class BalanceConfigExporter
         CombatScalingConfig combat)
     {
         var builder = new StringBuilder();
-        builder.AppendLine("checkpoint,damage,fire_rate,max_hp,projectile_count,squad_count,effective_dps");
+        builder.AppendLine("checkpoint,damage,fire_rate,max_hp,projectile_count,squad_count,effective_dps,estimated_base_projectile_emissions_per_second");
         if (benchmark == null || combat == null)
         {
             return builder.ToString();
@@ -518,7 +529,12 @@ internal static class BalanceConfigExporter
             F(maxHp),
             projectileCount,
             squadCount,
-            F(BalanceV1Math.EffectiveDps(damage, fireRate, projectileCount, squadCount, combat)));
+            F(BalanceV1Math.EffectiveDps(damage, fireRate, projectileCount, squadCount, combat)),
+            F(BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                fireRate,
+                projectileCount,
+                squadCount,
+                combat)));
     }
 
     private static string MakeSafeFileName(string value)
@@ -561,7 +577,8 @@ internal static class BalanceConfigExporter
         public GateScalingExport gateScaling;
         public string benchmarkPreset;
         public BenchmarkExport benchmark;
-        public BenchmarkExport runCapBenchmark;
+        public BenchmarkExport oldRunCapBenchmark;
+        public BenchmarkExport damageForwardCapBenchmark;
         public EconomyExport economy;
     }
 
@@ -575,6 +592,7 @@ internal static class BalanceConfigExporter
         public float squadCoverageCoefficient;
         public float followerHpRatio;
         public float recruitSpawnHpRatio;
+        public string squadPowerModel;
     }
 
     [Serializable]
@@ -726,6 +744,7 @@ internal static class BalanceConfigExporter
         public int projectileCount;
         public int squadSize;
         public float effectiveDps;
+        public float estimatedBaseProjectileEmissionsPerSecond;
         public bool suppressSaveCommit;
         public bool suppressWalletReward;
         public bool suppressStoryProgress;

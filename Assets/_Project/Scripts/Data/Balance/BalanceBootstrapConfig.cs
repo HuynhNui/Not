@@ -16,6 +16,7 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private BalanceBenchmarkProfile benchmarkProfile;
         [SerializeField] private BalanceBenchmarkPreset benchmarkPreset = BalanceBenchmarkPreset.FullMetaStart;
         [SerializeField] private BalanceBenchmarkProfile runCapBenchmarkProfile;
+        [SerializeField] private BalanceBenchmarkProfile damageForwardCapBenchmarkProfile;
         [SerializeField] private RunPressureConfig runPressureConfig;
         [SerializeField] private EconomyConfig economyConfig;
         [SerializeField] private BalanceTelemetryConfig telemetryConfig;
@@ -30,6 +31,7 @@ namespace _Project.Scripts.Data.Balance
         public BalanceBenchmarkProfile FullMetaBenchmarkProfile => benchmarkProfile;
         public BalanceBenchmarkPreset BenchmarkPreset => benchmarkPreset;
         public BalanceBenchmarkProfile RunCapBenchmarkProfile => runCapBenchmarkProfile;
+        public BalanceBenchmarkProfile DamageForwardCapBenchmarkProfile => damageForwardCapBenchmarkProfile;
         public BalanceBenchmarkProfile ActiveBenchmarkProfile
         {
             get
@@ -39,9 +41,16 @@ namespace _Project.Scripts.Data.Balance
                     return benchmarkProfile;
                 }
 
-                return benchmarkPreset == BalanceBenchmarkPreset.RunCapStart
-                    ? runCapBenchmarkProfile != null ? runCapBenchmarkProfile : benchmarkProfile
-                    : benchmarkProfile;
+                return benchmarkPreset switch
+                {
+                    BalanceBenchmarkPreset.OldRunCapStart => runCapBenchmarkProfile != null
+                        ? runCapBenchmarkProfile
+                        : benchmarkProfile,
+                    BalanceBenchmarkPreset.DamageForwardCapStart => damageForwardCapBenchmarkProfile != null
+                        ? damageForwardCapBenchmarkProfile
+                        : benchmarkProfile,
+                    _ => benchmarkProfile
+                };
             }
         }
         public RunPressureConfig RunPressureConfig => runPressureConfig;

@@ -2,6 +2,7 @@ using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Systems.Balance;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace _Project.Tests.Editor
@@ -50,7 +51,7 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void Resolve_UsesSurvivalBridgePhaseTimingAndWeights()
+        public void Resolve_UsesDamageForwardPhaseTimingAndWeights()
         {
             GateScalingProfile profile = ScriptableObject.CreateInstance<GateScalingProfile>();
             BalanceGateEntry baseEntry = FindDefaultEntry("stable_fire_rate");
@@ -76,9 +77,10 @@ namespace _Project.Tests.Editor
             ResolvedGateEntry pressureBulletStorm = profile.Resolve(bulletStorm, 180f);
             ResolvedGateEntry earlyReinforcement = profile.Resolve(reinforcement, 0f);
 
-            Assert.AreEqual(2f, pressureBulletStorm.Magnitude, 0.0001f);
+            Assert.AreEqual(1f, pressureBulletStorm.Magnitude, 0.0001f);
             Assert.AreEqual(0.94f, pressureBulletStorm.DrawbackMagnitude, 0.0001f);
             Assert.AreEqual(20f, pressureBulletStorm.DrawbackDurationSeconds, 0.0001f);
+            Assert.AreEqual(1f, earlyReinforcement.Magnitude, 0.0001f);
             Assert.AreEqual(1.15f, earlyReinforcement.DrawbackMagnitude, 0.0001f);
             Assert.AreEqual(25f, earlyReinforcement.DrawbackDurationSeconds, 0.0001f);
 
@@ -86,32 +88,98 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void GateEffectPreview_FiltersStatGateAtCap()
+        public void RunStatCaps_UseEliteSquadValues()
         {
             GateScalingProfile profile = ScriptableObject.CreateInstance<GateScalingProfile>();
-            BalanceGateEntry baseEntry = FindDefaultEntry("major_projectile");
-            ResolvedGateEntry resolved = profile.Resolve(baseEntry, 480f);
-            GateConfig gate = ScriptableObject.CreateInstance<GateConfig>();
-            gate.ConfigureRuntime(resolved, 480f);
+            GateRunStatCaps caps = profile.RunStatCaps;
 
-            var before = new GateStatSnapshot(
-                damage: 3.5f,
-                fireRate: 8.5f,
-                maxHp: 36f,
-                projectileCount: 9,
-                squadCount: 16);
-            GateEffectPreviewResult preview = GateEffectPreview.Preview(
-                gate,
-                before,
+            Assert.AreEqual(6.00f, caps.Damage, 0.0001f);
+            Assert.AreEqual(7.00f, caps.FireRate, 0.0001f);
+            Assert.AreEqual(36f, caps.MaxHp, 0.0001f);
+            Assert.AreEqual(4, caps.ProjectileCount);
+            Assert.AreEqual(5, caps.SquadCount);
+            Assert.AreEqual(1.75f, caps.MaxIncomingDamageMultiplier, 0.0001f);
+            Assert.AreEqual(1.50f, caps.MaxEnemyPressureMultiplier, 0.0001f);
+            Assert.AreEqual(0.50f, caps.MinEnemySpeedMultiplier, 0.0001f);
+
+            Object.DestroyImmediate(profile);
+        }
+
+        [Test]
+        public void GateEffectPreview_ClampsToEliteSquadCaps()
+        {
+            GateScalingProfile profile = ScriptableObject.CreateInstance<GateScalingProfile>();
+            BalanceGateEntry projectileEntry = FindDefaultEntry("major_projectile");
+            BalanceGateEntry recruitEntry = FindDefaultEntry("major_recruit");
+            GateConfig projectileGate = ScriptableObject.CreateInstance<GateConfig>();
+            GateConfig recruitGate = ScriptableObject.CreateInstance<GateConfig>();
+            projectileGate.ConfigureRuntime(profile.Resolve(projectileEntry, 480f), 480f);
+            recruitGate.ConfigureRuntime(profile.Resolve(recruitEntry, 480f), 480f);
+
+            var projectileBefore = new GateStatSnapshot(6.4f, 6.9f, 36f, 3, 4);
+            GateEffectPreviewResult projectilePreview = GateEffectPreview.Preview(
+                projectileGate,
+                projectileBefore,
                 profile.RunStatCaps,
                 technicalProjectileCap: 50,
                 technicalSquadCap: 50);
 
-            Assert.False(preview.HasStatChange);
-            Assert.True(preview.WasCapped);
-            Assert.AreEqual(9, preview.After.ProjectileCount);
+            Assert.True(projectilePreview.HasStatChange);
+            Assert.AreEqual(4, projectilePreview.After.ProjectileCount);
 
-            Object.DestroyImmediate(gate);
+            GateEffectPreviewResult cappedProjectilePreview = GateEffectPreview.Preview(
+                projectileGate,
+                new GateStatSnapshot(6.4f, 6.9f, 36f, 4, 4),
+                profile.RunStatCaps,
+                technicalProjectileCap: 50,
+                technicalSquadCap: 50);
+            Assert.False(cappedProjectilePreview.HasStatChange);
+            Assert.True(cappedProjectilePreview.WasCapped);
+            Assert.AreEqual(4, cappedProjectilePreview.After.ProjectileCount);
+
+            GateEffectPreviewResult recruitPreview = GateEffectPreview.Preview(
+                recruitGate,
+                new GateStatSnapshot(6.4f, 6.9f, 36f, 4, 4),
+                profile.RunStatCaps,
+                technicalProjectileCap: 50,
+                technicalSquadCap: 50);
+            Assert.True(recruitPreview.HasStatChange);
+            Assert.AreEqual(5, recruitPreview.After.SquadCount);
+
+            Object.DestroyImmediate(projectileGate);
+            Object.DestroyImmediate(recruitGate);
+            Object.DestroyImmediate(profile);
+        }
+
+        [Test]
+        public void GateEffectPreview_ClampsDamageAndFireToDamageForwardCaps()
+        {
+            GateScalingProfile profile = ScriptableObject.CreateInstance<GateScalingProfile>();
+            GateConfig damageGate = ScriptableObject.CreateInstance<GateConfig>();
+            damageGate.ConfigureRuntime(profile.Resolve(FindDefaultEntry("stable_damage"), 480f), 480f);
+            GateConfig fireGate = ScriptableObject.CreateInstance<GateConfig>();
+            fireGate.ConfigureRuntime(profile.Resolve(FindDefaultEntry("stable_fire_rate"), 90f), 90f);
+
+            GateEffectPreviewResult damagePreview = GateEffectPreview.Preview(
+                damageGate,
+                new GateStatSnapshot(5.95f, 6.90f, 36f, 4, 5),
+                profile.RunStatCaps,
+                technicalProjectileCap: 50,
+                technicalSquadCap: 50);
+            GateEffectPreviewResult firePreview = GateEffectPreview.Preview(
+                fireGate,
+                new GateStatSnapshot(6.40f, 6.90f, 36f, 4, 5),
+                profile.RunStatCaps,
+                technicalProjectileCap: 50,
+                technicalSquadCap: 50);
+
+            Assert.AreEqual(6.00f, damagePreview.After.Damage, 0.0001f);
+            Assert.True(damagePreview.WasCapped);
+            Assert.AreEqual(7.00f, firePreview.After.FireRate, 0.0001f);
+            Assert.True(firePreview.WasCapped);
+
+            Object.DestroyImmediate(damageGate);
+            Object.DestroyImmediate(fireGate);
             Object.DestroyImmediate(profile);
         }
 
@@ -122,13 +190,64 @@ namespace _Project.Tests.Editor
             PlayerRunStartStats stats = profile.ToRunStartStats();
 
             Assert.True(profile.IsActive);
-            Assert.AreEqual(1.90f, stats.Damage, 0.0001f);
+            Assert.AreEqual(3.00f, stats.Damage, 0.0001f);
             Assert.AreEqual(6.40f, stats.FireRate, 0.0001f);
             Assert.AreEqual(20f, stats.MaxHp, 0.0001f);
-            Assert.AreEqual(6, stats.ProjectileCount);
-            Assert.AreEqual(12, stats.SquadSize);
+            Assert.AreEqual(3, stats.ProjectileCount);
+            Assert.AreEqual(4, stats.SquadSize);
 
             Object.DestroyImmediate(profile);
+        }
+
+        [Test]
+        public void EliteSquad_MathMatchesLinearSquadAndVisualBudget()
+        {
+            CombatScalingConfig combat = ScriptableObject.CreateInstance<CombatScalingConfig>();
+            SetSquadPowerModel(combat, SquadPowerModel.EqualStrengthUnits);
+
+            float startDps = BalanceV1Math.EffectiveDps(
+                damage: 3.00f,
+                rawFireRate: 6.40f,
+                projectileCount: 3,
+                squadCount: 4,
+                config: combat);
+            float newCapDps = BalanceV1Math.EffectiveDps(
+                damage: 6.00f,
+                rawFireRate: 7.00f,
+                projectileCount: 4,
+                squadCount: 5,
+                config: combat);
+            float startEmissions = BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                rawFireRate: 6.40f,
+                projectileCount: 3,
+                squadCount: 4,
+                config: combat);
+            float newCapEmissions = BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                rawFireRate: 7.00f,
+                projectileCount: 4,
+                squadCount: 5,
+                config: combat);
+
+            Assert.AreEqual(4f, BalanceV1Math.SquadFactor(4, combat), 0.0001f);
+            Assert.AreEqual(1f, BalanceV1Math.FollowerDamageScale(4, combat), 0.0001f);
+            Assert.AreEqual(1f, BalanceV1Math.FollowerHpScale(combat), 0.0001f);
+            Assert.AreEqual(344.595f, startDps, 0.01f);
+            Assert.AreEqual(989.432f, newCapDps, 0.01f);
+            Assert.AreEqual(76.645f, startEmissions, 0.1f);
+            Assert.AreEqual(138.462f, newCapEmissions, 0.1f);
+            Assert.LessOrEqual(newCapEmissions, 140f);
+
+            Object.DestroyImmediate(combat);
+        }
+
+        private static void SetSquadPowerModel(
+            CombatScalingConfig combat,
+            SquadPowerModel model)
+        {
+            var serializedObject = new SerializedObject(combat);
+            serializedObject.FindProperty("squadPowerModel").enumValueIndex = (int)model;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            combat.ValidateValues();
         }
 
         private static BalanceGateEntry FindDefaultEntry(string gateId)

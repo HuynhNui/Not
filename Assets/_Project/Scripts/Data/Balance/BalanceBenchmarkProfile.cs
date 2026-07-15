@@ -5,7 +5,8 @@ namespace _Project.Scripts.Data.Balance
     public enum BalanceBenchmarkPreset
     {
         FullMetaStart,
-        RunCapStart
+        OldRunCapStart,
+        DamageForwardCapStart
     }
 
     [CreateAssetMenu(
@@ -13,13 +14,13 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Balance Benchmark Profile")]
     public sealed class BalanceBenchmarkProfile : ScriptableObject
     {
-        [SerializeField] private string profileId = "full-meta-strongest-player-v1";
+        [SerializeField] private string profileId = "full-meta-elite-squad-v1";
         [SerializeField] private bool enabled = true;
-        [SerializeField] private float startingDamage = 1.90f;
+        [SerializeField] private float startingDamage = 3.00f;
         [SerializeField] private float startingFireRate = 6.40f;
         [SerializeField] private float startingMaxHp = 20f;
-        [SerializeField] private int startingProjectileCount = 6;
-        [SerializeField] private int startingSquadSize = 12;
+        [SerializeField] private int startingProjectileCount = 3;
+        [SerializeField] private int startingSquadSize = 4;
         [SerializeField] private bool suppressSaveCommit = true;
         [SerializeField] private bool suppressWalletReward = true;
         [SerializeField] private bool suppressStoryProgress = true;
@@ -52,7 +53,7 @@ namespace _Project.Scripts.Data.Balance
         private void OnValidate()
         {
             profileId = string.IsNullOrWhiteSpace(profileId)
-                ? "full-meta-strongest-player-v1"
+                ? "full-meta-elite-squad-v1"
                 : profileId.Trim();
             startingDamage = Mathf.Max(0.01f, startingDamage);
             startingFireRate = Mathf.Max(0.01f, startingFireRate);

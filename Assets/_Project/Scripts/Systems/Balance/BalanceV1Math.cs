@@ -71,6 +71,11 @@ namespace _Project.Scripts.Systems.Balance
 
         public static float SquadFactor(int squadCount, CombatScalingConfig config)
         {
+            if (config != null && config.SquadPowerModel == SquadPowerModel.EqualStrengthUnits)
+            {
+                return Mathf.Max(1, squadCount);
+            }
+
             return config == null
                 ? SquadFactor(squadCount)
                 : SquadFactor(squadCount, config.SquadCoverageCoefficient);
@@ -91,9 +96,26 @@ namespace _Project.Scripts.Systems.Balance
 
         public static float FollowerDamageScale(int squadCount, CombatScalingConfig config)
         {
+            if (config != null && config.SquadPowerModel == SquadPowerModel.EqualStrengthUnits)
+            {
+                return 1f;
+            }
+
             return config == null
                 ? FollowerDamageScale(squadCount)
                 : FollowerDamageScale(squadCount, config.SquadCoverageCoefficient);
+        }
+
+        public static float FollowerHpScale(CombatScalingConfig config)
+        {
+            if (config != null && config.SquadPowerModel == SquadPowerModel.EqualStrengthUnits)
+            {
+                return 1f;
+            }
+
+            return config != null
+                ? Mathf.Clamp01(config.FollowerHpRatio)
+                : 0.25f;
         }
 
         public static float DamagePerMainBullet(
@@ -152,23 +174,37 @@ namespace _Project.Scripts.Systems.Balance
             int squadCount,
             CombatScalingConfig config)
         {
-            return config == null
-                ? EffectiveDps(damage, rawFireRate, projectileCount, squadCount)
-                : EffectiveDps(
-                    damage,
-                    rawFireRate,
-                    projectileCount,
-                    squadCount,
-                    config.FireSoftCapStart,
-                    config.FireSoftCapMax,
-                    config.BaseProjectileCount,
-                    config.ProjectileCoverageCoefficient,
-                    config.SquadCoverageCoefficient);
+            if (config == null)
+            {
+                return EffectiveDps(damage, rawFireRate, projectileCount, squadCount);
+            }
+
+            return Mathf.Max(0f, damage)
+                * EffectiveFireRate(rawFireRate, config)
+                * Mathf.Max(1, config.BaseProjectileCount)
+                * ProjectileFactor(projectileCount, config)
+                * SquadFactor(squadCount, config);
+        }
+
+        public static float EstimatedBaseProjectileEmissionsPerSecond(
+            float rawFireRate,
+            int projectileCount,
+            int squadCount,
+            CombatScalingConfig config)
+        {
+            return EffectiveFireRate(rawFireRate, config)
+                * Mathf.Max(1, projectileCount)
+                * Mathf.Max(1, squadCount);
         }
 
         public static float SquadDurabilityFactor(int squadCount, float followerHpRatio)
         {
             return 1f + Mathf.Max(0f, followerHpRatio) * Mathf.Max(0, squadCount - 1);
+        }
+
+        public static float SquadDurabilityFactor(int squadCount, CombatScalingConfig config)
+        {
+            return 1f + FollowerHpScale(config) * Mathf.Max(0, squadCount - 1);
         }
     }
 }

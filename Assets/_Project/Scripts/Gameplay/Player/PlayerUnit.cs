@@ -213,17 +213,16 @@ namespace _Project.Scripts.Gameplay.Player
             transform.position = source.transform.position;
             SetDamage(source.Damage);
             SetFireRate(source.FireRate);
+            SetMaxHp(source.MaxHp);
             _isDead = false;
-            _barrierHits = 0;
-            _barrierRemainingSeconds = 0f;
-            _incomingDamageMultiplier = 1f;
+            _barrierHits = source._barrierHits;
+            _barrierRemainingSeconds = source._barrierRemainingSeconds;
+            _incomingDamageMultiplier = source._incomingDamageMultiplier;
             _currentHp = Mathf.Clamp(source.CurrentHp, 1f, maxHp);
 
             if (bulletSpawner != null && source.BulletSpawner != null)
             {
-                bulletSpawner.SetProjectileCount(source.BulletSpawner.ProjectileCount);
-                bulletSpawner.SetVisualTierDamage(source.BulletSpawner.VisualTierDamage);
-                bulletSpawner.SetBulletSpeed(source.BulletSpawner.BulletSpeed);
+                bulletSpawner.ConfigureFromTemplate(source.BulletSpawner);
             }
 
             RefreshHealthBar();

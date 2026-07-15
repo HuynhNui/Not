@@ -46,6 +46,7 @@ namespace _Project.Scripts.Systems.Telemetry
         private float _firstHitSeconds = -1f;
         private float _firstFollowerDeathSeconds = -1f;
         private float _peakEffectiveDpsEstimate;
+        private float _peakEstimatedBaseProjectileEmissionsPerSecond;
         private float _peakDamage;
         private int _peakProjectileCount;
         private int _peakSquadCount;
@@ -110,6 +111,7 @@ namespace _Project.Scripts.Systems.Telemetry
             _firstHitSeconds = -1f;
             _firstFollowerDeathSeconds = -1f;
             _peakEffectiveDpsEstimate = 0f;
+            _peakEstimatedBaseProjectileEmissionsPerSecond = 0f;
             _peakDamage = 0f;
             _peakProjectileCount = 0;
             _peakSquadCount = 0;
@@ -163,6 +165,8 @@ namespace _Project.Scripts.Systems.Telemetry
                 promotions = _promotionCount,
                 snapshotCount = _snapshotCount,
                 peakEffectiveDpsEstimate = _peakEffectiveDpsEstimate,
+                peakEstimatedBaseProjectileEmissionsPerSecond =
+                    _peakEstimatedBaseProjectileEmissionsPerSecond,
                 peakDamage = _peakDamage,
                 peakProjectileCount = _peakProjectileCount,
                 peakSquadCount = _peakSquadCount,
@@ -391,10 +395,19 @@ namespace _Project.Scripts.Systems.Telemetry
                 projectileCount,
                 squadCount,
                 combatConfig);
+            float estimatedBaseProjectileEmissionsPerSecond =
+                BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                    fireRate,
+                    projectileCount,
+                    squadCount,
+                    combatConfig);
             int killsSincePreviousSnapshot = Mathf.Max(0, enemyKills - _previousSnapshotKills);
             _previousSnapshotKills = enemyKills;
 
             _peakEffectiveDpsEstimate = Mathf.Max(_peakEffectiveDpsEstimate, effectiveDpsEstimate);
+            _peakEstimatedBaseProjectileEmissionsPerSecond = Mathf.Max(
+                _peakEstimatedBaseProjectileEmissionsPerSecond,
+                estimatedBaseProjectileEmissionsPerSecond);
             _peakDamage = Mathf.Max(_peakDamage, damage);
             _peakProjectileCount = Mathf.Max(_peakProjectileCount, projectileCount);
             _peakSquadCount = Mathf.Max(_peakSquadCount, squadCount);
@@ -416,6 +429,8 @@ namespace _Project.Scripts.Systems.Telemetry
                 fireRate = fireRate,
                 projectileCount = projectileCount,
                 effectiveDpsEstimate = effectiveDpsEstimate,
+                estimatedBaseProjectileEmissionsPerSecond =
+                    estimatedBaseProjectileEmissionsPerSecond,
                 projectileFactor = projectileFactor,
                 squadFactor = squadFactor,
                 followerDamageScale = followerDamageScale,
@@ -528,12 +543,18 @@ namespace _Project.Scripts.Systems.Telemetry
                 beforeProjectileCount: preview.HasValue ? preview.Value.Before.ProjectileCount : 0,
                 beforeSquadCount: preview.HasValue ? preview.Value.Before.SquadCount : 0,
                 beforeEffectiveDps: preview.HasValue ? EstimateEffectiveDps(preview.Value.Before) : 0f,
+                beforeEstimatedBaseProjectileEmissionsPerSecond: preview.HasValue
+                    ? EstimateBaseProjectileEmissions(preview.Value.Before)
+                    : 0f,
                 afterDamage: preview.HasValue ? preview.Value.After.Damage : 0f,
                 afterFireRate: preview.HasValue ? preview.Value.After.FireRate : 0f,
                 afterMaxHp: preview.HasValue ? preview.Value.After.MaxHp : 0f,
                 afterProjectileCount: preview.HasValue ? preview.Value.After.ProjectileCount : 0,
                 afterSquadCount: preview.HasValue ? preview.Value.After.SquadCount : 0,
                 afterEffectiveDps: preview.HasValue ? EstimateEffectiveDps(preview.Value.After) : 0f,
+                afterEstimatedBaseProjectileEmissionsPerSecond: preview.HasValue
+                    ? EstimateBaseProjectileEmissions(preview.Value.After)
+                    : 0f,
                 wasCapped: preview.HasValue && preview.Value.WasCapped);
         }
 
@@ -561,12 +582,14 @@ namespace _Project.Scripts.Systems.Telemetry
             int beforeProjectileCount = 0,
             int beforeSquadCount = 0,
             float beforeEffectiveDps = 0f,
+            float beforeEstimatedBaseProjectileEmissionsPerSecond = 0f,
             float afterDamage = 0f,
             float afterFireRate = 0f,
             float afterMaxHp = 0f,
             int afterProjectileCount = 0,
             int afterSquadCount = 0,
             float afterEffectiveDps = 0f,
+            float afterEstimatedBaseProjectileEmissionsPerSecond = 0f,
             bool wasCapped = false,
             bool majorRollEligible = false,
             bool majorRollSpawned = false,
@@ -606,12 +629,16 @@ namespace _Project.Scripts.Systems.Telemetry
                 beforeProjectileCount = beforeProjectileCount,
                 beforeSquadCount = beforeSquadCount,
                 beforeEffectiveDps = beforeEffectiveDps,
+                beforeEstimatedBaseProjectileEmissionsPerSecond =
+                    beforeEstimatedBaseProjectileEmissionsPerSecond,
                 afterDamage = afterDamage,
                 afterFireRate = afterFireRate,
                 afterMaxHp = afterMaxHp,
                 afterProjectileCount = afterProjectileCount,
                 afterSquadCount = afterSquadCount,
                 afterEffectiveDps = afterEffectiveDps,
+                afterEstimatedBaseProjectileEmissionsPerSecond =
+                    afterEstimatedBaseProjectileEmissionsPerSecond,
                 wasCapped = wasCapped,
                 majorRollEligible = majorRollEligible,
                 majorRollSpawned = majorRollSpawned,
@@ -651,6 +678,18 @@ namespace _Project.Scripts.Systems.Telemetry
                 : null;
             return BalanceV1Math.EffectiveDps(
                 snapshot.Damage,
+                snapshot.FireRate,
+                snapshot.ProjectileCount,
+                snapshot.SquadCount,
+                combatConfig);
+        }
+
+        private float EstimateBaseProjectileEmissions(GateStatSnapshot snapshot)
+        {
+            CombatScalingConfig combatConfig = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+                ? mainPlayerUnit.BulletSpawner.CurrentCombatScalingConfig
+                : null;
+            return BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
                 snapshot.FireRate,
                 snapshot.ProjectileCount,
                 snapshot.SquadCount,
@@ -748,7 +787,8 @@ namespace _Project.Scripts.Systems.Telemetry
             "starting_fire_rate", "starting_max_hp", "starting_projectile_count",
             "starting_squad", "ending_squad", "gates_shown", "gates_selected",
             "first_hit_seconds", "follower_deaths", "promotions", "snapshot_count",
-            "peak_effective_dps_estimate", "peak_damage", "peak_projectile_count",
+            "peak_effective_dps_estimate", "peak_estimated_base_projectile_emissions_per_second",
+            "peak_damage", "peak_projectile_count",
             "peak_squad_count", "first_follower_death_seconds", "ending_damage",
             "ending_fire_rate", "ending_max_hp", "ending_projectile_count",
             "ending_effective_dps_estimate", "ending_total_squad_current_hp",
@@ -762,6 +802,7 @@ namespace _Project.Scripts.Systems.Telemetry
             "rounded_run_coins", "score", "squad_count", "current_hp", "max_hp",
             "total_squad_current_hp", "total_squad_max_hp", "damage", "fire_rate",
             "projectile_count", "effective_dps_estimate",
+            "estimated_base_projectile_emissions_per_second",
             "projectile_factor", "squad_factor", "follower_damage_scale",
             "main_damage_per_projectile", "kills_since_previous_snapshot",
             "active_enemies", "visible_enemies", "active_threat",
@@ -930,12 +971,14 @@ namespace _Project.Scripts.Systems.Telemetry
         public int beforeProjectileCount;
         public int beforeSquadCount;
         public float beforeEffectiveDps;
+        public float beforeEstimatedBaseProjectileEmissionsPerSecond;
         public float afterDamage;
         public float afterFireRate;
         public float afterMaxHp;
         public int afterProjectileCount;
         public int afterSquadCount;
         public float afterEffectiveDps;
+        public float afterEstimatedBaseProjectileEmissionsPerSecond;
         public bool wasCapped;
         public bool majorRollEligible;
         public bool majorRollSpawned;
@@ -974,6 +1017,7 @@ namespace _Project.Scripts.Systems.Telemetry
         public int promotions;
         public int snapshotCount;
         public float peakEffectiveDpsEstimate;
+        public float peakEstimatedBaseProjectileEmissionsPerSecond;
         public float peakDamage;
         public int peakProjectileCount;
         public int peakSquadCount;
@@ -1018,6 +1062,7 @@ namespace _Project.Scripts.Systems.Telemetry
                 promotions,
                 snapshotCount,
                 F(peakEffectiveDpsEstimate),
+                F(peakEstimatedBaseProjectileEmissionsPerSecond),
                 F(peakDamage),
                 peakProjectileCount,
                 peakSquadCount,
@@ -1057,6 +1102,7 @@ namespace _Project.Scripts.Systems.Telemetry
         public float fireRate;
         public int projectileCount;
         public float effectiveDpsEstimate;
+        public float estimatedBaseProjectileEmissionsPerSecond;
         public float projectileFactor;
         public float squadFactor;
         public float followerDamageScale;
@@ -1099,6 +1145,7 @@ namespace _Project.Scripts.Systems.Telemetry
                 F(fireRate),
                 projectileCount,
                 F(effectiveDpsEstimate),
+                F(estimatedBaseProjectileEmissionsPerSecond),
                 F(projectileFactor),
                 F(squadFactor),
                 F(followerDamageScale),

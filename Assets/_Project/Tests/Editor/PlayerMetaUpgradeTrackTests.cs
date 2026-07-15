@@ -1,8 +1,13 @@
 using System;
 using System.IO;
+using _Project.Scripts.Data.Balance;
+using _Project.Scripts.Gameplay.Combat;
+using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.SaveSystem;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
 
 namespace _Project.Tests.Editor
 {
@@ -27,31 +32,58 @@ namespace _Project.Tests.Editor
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.FireRate), Is.EqualTo(5));
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.MaxHp), Is.EqualTo(5));
-            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
-            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(5));
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(3));
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.MoveSpeed), Is.EqualTo(0));
         }
 
         [Test]
-        public void ProjectileValues_PlateauAtSixAfterLevelThree()
+        public void ProjectileAndSquadValues_UseEliteSquadLowProjectileProgression()
         {
-            int[] expected = { 1, 2, 4, 6, 6, 6 };
-            for (int level = 0; level < expected.Length; level++)
+            int[] expectedProjectiles = { 1, 2, 3 };
+            for (int level = 0; level < expectedProjectiles.Length; level++)
             {
                 Assert.That(
                     PlayerMetaUpgradeService.GetValueForLevel(
                         PlayerMetaUpgradeType.ProjectileCount,
                         level),
-                    Is.EqualTo(expected[level]));
+                    Is.EqualTo(expectedProjectiles[level]));
+            }
+
+            int[] expectedSquad = { 1, 2, 3, 4 };
+            for (int level = 0; level < expectedSquad.Length; level++)
+            {
+                Assert.That(
+                    PlayerMetaUpgradeService.GetValueForLevel(
+                        PlayerMetaUpgradeType.SquadSize,
+                        level),
+                    Is.EqualTo(expectedSquad[level]));
             }
 
             Assert.That(
                 PlayerMetaUpgradeService.CalculateMaxValue(PlayerMetaUpgradeType.ProjectileCount),
-                Is.EqualTo(6));
+                Is.EqualTo(3));
+            Assert.That(
+                PlayerMetaUpgradeService.CalculateMaxValue(PlayerMetaUpgradeType.SquadSize),
+                Is.EqualTo(4));
         }
 
         [Test]
-        public void ProjectilePurchase_StopsAtLevelThree()
+        public void DefaultPermanentDamageValues_UseDamageForwardMetaProgression()
+        {
+            PlayerMetaBalanceConfig config = ScriptableObject.CreateInstance<PlayerMetaBalanceConfig>();
+            float[] expectedDamage = { 1.00f, 1.40f, 1.80f, 2.20f, 2.60f, 3.00f };
+
+            for (int level = 0; level < expectedDamage.Length; level++)
+            {
+                Assert.That(config.GetLevelData(level).Damage, Is.EqualTo(expectedDamage[level]).Within(0.0001f));
+            }
+
+            UnityEngine.Object.DestroyImmediate(config);
+        }
+
+        [Test]
+        public void ProjectilePurchase_StopsAtLevelTwo()
         {
             string directoryPath = CreateTempDirectoryPath("true-gate-bullet-purchase");
             SaveService service = SaveService.CreateForTests(directoryPath);
@@ -66,12 +98,10 @@ namespace _Project.Tests.Editor
                 Assert.That(service.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(1));
                 Assert.That(PlayerMetaUpgradeService.TryPurchase(PlayerMetaUpgradeType.ProjectileCount), Is.True);
                 Assert.That(service.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
-                Assert.That(PlayerMetaUpgradeService.TryPurchase(PlayerMetaUpgradeType.ProjectileCount), Is.True);
-                Assert.That(service.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
                 Assert.That(PlayerMetaUpgradeService.IsMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.True);
                 Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(0));
                 Assert.That(PlayerMetaUpgradeService.TryPurchase(PlayerMetaUpgradeType.ProjectileCount), Is.False);
-                Assert.That(service.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
+                Assert.That(service.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
             }
             finally
             {
@@ -84,24 +114,68 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void SchemaSixProjectileLevelFive_MigratesToLevelThreeWithoutResettingProgress()
+        public void SchemaSevenQuantityLevels_MigrateToEliteSquadCapsWithoutResettingProgress()
         {
             var saveData = SaveData.CreateNew(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            saveData.schemaVersion = 6;
+            saveData.schemaVersion = 7;
             saveData.walletCoins = 1234;
             saveData.storyStage = 2;
             saveData.gameplayTutorialCompleted = true;
             saveData.SetUpgradeLevel(PlayerMetaUpgradeType.Damage, 5);
             saveData.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 5);
+            saveData.SetUpgradeLevel(PlayerMetaUpgradeType.SquadSize, 5);
 
             saveData.Normalize(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
 
             Assert.That(saveData.schemaVersion, Is.EqualTo(SaveData.CurrentSchemaVersion));
-            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(3));
             Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
             Assert.That(saveData.walletCoins, Is.EqualTo(1234));
             Assert.That(saveData.storyStage, Is.EqualTo(2));
             Assert.That(saveData.gameplayTutorialCompleted, Is.True);
+        }
+
+        [Test]
+        public void ApplyStatsToPlayer_EliteSquadFollowersMirrorMainStats()
+        {
+            GameObject root = new GameObject("elite-squad-test-root");
+            GameObject mainObject = new GameObject("main");
+            mainObject.transform.SetParent(root.transform);
+            mainObject.AddComponent<BulletSpawner>();
+            MainPlayerUnit main = mainObject.AddComponent<MainPlayerUnit>();
+            main.Initialize();
+            PlayerController controller = root.AddComponent<PlayerController>();
+            SetPrivateObjectReference(controller, "mainPlayerUnit", main);
+
+            CombatScalingConfig combat = ScriptableObject.CreateInstance<CombatScalingConfig>();
+            SetSquadPowerModel(combat, SquadPowerModel.EqualStrengthUnits);
+            PlayerMetaUpgradeService.Configure(null, combat);
+
+            try
+            {
+                PlayerMetaUpgradeService.ApplyStatsToPlayer(
+                    new PlayerRunStartStats(3.00f, 6.40f, 20f, 3, 4),
+                    main,
+                    controller);
+
+                Assert.That(controller.CurrentSquadCount, Is.EqualTo(4));
+                Assert.That(controller.Followers.Count, Is.EqualTo(3));
+                for (int index = 0; index < controller.Followers.Count; index++)
+                {
+                    FollowerUnit follower = controller.Followers[index];
+                    Assert.That(follower.Damage, Is.EqualTo(3.00f).Within(0.0001f));
+                    Assert.That(follower.FireRate, Is.EqualTo(6.40f).Within(0.0001f));
+                    Assert.That(follower.MaxHp, Is.EqualTo(20f).Within(0.0001f));
+                    Assert.That(follower.BulletSpawner.ProjectileCount, Is.EqualTo(3));
+                    Assert.That(follower.BulletSpawner.ShooterDamageScale, Is.EqualTo(1f).Within(0.0001f));
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(combat);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
         }
 
         [Test]
@@ -131,6 +205,26 @@ namespace _Project.Tests.Editor
         private static string CreateTempDirectoryPath(string prefix)
         {
             return Path.Combine(Path.GetTempPath(), $"{prefix}-{Guid.NewGuid():N}");
+        }
+
+        private static void SetPrivateObjectReference(
+            UnityEngine.Object target,
+            string propertyName,
+            UnityEngine.Object value)
+        {
+            var serializedObject = new SerializedObject(target);
+            serializedObject.FindProperty(propertyName).objectReferenceValue = value;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetSquadPowerModel(
+            CombatScalingConfig combat,
+            SquadPowerModel model)
+        {
+            var serializedObject = new SerializedObject(combat);
+            serializedObject.FindProperty("squadPowerModel").enumValueIndex = (int)model;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            combat.ValidateValues();
         }
     }
 }

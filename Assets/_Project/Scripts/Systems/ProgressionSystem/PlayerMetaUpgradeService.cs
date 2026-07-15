@@ -51,7 +51,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 "Increases bullets per shot.",
                 1f,
                 true,
-                3),
+                2),
             new UpgradeDefinition(
                 PlayerMetaUpgradeType.SquadSize,
                 "PLAYER",
@@ -59,7 +59,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 "Increases players and followers.",
                 1f,
                 true,
-                MaxUpgradeLevel)
+                3)
         };
 
         public static int GetLevel(PlayerMetaUpgradeType type)

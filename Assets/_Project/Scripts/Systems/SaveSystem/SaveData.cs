@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 7;
+        public const int CurrentSchemaVersion = 8;
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -214,6 +214,7 @@ namespace _Project.Scripts.Systems.SaveSystem
         {
             var seenTypes = new HashSet<string>();
             bool loggedProjectileMigration = false;
+            bool loggedSquadMigration = false;
 
             for (int index = upgradeLevels.Count - 1; index >= 0; index--)
             {
@@ -227,17 +228,31 @@ namespace _Project.Scripts.Systems.SaveSystem
                     continue;
                 }
 
-                if (sourceSchemaVersion < 7
+                if (sourceSchemaVersion < 8
                     && upgradeType == PlayerMetaUpgradeType.ProjectileCount
-                    && entry.level > 3)
+                    && entry.level > 2)
                 {
-                    entry.level = 3;
+                    entry.level = 2;
                     if (!loggedProjectileMigration
                         && (Application.isEditor || Debug.isDebugBuild))
                     {
                         loggedProjectileMigration = true;
                         Debug.Log(
-                            "[META MIGRATION] ProjectileCount level 5 -> 3; max projectile value preserved at 6.");
+                            "[META MIGRATION] ProjectileCount level 3-5 -> 2; max projectile value now 3.");
+                    }
+                }
+
+                if (sourceSchemaVersion < 8
+                    && upgradeType == PlayerMetaUpgradeType.SquadSize
+                    && entry.level > 3)
+                {
+                    entry.level = 3;
+                    if (!loggedSquadMigration
+                        && (Application.isEditor || Debug.isDebugBuild))
+                    {
+                        loggedSquadMigration = true;
+                        Debug.Log(
+                            "[META MIGRATION] SquadSize level 4-5 -> 3; max squad value now 4.");
                     }
                 }
 

@@ -44,8 +44,8 @@ namespace _Project.Scripts.Gameplay.Player
         public int CurrentSquadCount => GetAliveMainCount() + GetActiveFollowerCount();
         public int MaxSquadCount => Mathf.Max(1, maxSquadCount);
         public float FollowerHpRatio => combatScalingConfig != null
-            ? combatScalingConfig.FollowerHpRatio
-            : 0.25f;
+            ? BalanceV1Math.FollowerHpScale(combatScalingConfig)
+            : BalanceV1Math.FollowerHpScale(null);
         public float RecruitSpawnHpRatio => combatScalingConfig != null
             ? combatScalingConfig.RecruitSpawnHpRatio
             : 0.5f;

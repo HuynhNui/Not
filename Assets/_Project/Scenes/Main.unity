@@ -41876,7 +41876,7 @@ MonoBehaviour:
   uiSystem: {fileID: 1128062107}
   levelSystem: {fileID: 0}
   runStatsTracker: {fileID: 0}
-  balanceConfig: {fileID: 11400000, guid: 6f7463f58e23cc14b9adbcd5f246a960, type: 2}
+  balanceConfig: {fileID: 11400000, guid: cfc84bd589cb78d49ae355f4f2f10c06, type: 2}
   economyConfig: {fileID: 11400000, guid: 9b66f54d30185c74282cb4c4221958bf, type: 2}
   telemetryConfig: {fileID: 11400000, guid: 7c85369c4a53c0e4481e21e53e2f0783, type: 2}
   benchmarkProfile: {fileID: 0}

@@ -2,6 +2,12 @@ using UnityEngine;
 
 namespace _Project.Scripts.Data.Balance
 {
+    public enum SquadPowerModel
+    {
+        DiminishingFollowers,
+        EqualStrengthUnits
+    }
+
     [CreateAssetMenu(
         fileName = "CombatScalingConfig_v1",
         menuName = "Chibi Pixel Gate/Balance/Combat Scaling Config")]
@@ -17,6 +23,7 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private float squadCoverageCoefficient = 0.55f;
         [SerializeField, Range(0f, 1f)] private float followerHpRatio = 0.25f;
         [SerializeField, Range(0f, 1f)] private float recruitSpawnHpRatio = 0.5f;
+        [SerializeField] private SquadPowerModel squadPowerModel = SquadPowerModel.DiminishingFollowers;
 
         public string ConfigVersion => configVersion;
         public float FireSoftCapStart => fireSoftCapStart;
@@ -26,6 +33,7 @@ namespace _Project.Scripts.Data.Balance
         public float SquadCoverageCoefficient => squadCoverageCoefficient;
         public float FollowerHpRatio => followerHpRatio;
         public float RecruitSpawnHpRatio => recruitSpawnHpRatio;
+        public SquadPowerModel SquadPowerModel => squadPowerModel;
 
         public void ValidateValues()
         {

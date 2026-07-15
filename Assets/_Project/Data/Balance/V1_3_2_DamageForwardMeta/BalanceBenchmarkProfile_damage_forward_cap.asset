@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0831a452c4aa7444d86cdf1fdb7159c2, type: 3}
+  m_Name: BalanceBenchmarkProfile_damage_forward_cap
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.BalanceBenchmarkProfile
+  profileId: damage-forward-cap-6-v1
+  enabled: 1
+  startingDamage: 6
+  startingFireRate: 7
+  startingMaxHp: 36
+  startingProjectileCount: 7
+  startingSquadSize: 13
+  suppressSaveCommit: 1
+  suppressWalletReward: 1
+  suppressStoryProgress: 1
+  suppressTutorialProgress: 1

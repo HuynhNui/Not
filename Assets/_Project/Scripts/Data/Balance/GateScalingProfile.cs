@@ -9,7 +9,7 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Gate Scaling Profile")]
     public sealed class GateScalingProfile : ScriptableObject
     {
-        [SerializeField] private string profileVersion = "balance-v1.3.0-survival-bridge";
+        [SerializeField] private string profileVersion = "balance-v1.3.3-elite-squad";
         [SerializeField] private List<GateScalingPhase> phases = CreateDefaultPhases();
         [SerializeField] private MajorGateSettings majorSettings = new MajorGateSettings();
         [SerializeField] private GateRunStatCaps runStatCaps = new GateRunStatCaps();
@@ -67,7 +67,7 @@ namespace _Project.Scripts.Data.Balance
         {
             if (string.IsNullOrWhiteSpace(profileVersion))
             {
-                profileVersion = "balance-v1.3.0-survival-bridge";
+                profileVersion = "balance-v1.3.3-elite-squad";
             }
 
             EnsureDefaults();
@@ -129,8 +129,8 @@ namespace _Project.Scripts.Data.Balance
                     O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.90f, 20f),
                     O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.15f, 25f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +2", 2f),
-                    O("major_recruit", "RECRUIT +2", 2f),
+                    O("major_projectile", "PROJECTILE +1", 1f),
+                    O("major_recruit", "RECRUIT +1", 1f),
                     O("major_overclock", "OVERCLOCK", 1.15f, 0f, 1.08f)
                 }),
                 GateScalingPhase.Create("growth", 90f, new []
@@ -145,8 +145,8 @@ namespace _Project.Scripts.Data.Balance
                     O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.92f, 20f),
                     O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.12f, 25f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +2", 2f),
-                    O("major_recruit", "RECRUIT +2", 2f),
+                    O("major_projectile", "PROJECTILE +1", 1f),
+                    O("major_recruit", "RECRUIT +1", 1f),
                     O("major_overclock", "OVERCLOCK", 1.20f, 0f, 1.10f)
                 }),
                 GateScalingPhase.Create("pressure", 180f, new []
@@ -158,11 +158,11 @@ namespace _Project.Scripts.Data.Balance
                     O("utility_barrier", "BARRIER 2 HIT", 2f, 18f),
                     O("utility_freeze", "FREEZE 25S", 0.68f, 25f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.35f, 0f, 0f, 0f, 1.16f),
-                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.94f, 20f),
-                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.10f, 20f),
+                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.94f, 20f),
+                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.10f, 20f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +2", 2f),
-                    O("major_recruit", "RECRUIT +2", 2f),
+                    O("major_projectile", "PROJECTILE +1", 1f),
+                    O("major_recruit", "RECRUIT +1", 1f),
                     O("major_overclock", "OVERCLOCK", 1.25f, 0f, 1.12f)
                 }),
                 GateScalingPhase.Create("late", 300f, new []
@@ -174,11 +174,11 @@ namespace _Project.Scripts.Data.Balance
                     O("utility_barrier", "BARRIER 2 HIT", 2f, 22f),
                     O("utility_freeze", "FREEZE 28S", 0.64f, 28f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.40f, 0f, 0f, 0f, 1.14f),
-                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.96f, 15f),
-                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.08f, 20f),
+                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.96f, 15f),
+                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.08f, 20f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +3", 3f),
-                    O("major_recruit", "RECRUIT +3", 3f),
+                    O("major_projectile", "PROJECTILE +1", 1f),
+                    O("major_recruit", "RECRUIT +1", 1f),
                     O("major_overclock", "OVERCLOCK", 1.30f, 0f, 1.15f)
                 }),
                 GateScalingPhase.Create("endgame", 420f, new []
@@ -190,11 +190,11 @@ namespace _Project.Scripts.Data.Balance
                     O("utility_barrier", "BARRIER 3 HIT", 3f, 25f),
                     O("utility_freeze", "FREEZE 30S", 0.60f, 30f),
                     O("risky_glass_cannon", "GLASS CANNON", 1.45f, 0f, 0f, 0f, 1.12f),
-                    O("risky_bullet_storm", "BULLET STORM", 2f, 0f, 0f, 0f, 0.98f, 15f),
-                    O("risky_reinforcement", "REINFORCEMENT", 2f, 0f, 0f, 0f, 1.05f, 15f),
+                    O("risky_bullet_storm", "BULLET STORM", 1f, 0f, 0f, 0f, 0.98f, 15f),
+                    O("risky_reinforcement", "REINFORCEMENT", 1f, 0f, 0f, 0f, 1.05f, 15f),
                     O("risky_bounty", "BOUNTY 30S", 1.5f, 30f, 1.15f, 30f),
-                    O("major_projectile", "PROJECTILE +3", 3f),
-                    O("major_recruit", "RECRUIT +3", 3f),
+                    O("major_projectile", "PROJECTILE +1", 1f),
+                    O("major_recruit", "RECRUIT +1", 1f),
                     O("major_overclock", "OVERCLOCK", 1.35f, 0f, 1.18f)
                 })
             };
@@ -393,11 +393,11 @@ namespace _Project.Scripts.Data.Balance
     [Serializable]
     public sealed class GateRunStatCaps
     {
-        [SerializeField] private float damage = 3.50f;
-        [SerializeField] private float fireRate = 8.50f;
+        [SerializeField] private float damage = 6.00f;
+        [SerializeField] private float fireRate = 7.00f;
         [SerializeField] private float maxHp = 36f;
-        [SerializeField] private int projectileCount = 9;
-        [SerializeField] private int squadCount = 16;
+        [SerializeField] private int projectileCount = 4;
+        [SerializeField] private int squadCount = 5;
         [SerializeField] private float maxIncomingDamageMultiplier = 1.75f;
         [SerializeField] private float maxEnemyPressureMultiplier = 1.50f;
         [SerializeField] private float minEnemySpeedMultiplier = 0.50f;
