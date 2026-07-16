@@ -426,9 +426,11 @@ namespace _Project.Scripts.Systems.UISystem
         private void ConfirmResetPlayerProgression()
         {
             SaveService.Instance.ResetPlayerProgression();
+            RuntimeMissionSystem missionSystem = RefreshRuntimeMissionSystemFromSave();
             RefreshMenuStats();
             RefreshUpgradePanel();
             RefreshSettingsControls();
+            RefreshMissionLogFromCurrentSave(missionSystem, scrollToActive: true);
             HideResetConfirmPopup();
             RestartCurrentScene();
         }
@@ -460,9 +462,10 @@ namespace _Project.Scripts.Systems.UISystem
             SetPrimaryPanel(UIScreen.Mission);
 
             SaveData saveData = SaveService.Instance.Data;
+            RuntimeMissionSystem missionSystem = RefreshRuntimeMissionSystemFromSave();
             if (missionLogPanelUI != null)
             {
-                missionLogPanelUI.Refresh(RuntimeMissionSystem.ActiveInstance, saveData);
+                missionLogPanelUI.Refresh(missionSystem, saveData);
                 missionLogPanelUI.ScrollToActiveMission();
             }
 
@@ -866,9 +869,29 @@ namespace _Project.Scripts.Systems.UISystem
         {
             RefreshMenuStats();
             RefreshUpgradePanel();
-            if (_currentScreen == UIScreen.Mission && missionLogPanelUI != null)
+            RefreshMissionLogFromCurrentSave(RefreshRuntimeMissionSystemFromSave(), scrollToActive: false);
+        }
+
+        private static RuntimeMissionSystem RefreshRuntimeMissionSystemFromSave()
+        {
+            RuntimeMissionSystem missionSystem = RuntimeMissionSystem.ActiveInstance;
+            missionSystem?.InitializeFromSave();
+            return missionSystem;
+        }
+
+        private void RefreshMissionLogFromCurrentSave(
+            RuntimeMissionSystem missionSystem,
+            bool scrollToActive)
+        {
+            if (_currentScreen != UIScreen.Mission || missionLogPanelUI == null || !SaveService.HasInstance)
             {
-                missionLogPanelUI.Refresh(RuntimeMissionSystem.ActiveInstance, SaveService.Instance.Data);
+                return;
+            }
+
+            missionLogPanelUI.Refresh(missionSystem, SaveService.Instance.Data);
+            if (scrollToActive)
+            {
+                missionLogPanelUI.ScrollToActiveMission();
             }
         }
 

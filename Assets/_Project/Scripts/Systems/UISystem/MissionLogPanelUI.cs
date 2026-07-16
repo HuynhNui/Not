@@ -328,6 +328,7 @@ namespace _Project.Scripts.Systems.UISystem
 
         private bool HandleClaimRequested(string missionId)
         {
+            _missionSystem?.InitializeFromSave();
             if (_missionSystem == null || !_missionSystem.TryClaimMissionReward(missionId))
             {
                 return false;

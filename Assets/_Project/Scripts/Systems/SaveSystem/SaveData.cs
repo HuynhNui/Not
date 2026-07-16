@@ -10,7 +10,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     {
         public const int CurrentSchemaVersion = 10;
         public const string FirstMissionId = "boot_finish_tutorial";
-        public const string FinalMissionId = "break_final_choice";
+        public const string FinalMissionId = "terminal_250000_total_kills";
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;

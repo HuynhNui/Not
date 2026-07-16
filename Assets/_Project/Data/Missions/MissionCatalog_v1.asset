@@ -23,6 +23,24 @@ MonoBehaviour:
     objectiveParameterValue: 0
     upgradeType: 0
     rewardCoins: 1000
+  - id: boot_survive_30
+    phase: BOOT
+    title: SURVIVE 30 SECONDS
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 30
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: boot_10_kills_run
+    phase: BOOT
+    title: DEFEAT 10 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 10
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
   - id: boot_first_loop
     phase: BOOT
     title: COMPLETE FIRST LOOP
@@ -31,7 +49,7 @@ MonoBehaviour:
     targetValue: 1
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 1500
   - id: boot_purchase_upgrade
     phase: BOOT
     title: PURCHASE ANY UPGRADE
@@ -40,7 +58,7 @@ MonoBehaviour:
     targetValue: 1
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 1500
   - id: boot_select_3_gates
     phase: BOOT
     title: PASS THROUGH 3 GATES
@@ -49,7 +67,25 @@ MonoBehaviour:
     targetValue: 3
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 1500
+  - id: observe_survive_60
+    phase: OBSERVE
+    title: SURVIVE 60 SECONDS
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 60
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 2000
+  - id: observe_25_kills_run
+    phase: OBSERVE
+    title: DEFEAT 25 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 25
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 2000
   - id: observe_3_loops
     phase: OBSERVE
     title: COMPLETE 3 LOOPS
@@ -58,7 +94,16 @@ MonoBehaviour:
     targetValue: 3
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 2500
+  - id: observe_100_total_kills
+    phase: OBSERVE
+    title: DEFEAT 100 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 100
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 2500
   - id: observe_100_kills_run
     phase: OBSERVE
     title: DEFEAT 100 ENEMIES IN ONE RUN
@@ -67,7 +112,7 @@ MonoBehaviour:
     targetValue: 100
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 3000
   - id: observe_dmg_lv2
     phase: OBSERVE
     title: UPGRADE DMG TO LV.2
@@ -76,7 +121,7 @@ MonoBehaviour:
     targetValue: 2
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 3000
   - id: observe_survive_120
     phase: OBSERVE
     title: SURVIVE 2 MINUTES
@@ -85,7 +130,7 @@ MonoBehaviour:
     targetValue: 120
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 4000
   - id: memory_select_10_gates
     phase: MEMORY LEAK
     title: PASS THROUGH 10 GATES
@@ -94,7 +139,25 @@ MonoBehaviour:
     targetValue: 10
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 4000
+  - id: memory_250_total_kills
+    phase: MEMORY LEAK
+    title: DEFEAT 250 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 250
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 4000
+  - id: memory_survive_150
+    phase: MEMORY LEAK
+    title: SURVIVE 150 SECONDS
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 150
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 5000
   - id: memory_10_loops
     phase: MEMORY LEAK
     title: COMPLETE 10 LOOPS
@@ -103,7 +166,7 @@ MonoBehaviour:
     targetValue: 10
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 6000
   - id: memory_survive_180
     phase: MEMORY LEAK
     title: SURVIVE 3 MINUTES
@@ -112,7 +175,7 @@ MonoBehaviour:
     targetValue: 180
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 6000
   - id: memory_three_upgrades_lv2
     phase: MEMORY LEAK
     title: RAISE 3 CORE UPGRADES TO LV.2
@@ -121,7 +184,25 @@ MonoBehaviour:
     targetValue: 3
     objectiveParameterValue: 2
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 8000
+  - id: command_500_total_kills
+    phase: HUMAN COMMAND
+    title: DEFEAT 500 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 500
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 6000
+  - id: command_150_kills_run
+    phase: HUMAN COMMAND
+    title: DEFEAT 150 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 150
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 7000
   - id: command_1000_total_kills
     phase: HUMAN COMMAND
     title: DEFEAT 1,000 ENEMIES TOTAL
@@ -130,7 +211,7 @@ MonoBehaviour:
     targetValue: 1000
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 8000
   - id: command_20_loops
     phase: HUMAN COMMAND
     title: COMPLETE 20 LOOPS
@@ -139,7 +220,16 @@ MonoBehaviour:
     targetValue: 20
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 10000
+  - id: command_survive_240
+    phase: HUMAN COMMAND
+    title: SURVIVE 4 MINUTES
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 240
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 10000
   - id: command_survive_300
     phase: HUMAN COMMAND
     title: SURVIVE 5 MINUTES
@@ -148,7 +238,7 @@ MonoBehaviour:
     targetValue: 300
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 11000
   - id: command_squad_3
     phase: HUMAN COMMAND
     title: REACH SQUAD SIZE 3
@@ -157,7 +247,7 @@ MonoBehaviour:
     targetValue: 3
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 12000
   - id: fatigue_major_5
     phase: SYSTEM FATIGUE
     title: TRIGGER 5 MAJOR GATES
@@ -166,7 +256,16 @@ MonoBehaviour:
     targetValue: 5
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 8000
+  - id: fatigue_2000_total_kills
+    phase: SYSTEM FATIGUE
+    title: DEFEAT 2,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 2000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 10000
   - id: fatigue_35_loops
     phase: SYSTEM FATIGUE
     title: COMPLETE 35 LOOPS
@@ -175,7 +274,7 @@ MonoBehaviour:
     targetValue: 35
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 12000
   - id: fatigue_survive_360
     phase: SYSTEM FATIGUE
     title: SURVIVE 6 MINUTES
@@ -184,7 +283,7 @@ MonoBehaviour:
     targetValue: 360
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 13000
   - id: fatigue_max_one_upgrade
     phase: SYSTEM FATIGUE
     title: MAX ANY CORE UPGRADE
@@ -193,7 +292,16 @@ MonoBehaviour:
     targetValue: 1
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 14000
+  - id: fatigue_250_kills_run
+    phase: SYSTEM FATIGUE
+    title: DEFEAT 250 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 250
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 15000
   - id: break_max_all_upgrades
     phase: BREAK THE CYCLE
     title: MAX ALL 5 CORE UPGRADES
@@ -202,7 +310,7 @@ MonoBehaviour:
     targetValue: 5
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 15000
   - id: break_3000_total_kills
     phase: BREAK THE CYCLE
     title: DEFEAT 3,000 ENEMIES TOTAL
@@ -211,7 +319,7 @@ MonoBehaviour:
     targetValue: 3000
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 16000
   - id: break_survive_420
     phase: BREAK THE CYCLE
     title: SURVIVE 7 MINUTES
@@ -220,7 +328,25 @@ MonoBehaviour:
     targetValue: 420
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 18000
+  - id: break_45_loops
+    phase: BREAK THE CYCLE
+    title: COMPLETE 45 LOOPS
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 45
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 18000
+  - id: break_50_loops
+    phase: BREAK THE CYCLE
+    title: COMPLETE 50 LOOPS
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 50
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 20000
   - id: break_final_choice
     phase: BREAK THE CYCLE
     title: MAKE THE FINAL CHOICE
@@ -229,4 +355,85 @@ MonoBehaviour:
     targetValue: 1
     objectiveParameterValue: 0
     upgradeType: 0
-    rewardCoins: 1000
+    rewardCoins: 25000
+  - id: terminal_1000_kills_run
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 1,000 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 1000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 10000
+  - id: terminal_10000_total_kills
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 10,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 10000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 10000
+  - id: terminal_2500_kills_run
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 2,500 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 2500
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 15000
+  - id: terminal_25000_total_kills
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 25,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 25000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 12000
+  - id: terminal_5000_kills_run
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 5,000 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 5000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 18000
+  - id: terminal_50000_total_kills
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 50,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 50000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 18000
+  - id: terminal_10000_kills_run
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 10,000 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 10000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 30000
+  - id: terminal_100000_total_kills
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 100,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 100000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 25000
+  - id: terminal_250000_total_kills
+    phase: TERMINAL PROTOCOL
+    title: DEFEAT 250,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 250000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 40000

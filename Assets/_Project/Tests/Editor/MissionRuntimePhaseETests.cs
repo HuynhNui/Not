@@ -56,7 +56,7 @@ namespace _Project.Tests.Editor
             _missionSystem.NotifyGameplayTutorialCompleted();
 
             Assert.That(_service.Data.completedMissionIds, Does.Contain("boot_finish_tutorial"));
-            Assert.That(_service.Data.activeMissionId, Is.EqualTo("boot_first_loop"));
+            Assert.That(_service.Data.activeMissionId, Is.EqualTo("boot_survive_30"));
             Assert.That(_service.Data.missionNotificationUnread, Is.True);
             Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
             Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(0));
@@ -122,7 +122,7 @@ namespace _Project.Tests.Editor
 
             Assert.That(_service.Data.finalChoiceResolved, Is.True);
             Assert.That(_service.Data.completedMissionIds, Does.Contain("break_final_choice"));
-            Assert.That(_service.Data.activeMissionId, Is.Empty);
+            Assert.That(_service.Data.activeMissionId, Is.EqualTo("terminal_1000_kills_run"));
         }
 
         [Test]
@@ -137,6 +137,97 @@ namespace _Project.Tests.Editor
             Assert.That(_service.Data.activeMissionId, Is.EqualTo("boot_first_loop"));
             Assert.That(_service.Data.completedMissionIds, Is.Empty);
             Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TotalKillMission_CompletesAtTenThousandKills()
+        {
+            SetActiveMission("terminal_10000_total_kills");
+
+            EndRun(60f, 9999);
+            Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("terminal_10000_total_kills"));
+            Assert.That(_service.Data.activeMissionId, Is.EqualTo("terminal_10000_total_kills"));
+
+            EndRun(60f, 1);
+            Assert.That(_service.Data.completedMissionIds, Does.Contain("terminal_10000_total_kills"));
+        }
+
+        [Test]
+        public void SingleRunKillMission_CompletesAtOneThousandKillsInOneRun()
+        {
+            SetActiveMission("terminal_1000_kills_run");
+
+            EndRun(60f, 999);
+            Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("terminal_1000_kills_run"));
+            Assert.That(_service.Data.activeMissionId, Is.EqualTo("terminal_1000_kills_run"));
+
+            EndRun(60f, 1000);
+            Assert.That(_service.Data.completedMissionIds, Does.Contain("terminal_1000_kills_run"));
+        }
+
+        [Test]
+        public void BestSingleRunProgress_PersistsHigherKillRun()
+        {
+            SetActiveMission("terminal_1000_kills_run");
+
+            EndRun(60f, 700);
+            Assert.That(_service.Data.activeMissionProgress, Is.EqualTo(700f));
+
+            EndRun(60f, 500);
+            Assert.That(_service.Data.activeMissionProgress, Is.EqualTo(700f));
+            Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("terminal_1000_kills_run"));
+        }
+
+        [Test]
+        public void FortyFiveLoopMission_CompletesAtFortyFiveRuns()
+        {
+            SetActiveMission("break_45_loops");
+            _service.Data.totalRunsCompleted = 43;
+            _service.CommitMissionState();
+
+            EndRun(10f, 0);
+            Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(44));
+            Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("break_45_loops"));
+            Assert.That(_service.Data.activeMissionId, Is.EqualTo("break_45_loops"));
+
+            EndRun(10f, 0);
+            Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(45));
+            Assert.That(_service.Data.completedMissionIds, Does.Contain("break_45_loops"));
+        }
+
+        [Test]
+        public void FiftyLoopMission_CompletesAtFiftyRuns()
+        {
+            SetActiveMission("break_50_loops");
+            _service.Data.totalRunsCompleted = 48;
+            _service.CommitMissionState();
+
+            EndRun(10f, 0);
+            Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(49));
+            Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("break_50_loops"));
+            Assert.That(_service.Data.activeMissionId, Is.EqualTo("break_50_loops"));
+
+            EndRun(10f, 0);
+            Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(50));
+            Assert.That(_service.Data.completedMissionIds, Does.Contain("break_50_loops"));
+        }
+
+        [Test]
+        public void ClaimNewMissionReward_GrantsConfiguredCoinsOnce()
+        {
+            SetActiveMission("terminal_10000_total_kills");
+            MissionDefinition mission = _catalog.GetMissionById("terminal_10000_total_kills");
+            Assert.That(mission, Is.Not.Null);
+
+            EndRun(60f, 10000);
+            bool firstClaim = _missionSystem.TryClaimMissionReward(mission.Id);
+            bool secondClaim = _missionSystem.TryClaimMissionReward(mission.Id);
+
+            Assert.That(firstClaim, Is.True);
+            Assert.That(secondClaim, Is.False);
+            Assert.That(_service.Data.walletCoins, Is.EqualTo(mission.RewardCoins));
+            Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(mission.RewardCoins));
+            Assert.That(_service.Data.grantedMissionRewardIds, Does.Contain(mission.Id));
         }
 
         [Test]
@@ -195,6 +286,21 @@ namespace _Project.Tests.Editor
             _service.Data.missionNotificationUnread = false;
             _service.CommitMissionState();
             _missionSystem.InitializeFromSave();
+        }
+
+        private void EndRun(float survivalTime, int enemyKills)
+        {
+            _service.RecordRunResult(survivalTime, enemyKills, 0, enemyKills);
+            _missionSystem.EndRun(new RunStatsSnapshot(
+                survivalTime,
+                enemyKills,
+                0,
+                enemyKills,
+                0,
+                survivalTime,
+                enemyKills,
+                0,
+                enemyKills));
         }
 
         private static GateConfig CreateGate(BalanceGateCategory category)

@@ -223,6 +223,75 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
+        public void ClaimButton_SyncsMissionSystemBeforeClaim()
+        {
+            SaveData data = _saveService.Data;
+            data.completedMissionIds.Clear();
+            data.grantedMissionRewardIds.Clear();
+            data.completedMissionIds.Add("boot_finish_tutorial");
+            data.activeMissionId = "boot_survive_30";
+            data.activeMissionProgress = 0f;
+            _saveService.CommitMissionState();
+
+            GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
+            MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
+            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+
+            missionLogPanelUI.Refresh(_missionSystem, data);
+            Button claimButton = FindVisibleClaimButton(content);
+
+            Assert.That(claimButton, Is.Not.Null);
+            Assert.That(_missionSystem.IsMissionRewardClaimable("boot_finish_tutorial"), Is.False);
+
+            claimButton.onClick.Invoke();
+
+            Assert.That(_saveService.Data.walletCoins, Is.EqualTo(1000));
+            Assert.That(_saveService.Data.grantedMissionRewardIds, Does.Contain("boot_finish_tutorial"));
+            Assert.That(_missionSystem.IsMissionRewardClaimed("boot_finish_tutorial"), Is.True);
+        }
+
+        [Test]
+        public void ResetPlayerProgression_RefreshesOpenMissionLog()
+        {
+            UISystem uiSystem = UnityEngine.Object.FindAnyObjectByType<UISystem>(FindObjectsInactive.Include);
+            Assert.That(uiSystem, Is.Not.Null);
+            uiSystem.Init();
+
+            SaveData data = _saveService.Data;
+            data.completedMissionIds.Clear();
+            data.grantedMissionRewardIds.Clear();
+            data.completedMissionIds.Add("boot_finish_tutorial");
+            data.completedMissionIds.Add("boot_first_loop");
+            data.grantedMissionRewardIds.Add("boot_finish_tutorial");
+            data.activeMissionId = "boot_purchase_upgrade";
+            data.activeMissionProgress = 0.5f;
+            data.missionNotificationUnread = false;
+            _saveService.CommitMissionState();
+            _missionSystem.InitializeFromSave();
+
+            GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
+            MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
+            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+            TextMeshProUGUI summaryText = missionPanel.transform.Find("PanelCard/SummaryText")
+                ?.GetComponent<TextMeshProUGUI>();
+
+            uiSystem.ShowMissionLog();
+            Assert.That(summaryText.text, Does.Contain("02 / 47 COMPLETE"));
+            Assert.That(GetVisibleMissionRowText(content), Does.Contain("PURCHASE ANY UPGRADE"));
+
+            _saveService.ResetPlayerProgression();
+
+            Assert.That(_missionSystem.ActiveMissionId, Is.EqualTo(SaveData.FirstMissionId));
+            Assert.That(_saveService.Data.completedMissionIds, Is.Empty);
+            Assert.That(summaryText.text, Does.Contain("00 / 47 COMPLETE"));
+
+            string visibleText = GetVisibleMissionRowText(content);
+            Assert.That(visibleText, Does.Contain("FINISH TUTORIAL"));
+            Assert.That(visibleText, Does.Not.Contain("PURCHASE ANY UPGRADE"));
+            Assert.That(missionLogPanelUI, Is.Not.Null);
+        }
+
+        [Test]
         public void ExistingPrimaryNavigationStillHasRequiredBindings()
         {
             UISystem uiSystem = UnityEngine.Object.FindAnyObjectByType<UISystem>(FindObjectsInactive.Include);

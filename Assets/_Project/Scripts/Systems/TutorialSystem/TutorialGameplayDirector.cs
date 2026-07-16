@@ -169,33 +169,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
                 config);
             EnsureTutorialRecruitApplied(squadCountBeforeRecruit);
 
-            yield return PlayTutorialCutscene(TutorialCutsceneDefinitions.DefaultGateChoice);
-            _tutorialGateSelected = false;
-
-            int defaultGateAttempts = 0;
-            int maxAttempts = GetGateAttemptCount(config);
-            while (IsRunning && !_tutorialGateSelected && defaultGateAttempts < maxAttempts)
-            {
-                defaultGateAttempts++;
-                IReadOnlyList<GateLogic> gates = _gateSystem?.SpawnTutorialDefaultGateSet();
-                float defaultGateEndTime = Time.realtimeSinceStartup + (config != null ? config.GateTimeoutSeconds : 15f);
-                ShowGameplayHint(showSwipeIcon: false);
-
-                while (IsRunning && !_tutorialGateSelected && Time.realtimeSinceStartup < defaultGateEndTime)
-                {
-                    TryCollectTutorialGateSet(gates);
-                    yield return null;
-                }
-
-                if (_tutorialGateSelected)
-                {
-                    break;
-                }
-
-                _gateSystem?.ClearTutorialGates();
-                yield return null;
-            }
-
             _overlay?.HideHighlight();
         }
 
