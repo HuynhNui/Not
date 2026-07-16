@@ -7,7 +7,9 @@ using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.Balance;
+using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
+using _Project.Scripts.Systems.SaveSystem;
 using UnityEngine;
 using RuntimeEnemySpawnerSystem =
     _Project.Scripts.Systems.EnemySpawnerSystem.EnemySpawnerSystem;
@@ -50,6 +52,9 @@ namespace _Project.Scripts.Systems.Telemetry
         private float _peakDamage;
         private int _peakProjectileCount;
         private int _peakSquadCount;
+        private int _runSequenceNumber;
+        private int _walletBeforeRun;
+        private SaveService _subscribedSaveService;
 
         public string OutputDirectory => Path.Combine(
             Application.persistentDataPath,
@@ -118,6 +123,9 @@ namespace _Project.Scripts.Systems.Telemetry
             _startingSquadCount = playerController != null
                 ? playerController.CurrentSquadCount
                 : 0;
+            SaveData saveData = SaveService.Instance.Data;
+            _runSequenceNumber = saveData.totalRunsCompleted + 1;
+            _walletBeforeRun = saveData.walletCoins;
             _isRunActive = true;
 
             RecordEvent("run_start");
@@ -132,6 +140,7 @@ namespace _Project.Scripts.Systems.Telemetry
 
             CaptureSnapshot(force: true);
             RecordEvent("run_end");
+            SaveData saveData = SaveService.Instance.Data;
 
             _writer.BufferSummary(new BalanceRunSummaryRow
             {
@@ -150,6 +159,16 @@ namespace _Project.Scripts.Systems.Telemetry
                 coinsEarned = snapshot.CoinsEarned,
                 score = snapshot.Score,
                 walletCoins = snapshot.WalletCoins,
+                runSequenceNumber = _runSequenceNumber,
+                walletBeforeRun = _walletBeforeRun,
+                runCoins = snapshot.CoinsEarned,
+                walletAfterRun = saveData.walletCoins,
+                lifetimeCoinsEarned = saveData.lifetimeCoinsEarned,
+                lifetimeCoinsSpent = saveData.lifetimeCoinsSpent,
+                totalUpgradePurchases = PlayerMetaUpgradeService.GetTotalUpgradePurchases(),
+                upgradeTreeCostCompleted = PlayerMetaUpgradeService.GetUpgradeTreeCostCompleted(),
+                upgradeTreeCostCompletionRatio = PlayerMetaUpgradeService.GetUpgradeTreeCostCompletionRatio(),
+                upgradeCountCompletionRatio = PlayerMetaUpgradeService.GetUpgradeCountCompletionRatio(),
                 startingDamage = _configuredStartStats.Damage,
                 startingFireRate = _configuredStartStats.FireRate,
                 startingMaxHp = _configuredStartStats.MaxHp,
@@ -248,6 +267,10 @@ namespace _Project.Scripts.Systems.Telemetry
                 gateSystem.MajorRollEvaluated -= HandleMajorRollEvaluated;
                 gateSystem.MajorRollEvaluated += HandleMajorRollEvaluated;
             }
+
+            _subscribedSaveService = SaveService.Instance;
+            _subscribedSaveService.UpgradePurchased -= HandleUpgradePurchased;
+            _subscribedSaveService.UpgradePurchased += HandleUpgradePurchased;
         }
 
         private void Unsubscribe()
@@ -269,6 +292,33 @@ namespace _Project.Scripts.Systems.Telemetry
                 gateSystem.GateSelected -= HandleGateSelected;
                 gateSystem.MajorRollEvaluated -= HandleMajorRollEvaluated;
             }
+
+            if (_subscribedSaveService != null)
+            {
+                _subscribedSaveService.UpgradePurchased -= HandleUpgradePurchased;
+                _subscribedSaveService = null;
+            }
+        }
+
+        private void HandleUpgradePurchased(UpgradePurchaseTelemetry purchase)
+        {
+            if (!ShouldCollectTelemetry())
+            {
+                return;
+            }
+
+            EnsureWriter();
+            RecordEvent(
+                "upgrade_purchase",
+                value: purchase.Cost,
+                upgradeType: purchase.UpgradeType.ToString(),
+                fromLevel: purchase.FromLevel,
+                toLevel: purchase.ToLevel,
+                cost: purchase.Cost,
+                walletBefore: purchase.WalletBefore,
+                walletAfter: purchase.WalletAfter,
+                lifetimeRunCount: purchase.LifetimeRunCount);
+            _writer.Flush();
         }
 
         private void HandlePlayerDamaged(PlayerUnit unit, float damage)
@@ -595,7 +645,14 @@ namespace _Project.Scripts.Systems.Telemetry
             bool majorRollSpawned = false,
             bool majorRollForced = false,
             int majorConsecutiveMisses = 0,
-            string majorFailureReason = "")
+            string majorFailureReason = "",
+            string upgradeType = "",
+            int fromLevel = 0,
+            int toLevel = 0,
+            int cost = 0,
+            int walletBefore = 0,
+            int walletAfter = 0,
+            int lifetimeRunCount = 0)
         {
             _writer.BufferEvent(new BalanceTelemetryEvent
             {
@@ -645,6 +702,13 @@ namespace _Project.Scripts.Systems.Telemetry
                 majorRollForced = majorRollForced,
                 majorConsecutiveMisses = majorConsecutiveMisses,
                 majorFailureReason = majorFailureReason,
+                upgradeType = upgradeType,
+                fromLevel = fromLevel,
+                toLevel = toLevel,
+                cost = cost,
+                walletBefore = walletBefore,
+                walletAfter = walletAfter,
+                lifetimeRunCount = lifetimeRunCount,
                 enemyKills = runStatsTracker != null ? runStatsTracker.EnemyKills : 0,
                 squadCount = playerController != null ? playerController.CurrentSquadCount : 0
             });
@@ -783,8 +847,12 @@ namespace _Project.Scripts.Systems.Telemetry
             "run_id", "run_started_utc", "run_ended_utc", "build_version",
             "balance_version", "run_mode", "benchmark_profile_id",
             "survival_seconds", "enemy_kills", "coin_reward_points",
-            "coins_earned", "score", "wallet_coins", "starting_damage",
-            "starting_fire_rate", "starting_max_hp", "starting_projectile_count",
+            "coins_earned", "score", "wallet_coins",
+            "run_sequence_number", "wallet_before_run", "run_coins",
+            "wallet_after_run", "lifetime_coins_earned", "lifetime_coins_spent",
+            "total_upgrade_purchases", "upgrade_tree_cost_completed",
+            "upgrade_tree_cost_completion_ratio", "upgrade_count_completion_ratio",
+            "starting_damage", "starting_fire_rate", "starting_max_hp", "starting_projectile_count",
             "starting_squad", "ending_squad", "gates_shown", "gates_selected",
             "first_hit_seconds", "follower_deaths", "promotions", "snapshot_count",
             "peak_effective_dps_estimate", "peak_estimated_base_projectile_emissions_per_second",
@@ -985,6 +1053,13 @@ namespace _Project.Scripts.Systems.Telemetry
         public bool majorRollForced;
         public int majorConsecutiveMisses;
         public string majorFailureReason;
+        public string upgradeType;
+        public int fromLevel;
+        public int toLevel;
+        public int cost;
+        public int walletBefore;
+        public int walletAfter;
+        public int lifetimeRunCount;
         public int enemyKills;
         public int squadCount;
     }
@@ -1004,6 +1079,16 @@ namespace _Project.Scripts.Systems.Telemetry
         public int coinsEarned;
         public int score;
         public int walletCoins;
+        public int runSequenceNumber;
+        public int walletBeforeRun;
+        public int runCoins;
+        public int walletAfterRun;
+        public int lifetimeCoinsEarned;
+        public int lifetimeCoinsSpent;
+        public int totalUpgradePurchases;
+        public int upgradeTreeCostCompleted;
+        public float upgradeTreeCostCompletionRatio;
+        public float upgradeCountCompletionRatio;
         public float startingDamage;
         public float startingFireRate;
         public float startingMaxHp;
@@ -1049,6 +1134,16 @@ namespace _Project.Scripts.Systems.Telemetry
                 coinsEarned,
                 score,
                 walletCoins,
+                runSequenceNumber,
+                walletBeforeRun,
+                runCoins,
+                walletAfterRun,
+                lifetimeCoinsEarned,
+                lifetimeCoinsSpent,
+                totalUpgradePurchases,
+                upgradeTreeCostCompleted,
+                F(upgradeTreeCostCompletionRatio),
+                F(upgradeCountCompletionRatio),
                 F(startingDamage),
                 F(startingFireRate),
                 F(startingMaxHp),

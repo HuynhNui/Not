@@ -1,0 +1,232 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd011551b969d014cb616ee00b164487, type: 3}
+  m_Name: MissionCatalog_v1
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.MissionSystem.MissionCatalog
+  catalogVersion: mission-v1
+  missions:
+  - id: boot_finish_tutorial
+    phase: BOOT
+    title: FINISH TUTORIAL
+    objectiveType: 0
+    progressMode: 0
+    targetValue: 1
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: boot_first_loop
+    phase: BOOT
+    title: COMPLETE FIRST LOOP
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 1
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: boot_purchase_upgrade
+    phase: BOOT
+    title: PURCHASE ANY UPGRADE
+    objectiveType: 2
+    progressMode: 1
+    targetValue: 1
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: boot_select_3_gates
+    phase: BOOT
+    title: PASS THROUGH 3 GATES
+    objectiveType: 3
+    progressMode: 1
+    targetValue: 3
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: observe_3_loops
+    phase: OBSERVE
+    title: COMPLETE 3 LOOPS
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 3
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: observe_100_kills_run
+    phase: OBSERVE
+    title: DEFEAT 100 ENEMIES IN ONE RUN
+    objectiveType: 4
+    progressMode: 2
+    targetValue: 100
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: observe_dmg_lv2
+    phase: OBSERVE
+    title: UPGRADE DMG TO LV.2
+    objectiveType: 5
+    progressMode: 0
+    targetValue: 2
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: observe_survive_120
+    phase: OBSERVE
+    title: SURVIVE 2 MINUTES
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 120
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: memory_select_10_gates
+    phase: MEMORY LEAK
+    title: PASS THROUGH 10 GATES
+    objectiveType: 3
+    progressMode: 1
+    targetValue: 10
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: memory_10_loops
+    phase: MEMORY LEAK
+    title: COMPLETE 10 LOOPS
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 10
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: memory_survive_180
+    phase: MEMORY LEAK
+    title: SURVIVE 3 MINUTES
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 180
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: memory_three_upgrades_lv2
+    phase: MEMORY LEAK
+    title: RAISE 3 CORE UPGRADES TO LV.2
+    objectiveType: 7
+    progressMode: 0
+    targetValue: 3
+    objectiveParameterValue: 2
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: command_1000_total_kills
+    phase: HUMAN COMMAND
+    title: DEFEAT 1,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 1000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: command_20_loops
+    phase: HUMAN COMMAND
+    title: COMPLETE 20 LOOPS
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 20
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: command_survive_300
+    phase: HUMAN COMMAND
+    title: SURVIVE 5 MINUTES
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 300
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: command_squad_3
+    phase: HUMAN COMMAND
+    title: REACH SQUAD SIZE 3
+    objectiveType: 9
+    progressMode: 0
+    targetValue: 3
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: fatigue_major_5
+    phase: SYSTEM FATIGUE
+    title: TRIGGER 5 MAJOR GATES
+    objectiveType: 10
+    progressMode: 1
+    targetValue: 5
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: fatigue_35_loops
+    phase: SYSTEM FATIGUE
+    title: COMPLETE 35 LOOPS
+    objectiveType: 1
+    progressMode: 0
+    targetValue: 35
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: fatigue_survive_360
+    phase: SYSTEM FATIGUE
+    title: SURVIVE 6 MINUTES
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 360
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: fatigue_max_one_upgrade
+    phase: SYSTEM FATIGUE
+    title: MAX ANY CORE UPGRADE
+    objectiveType: 11
+    progressMode: 0
+    targetValue: 1
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: break_max_all_upgrades
+    phase: BREAK THE CYCLE
+    title: MAX ALL 5 CORE UPGRADES
+    objectiveType: 11
+    progressMode: 0
+    targetValue: 5
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: break_3000_total_kills
+    phase: BREAK THE CYCLE
+    title: DEFEAT 3,000 ENEMIES TOTAL
+    objectiveType: 8
+    progressMode: 0
+    targetValue: 3000
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: break_survive_420
+    phase: BREAK THE CYCLE
+    title: SURVIVE 7 MINUTES
+    objectiveType: 6
+    progressMode: 2
+    targetValue: 420
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000
+  - id: break_final_choice
+    phase: BREAK THE CYCLE
+    title: MAKE THE FINAL CHOICE
+    objectiveType: 12
+    progressMode: 0
+    targetValue: 1
+    objectiveParameterValue: 0
+    upgradeType: 0
+    rewardCoins: 1000

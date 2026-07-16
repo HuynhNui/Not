@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de410bb2fac459fb7bc7bba23a47d0d, type: 3}
+  m_Name: PlayerMetaEconomyConfig_v1_4_Run45
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.PlayerMetaEconomyConfig
+  configVersion: economy-v1.4.0-run45
+  upgradeCostScale: 1
+  costTracks:
+  - upgradeType: 0
+    purchaseCosts:
+    - 4000
+    - 12000
+    - 30000
+    - 65000
+    - 139000
+  - upgradeType: 1
+    purchaseCosts:
+    - 4000
+    - 10000
+    - 24000
+    - 52000
+    - 100000
+  - upgradeType: 3
+    purchaseCosts:
+    - 3000
+    - 8000
+    - 20000
+    - 40000
+    - 69000
+  - upgradeType: 4
+    purchaseCosts:
+    - 15000
+    - 55000
+  - upgradeType: 5
+    purchaseCosts:
+    - 12000
+    - 48000
+    - 140000

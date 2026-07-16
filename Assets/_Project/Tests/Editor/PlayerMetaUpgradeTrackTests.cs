@@ -114,6 +114,87 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
+        public void Run45EconomyConfig_HasExpectedTrackTotalsAndPurchaseCounts()
+        {
+            PlayerMetaEconomyConfig economy = PlayerMetaEconomyConfig.CreateRun45RuntimeConfig();
+
+            try
+            {
+                Assert.That(economy.GetFullTreeTotalCost(), Is.EqualTo(850000));
+                Assert.That(economy.GetTrackTotalCost(PlayerMetaUpgradeType.Damage), Is.EqualTo(250000));
+                Assert.That(economy.GetTrackTotalCost(PlayerMetaUpgradeType.FireRate), Is.EqualTo(190000));
+                Assert.That(economy.GetTrackTotalCost(PlayerMetaUpgradeType.MaxHp), Is.EqualTo(140000));
+                Assert.That(economy.GetTrackTotalCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(70000));
+                Assert.That(economy.GetTrackTotalCost(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(200000));
+
+                Assert.That(economy.GetPurchaseCount(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
+                Assert.That(economy.GetPurchaseCount(PlayerMetaUpgradeType.FireRate), Is.EqualTo(5));
+                Assert.That(economy.GetPurchaseCount(PlayerMetaUpgradeType.MaxHp), Is.EqualTo(5));
+                Assert.That(economy.GetPurchaseCount(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
+                Assert.That(economy.GetPurchaseCount(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(3));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(economy);
+            }
+        }
+
+        [Test]
+        public void Run45EconomyConfig_ProvidesPerTrackPurchaseCosts()
+        {
+            PlayerMetaEconomyConfig economy = PlayerMetaEconomyConfig.CreateRun45RuntimeConfig();
+            string directoryPath = CreateTempDirectoryPath("true-gate-run45-costs");
+            SaveService service = SaveService.CreateForTests(directoryPath);
+
+            try
+            {
+                SaveService.SetInstanceForTests(service);
+                PlayerMetaUpgradeService.Configure(null, economy, null);
+                service.EnsureLoaded();
+
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.Damage), Is.EqualTo(4000));
+
+                service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.SquadSize, 2);
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(140000));
+
+                service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 1);
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(55000));
+            }
+            finally
+            {
+                SaveService.SetInstanceForTests(null);
+                PlayerMetaUpgradeService.Configure(null, null);
+                UnityEngine.Object.DestroyImmediate(economy);
+                if (Directory.Exists(directoryPath))
+                {
+                    Directory.Delete(directoryPath, recursive: true);
+                }
+            }
+        }
+
+        [Test]
+        public void Run45RewardFormula_PreservesStrongestRunAnchor()
+        {
+            EconomyConfig economy = ScriptableObject.CreateInstance<EconomyConfig>();
+            var serializedObject = new SerializedObject(economy);
+            serializedObject.FindProperty("rewardScale").floatValue = 0.85f;
+            serializedObject.FindProperty("timeCoinPer30Seconds").floatValue = 300f;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            economy.ValidateValues();
+
+            try
+            {
+                Assert.That(
+                    economy.CalculateFinalCoins(34493f, 545f),
+                    Is.EqualTo(34769).Within(1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(economy);
+            }
+        }
+
+        [Test]
         public void SchemaSevenQuantityLevels_MigrateToEliteSquadCapsWithoutResettingProgress()
         {
             var saveData = SaveData.CreateNew(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());

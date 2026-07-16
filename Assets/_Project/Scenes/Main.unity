@@ -9809,7 +9809,7 @@ GameObject:
   - component: {fileID: 505017914}
   - component: {fileID: 505017913}
   m_Layer: 0
-  m_Name: DailyRewardLabel
+  m_Name: MissionLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9854,9 +9854,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'DAILY
-
-    REWARD'
+  m_text: MISSION
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7f0734d4a8a6dcd45848170d5e87f333, type: 2}
   m_sharedMaterial: {fileID: 1547161114}
@@ -15551,7 +15549,7 @@ GameObject:
   - component: {fileID: 780213421}
   - component: {fileID: 780213420}
   m_Layer: 0
-  m_Name: DailyCoinIcon
+  m_Name: MissionIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15596,7 +15594,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ee94b13d45e07364bb97ac4bfcdb9578, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a3d0314d2f9b4c54bae93865fd4dee4f, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -22957,9 +22955,16 @@ MonoBehaviour:
   settingsPanel: {fileID: 632111497}
   pausePanel: {fileID: 1601806282}
   gameOverPanel: {fileID: 890592162}
+  missionPanel: {fileID: 1862070224}
   playButton: {fileID: 2064292376}
   mainMenuUpgradeButton: {fileID: 489584235}
   mainMenuSettingsButton: {fileID: 143201659}
+  mainMenuMissionButton: {fileID: 1938043032}
+  mainMenuMissionButtonImage: {fileID: 1938043033}
+  mainMenuMissionBadge: {fileID: 1561336093}
+  missionButtonNormalSprite: {fileID: 21300000, guid: e411310311a7ae74bb099752bce24a8f, type: 3}
+  missionButtonAlertSprite: {fileID: 21300000, guid: c1824ad34f06e604dbd11b12ae9edf4e, type: 3}
+  missionButtonCompleteSprite: {fileID: 21300000, guid: a640309a884ab0147a4ba18066328ff9, type: 3}
   bestRunText: {fileID: 0}
   walletText: {fileID: 761023269}
   bestScoreText: {fileID: 870652514}
@@ -22967,6 +22972,8 @@ MonoBehaviour:
   bestEnemiesKilledText: {fileID: 1872373401}
   bestCoinsText: {fileID: 1025404451}
   loopValueText: {fileID: 2126964623}
+  missionBackButton: {fileID: 1862070223}
+  missionLogPanelUI: {fileID: 1862070225}
   pauseButton: {fileID: 935209294}
   timeSurvivalText: {fileID: 729292674}
   moneyText: {fileID: 1367795017}
@@ -31022,7 +31029,7 @@ GameObject:
   - component: {fileID: 1561336096}
   - component: {fileID: 1561336095}
   m_Layer: 0
-  m_Name: DailyDisabledBadge
+  m_Name: MissionBadge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31068,8 +31075,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -4088049390063211046, guid: 39e0242329775814891ef673e48ae932, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: c42dbac54be7c7744bc84b279a86b709, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -32221,6 +32228,7 @@ RectTransform:
   - {fileID: 1601806283}
   - {fileID: 890592163}
   - {fileID: 1658596795}
+  - {fileID: 1862070222}
   m_Father: {fileID: 1207812257}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -35728,7 +35736,7 @@ GameObject:
   - component: {fileID: 1855295276}
   - component: {fileID: 1855295275}
   m_Layer: 0
-  m_Name: DailyDisabledBadgeText
+  m_Name: MissionBadgeText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35853,6 +35861,135 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1855295273}
   m_CullTransparentMesh: 1
+--- !u!1001 &1862070221
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1645311786}
+    m_Modifications:
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8954181957905332453, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+      propertyPath: m_Name
+      value: MissionLogPanel
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+--- !u!224 &1862070222 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 618520455951193222, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+  m_PrefabInstance: {fileID: 1862070221}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1862070223 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8669216029819728071, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+  m_PrefabInstance: {fileID: 1862070221}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!1 &1862070224 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8954181957905332453, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+  m_PrefabInstance: {fileID: 1862070221}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1862070225 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5406236617631846629, guid: bcc56dc63bd8a994282425be599964dc, type: 3}
+  m_PrefabInstance: {fileID: 1862070221}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1862070224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7ee028572dca0049b7925a46060864f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.UISystem.MissionLogPanelUI
 --- !u!1 &1865353320
 GameObject:
   m_ObjectHideFlags: 0
@@ -38186,7 +38323,7 @@ GameObject:
   - component: {fileID: 1938043033}
   - component: {fileID: 1938043032}
   m_Layer: 0
-  m_Name: DailyRewardButton
+  m_Name: MissionButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38253,7 +38390,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 1938043033}
   m_OnClick:
     m_PersistentCalls:
@@ -38278,8 +38415,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -4088049390063211046, guid: 39e0242329775814891ef673e48ae932, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: c1824ad34f06e604dbd11b12ae9edf4e, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -41876,15 +42013,16 @@ MonoBehaviour:
   uiSystem: {fileID: 1128062107}
   levelSystem: {fileID: 0}
   runStatsTracker: {fileID: 0}
-  balanceConfig: {fileID: 11400000, guid: cfc84bd589cb78d49ae355f4f2f10c06, type: 2}
-  economyConfig: {fileID: 11400000, guid: 9b66f54d30185c74282cb4c4221958bf, type: 2}
-  telemetryConfig: {fileID: 11400000, guid: 7c85369c4a53c0e4481e21e53e2f0783, type: 2}
+  balanceConfig: {fileID: 11400000, guid: 2a67a059d04e41aaaa347d1aaf9b0025, type: 2}
+  economyConfig: {fileID: 11400000, guid: 73bc550565b14958959cd267ced9a3f6, type: 2}
+  telemetryConfig: {fileID: 11400000, guid: 04d4cb34b6f94d2c8317bbb055192d40, type: 2}
   benchmarkProfile: {fileID: 0}
   telemetryService: {fileID: 0}
   playerController: {fileID: 479990533}
   mainPlayerUnit: {fileID: 289232676}
   storyCutsceneRuntime: {fileID: 365020330}
   tutorialManager: {fileID: 2200000006}
+  missionCatalog: {fileID: 0}
 --- !u!114 &2200000004
 MonoBehaviour:
   m_ObjectHideFlags: 0

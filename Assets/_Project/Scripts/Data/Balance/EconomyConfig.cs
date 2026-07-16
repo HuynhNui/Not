@@ -73,9 +73,10 @@ namespace _Project.Scripts.Data.Balance
             float timeCoinPer30Seconds)
         {
             float rewardTotal = Mathf.Max(0f, rewardPoints) * Mathf.Max(0f, rewardScale);
+            float timeCoins = Mathf.Max(0f, survivalSeconds) / 30f * Mathf.Max(0f, timeCoinPer30Seconds);
             return Mathf.Max(
                 0,
-                Mathf.RoundToInt(rewardTotal + Mathf.Max(0f, milestoneBonus)));
+                Mathf.RoundToInt(rewardTotal + timeCoins + Mathf.Max(0f, milestoneBonus)));
         }
 
         private static int CalculateTimeScore(float survivalSeconds, float scorePerSecond)

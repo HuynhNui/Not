@@ -11,6 +11,7 @@ namespace _Project.Scripts.Data.Balance
         [SerializeField] private string activeBalanceVersion = CombatScalingConfig.DefaultConfigVersion;
         [SerializeField] private CombatScalingConfig combatScalingConfig;
         [SerializeField] private PlayerMetaBalanceConfig playerMetaBalanceConfig;
+        [SerializeField] private PlayerMetaEconomyConfig playerMetaEconomyConfig;
         [SerializeField] private GatePoolConfig gatePoolConfig;
         [SerializeField] private GateScalingProfile gateScalingProfile;
         [SerializeField] private BalanceBenchmarkProfile benchmarkProfile;
@@ -25,6 +26,7 @@ namespace _Project.Scripts.Data.Balance
         public string ActiveBalanceVersion => activeBalanceVersion;
         public CombatScalingConfig CombatScalingConfig => combatScalingConfig;
         public PlayerMetaBalanceConfig PlayerMetaBalanceConfig => playerMetaBalanceConfig;
+        public PlayerMetaEconomyConfig PlayerMetaEconomyConfig => playerMetaEconomyConfig;
         public GatePoolConfig GatePoolConfig => gatePoolConfig;
         public GateScalingProfile GateScalingProfile => gateScalingProfile;
         public BalanceBenchmarkProfile BenchmarkProfile => benchmarkProfile;
@@ -85,6 +87,7 @@ namespace _Project.Scripts.Data.Balance
             }
 
             gateScalingProfile?.ValidateValues();
+            playerMetaEconomyConfig?.ValidateValues();
             enemyRoleConfigs ??= new List<EnemyRoleConfig>();
             enemyRoleConfigs.RemoveAll(config => config == null);
         }

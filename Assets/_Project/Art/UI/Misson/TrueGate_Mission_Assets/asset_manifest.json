@@ -1,0 +1,123 @@
+{
+  "version": "1.0",
+  "assets": [
+    {
+      "file": "mission_button_normal_128x160.png",
+      "size": [
+        128,
+        160
+      ]
+    },
+    {
+      "file": "mission_button_alert_128x160.png",
+      "size": [
+        128,
+        160
+      ]
+    },
+    {
+      "file": "mission_button_complete_128x160.png",
+      "size": [
+        128,
+        160
+      ]
+    },
+    {
+      "file": "mission_button_base_128x160.png",
+      "size": [
+        128,
+        160
+      ]
+    },
+    {
+      "file": "mission_icon_log_64.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "file": "mission_panel_9slice_128.png",
+      "size": [
+        128,
+        128
+      ],
+      "border": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "file": "mission_row_active_320x80.png",
+      "size": [
+        320,
+        80
+      ]
+    },
+    {
+      "file": "mission_row_completed_320x80.png",
+      "size": [
+        320,
+        80
+      ]
+    },
+    {
+      "file": "mission_row_locked_320x80.png",
+      "size": [
+        320,
+        80
+      ]
+    },
+    {
+      "file": "mission_phase_locked_320x96.png",
+      "size": [
+        320,
+        96
+      ]
+    },
+    {
+      "file": "mission_progress_bg_128x16.png",
+      "size": [
+        128,
+        16
+      ]
+    },
+    {
+      "file": "mission_progress_fill_128x16.png",
+      "size": [
+        128,
+        16
+      ]
+    },
+    {
+      "file": "mission_badge_alert_32.png",
+      "size": [
+        32,
+        32
+      ]
+    },
+    {
+      "file": "mission_badge_check_32.png",
+      "size": [
+        32,
+        32
+      ]
+    },
+    {
+      "file": "mission_lock_icon_48.png",
+      "size": [
+        48,
+        48
+      ]
+    },
+    {
+      "file": "mission_check_icon_48.png",
+      "size": [
+        48,
+        48
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
@@ -8,6 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using RuntimeMissionSystem = _Project.Scripts.Systems.MissionSystem.MissionSystem;
 
 namespace _Project.Scripts.Systems.UISystem
 {
@@ -24,11 +26,18 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private GameObject settingsPanel;
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private GameObject gameOverPanel;
+        [SerializeField] private GameObject missionPanel;
 
         [Header("Main Menu")]
         [SerializeField] private Button playButton;
         [SerializeField] private Button mainMenuUpgradeButton;
         [SerializeField] private Button mainMenuSettingsButton;
+        [SerializeField] private Button mainMenuMissionButton;
+        [SerializeField] private Image mainMenuMissionButtonImage;
+        [SerializeField] private GameObject mainMenuMissionBadge;
+        [SerializeField] private Sprite missionButtonNormalSprite;
+        [SerializeField] private Sprite missionButtonAlertSprite;
+        [SerializeField] private Sprite missionButtonCompleteSprite;
         [SerializeField] private TextMeshProUGUI bestRunText;
         [SerializeField] private TextMeshProUGUI walletText;
         [SerializeField] private TextMeshProUGUI bestScoreText;
@@ -36,6 +45,10 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private TextMeshProUGUI bestEnemiesKilledText;
         [SerializeField] private TextMeshProUGUI bestCoinsText;
         [SerializeField] private TextMeshProUGUI loopValueText;
+
+        [Header("Mission Log")]
+        [SerializeField] private Button missionBackButton;
+        [SerializeField] private MissionLogPanelUI missionLogPanelUI;
 
         [Header("Gameplay HUD")]
         [SerializeField] private Button pauseButton;
@@ -95,12 +108,14 @@ namespace _Project.Scripts.Systems.UISystem
         private const string SfxEnabledPrefsKey = "Settings.SfxEnabled";
         private const string VibrationPrefsKey = "Settings.Vibration";
         private const string DamageTextPrefsKey = "Settings.DamageText";
+        private const float MissionCompleteFeedbackSeconds = 1.25f;
 
         private RunStatsTracker _runStatsTracker;
         private UIScreen _currentScreen = UIScreen.None;
         private UIScreen _settingsReturnScreen = UIScreen.MainMenu;
         private readonly HashSet<string> _missingReferenceWarnings = new HashSet<string>();
         private bool _isInitialized;
+        private bool _missionButtonCompleteFeedbackPending;
 
         public event Action PlayRequested;
         public event Action PauseRequested;
@@ -263,6 +278,8 @@ namespace _Project.Scripts.Systems.UISystem
             WireButton(playButton, nameof(playButton), () => PlayRequested?.Invoke());
             WireButton(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), ShowUpgrade);
             WireButton(mainMenuSettingsButton, nameof(mainMenuSettingsButton), ShowSettingsFromMainMenu);
+            WireButton(mainMenuMissionButton, nameof(mainMenuMissionButton), ShowMissionLog);
+            WireButton(missionBackButton, nameof(missionBackButton), ShowMainMenu);
             WireButton(pauseButton, nameof(pauseButton), () => PauseRequested?.Invoke());
             WireButton(upgradeBackButton, nameof(upgradeBackButton), ShowMainMenu);
             WireButton(settingsBackButton, nameof(settingsBackButton), HandleSettingsBack);
@@ -437,6 +454,29 @@ namespace _Project.Scripts.Systems.UISystem
             debugAddCoinsButton.gameObject.SetActive(Application.isEditor || Debug.isDebugBuild);
         }
 
+        public void ShowMissionLog()
+        {
+            Time.timeScale = 1f;
+            SetPrimaryPanel(UIScreen.Mission);
+
+            SaveData saveData = SaveService.Instance.Data;
+            if (missionLogPanelUI != null)
+            {
+                missionLogPanelUI.Refresh(RuntimeMissionSystem.ActiveInstance, saveData);
+                missionLogPanelUI.ScrollToActiveMission();
+            }
+
+            if (saveData.missionNotificationUnread)
+            {
+                saveData.missionNotificationUnread = false;
+                SaveService.Instance.CommitMissionState();
+            }
+
+            _missionButtonCompleteFeedbackPending = false;
+            CancelInvoke(nameof(ClearMissionButtonCompleteFeedback));
+            RefreshMissionButton();
+        }
+
         private void RefreshSettingsControls()
         {
             RefreshSettingToggle(musicToggle, MusicEnabledPrefsKey, true);
@@ -536,6 +576,7 @@ namespace _Project.Scripts.Systems.UISystem
         {
             SaveData saveData = SaveService.Instance.Data;
             SetText(loopValueText, saveData.totalRunsCompleted.ToString());
+            RefreshMissionButton(saveData);
 
             if (_runStatsTracker == null)
             {
@@ -560,6 +601,48 @@ namespace _Project.Scripts.Systems.UISystem
             SetText(bestTimeText, FormatTime(_runStatsTracker.BestSurvivalTime));
             SetText(bestEnemiesKilledText, _runStatsTracker.BestKillCount.ToString());
             SetText(bestCoinsText, _runStatsTracker.BestCoinsEarned.ToString());
+        }
+
+        private void RefreshMissionButton(SaveData saveData = null)
+        {
+            saveData ??= SaveService.Instance.Data;
+
+            if (mainMenuMissionButtonImage != null)
+            {
+                Sprite targetSprite = _missionButtonCompleteFeedbackPending
+                    ? missionButtonCompleteSprite
+                    : saveData.missionNotificationUnread
+                        ? missionButtonAlertSprite
+                        : missionButtonNormalSprite;
+                if (targetSprite != null)
+                {
+                    mainMenuMissionButtonImage.sprite = targetSprite;
+                }
+            }
+
+            SetActive(mainMenuMissionBadge, saveData.missionNotificationUnread);
+        }
+
+        public void ShowMissionButtonCompleteFeedback()
+        {
+            _missionButtonCompleteFeedbackPending = true;
+            CancelInvoke(nameof(ClearMissionButtonCompleteFeedback));
+
+            if (mainMenuMissionButtonImage != null && missionButtonCompleteSprite != null)
+            {
+                mainMenuMissionButtonImage.sprite = missionButtonCompleteSprite;
+            }
+
+            if (isActiveAndEnabled)
+            {
+                Invoke(nameof(ClearMissionButtonCompleteFeedback), MissionCompleteFeedbackSeconds);
+            }
+        }
+
+        private void ClearMissionButtonCompleteFeedback()
+        {
+            _missionButtonCompleteFeedbackPending = false;
+            RefreshMissionButton();
         }
 
         private void RefreshHud()
@@ -643,6 +726,7 @@ namespace _Project.Scripts.Systems.UISystem
             SetActive(settingsPanel, screen == UIScreen.Settings);
             SetActive(pausePanel, screen == UIScreen.Pause);
             SetActive(gameOverPanel, screen == UIScreen.GameOver);
+            SetActive(missionPanel, screen == UIScreen.Mission);
             SetActive(gameplayHudPanel, screen == UIScreen.Gameplay
                 || screen == UIScreen.Pause
                 || screen == UIScreen.GameOver
@@ -662,6 +746,9 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(settingsPanel, nameof(settingsPanel), "GameCanvas/UIRoot/SafeAreaRoot/SettingsPanel");
             WarnIfMissing(pausePanel, nameof(pausePanel), "GameCanvas/UIRoot/SafeAreaRoot/PausePanel");
             WarnIfMissing(gameOverPanel, nameof(gameOverPanel), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
+            WarnIfMissing(missionPanel, nameof(missionPanel), "GameCanvas/UIRoot/SafeAreaRoot/MissionLogPanel");
+            WarnIfMissing(missionBackButton, nameof(missionBackButton), "MissionLogPanel/PanelCard/Header/BackButton");
+            WarnIfMissing(missionLogPanelUI, nameof(missionLogPanelUI), "MissionLogPanel");
             WarnIfMissing(gameOverPanelUI, nameof(gameOverPanelUI), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
             WarnIfMissing(musicToggle, nameof(musicToggle), "SettingsPanel/MainPanel/RowsContainer/MusicRow/ToggleButton");
             WarnIfMissing(sfxToggle, nameof(sfxToggle), "SettingsPanel/MainPanel/RowsContainer/SfxRow/ToggleButton");
@@ -673,6 +760,7 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(resetConfirmCancelButton, nameof(resetConfirmCancelButton), "SettingsPanel/ResetConfirmPopup/ConfirmPanel/ButtonRow/CancelButton");
             WarnIfMissing(resetConfirmButton, nameof(resetConfirmButton), "SettingsPanel/ResetConfirmPopup/ConfirmPanel/ButtonRow/ConfirmButton");
             WarnIfMissing(playButton, nameof(playButton), "MainMenuPanel/StartRunButton");
+            WarnIfMissing(mainMenuMissionButton, nameof(mainMenuMissionButton), "MainMenuPanel/MissionButton");
             WarnIfMissing(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), "MainMenuPanel/BottomNavigationBar/UPDATEButton");
             WarnIfMissing(mainMenuSettingsButton, nameof(mainMenuSettingsButton), "MainMenuPanel/BottomNavigationBar/SETTINGButton");
             WarnIfMissing(walletText, nameof(walletText), "MainMenuPanel/TopHUD/ResourceBox/CoinValueText");
@@ -774,6 +862,10 @@ namespace _Project.Scripts.Systems.UISystem
         {
             RefreshMenuStats();
             RefreshUpgradePanel();
+            if (_currentScreen == UIScreen.Mission && missionLogPanelUI != null)
+            {
+                missionLogPanelUI.Refresh(RuntimeMissionSystem.ActiveInstance, SaveService.Instance.Data);
+            }
         }
 
         public enum UIScreen
@@ -784,7 +876,8 @@ namespace _Project.Scripts.Systems.UISystem
             Upgrade,
             Settings,
             Pause,
-            GameOver
+            GameOver,
+            Mission
         }
     }
 

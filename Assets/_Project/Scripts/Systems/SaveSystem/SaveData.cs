@@ -8,7 +8,9 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 8;
+        public const int CurrentSchemaVersion = 10;
+        public const string FirstMissionId = "boot_finish_tutorial";
+        public const string FinalMissionId = "break_final_choice";
 
         public int schemaVersion = CurrentSchemaVersion;
         public string balanceVersionLastPlayed = _Project.Scripts.Data.Balance.CombatScalingConfig.DefaultConfigVersion;
@@ -20,12 +22,23 @@ namespace _Project.Scripts.Systems.SaveSystem
         public int bestScore;
         public int totalEnemyKills;
         public int walletCoins;
+        public int lifetimeCoinsEarned;
+        public int lifetimeCoinsSpent;
         public int totalRunsCompleted;
         public int storyStage;
         public bool gameplayTutorialCompleted;
         public bool upgradeTutorialCompleted;
         public bool tutorialFirstRunBonusGranted;
         public int tutorialVersion;
+        public string activeMissionId = FirstMissionId;
+        public float activeMissionProgress;
+        public float activeMissionBaseline;
+        public List<string> completedMissionIds = new List<string>();
+        public List<string> grantedMissionRewardIds = new List<string>();
+        public int lifetimeGatesSelected;
+        public int lifetimeMajorGatesSelected;
+        public bool missionNotificationUnread = true;
+        public bool finalChoiceResolved;
         public List<UpgradeLevelSaveEntry> upgradeLevels = new List<UpgradeLevelSaveEntry>();
         public List<string> seenCutsceneIds = new List<string>();
 
@@ -61,9 +74,45 @@ namespace _Project.Scripts.Systems.SaveSystem
             bestScore = Mathf.Max(0, bestScore);
             totalEnemyKills = Mathf.Max(Mathf.Max(0, totalEnemyKills), bestKillCount);
             walletCoins = Mathf.Max(0, walletCoins);
+            lifetimeCoinsEarned = Mathf.Max(Mathf.Max(0, lifetimeCoinsEarned), walletCoins);
+            lifetimeCoinsSpent = Mathf.Max(0, lifetimeCoinsSpent);
             totalRunsCompleted = Mathf.Max(0, totalRunsCompleted);
             storyStage = Mathf.Max(0, storyStage);
             tutorialVersion = Mathf.Max(0, tutorialVersion);
+            if (completedMissionIds == null)
+            {
+                completedMissionIds = new List<string>();
+            }
+
+            if (grantedMissionRewardIds == null)
+            {
+                grantedMissionRewardIds = new List<string>();
+            }
+
+            activeMissionId = NormalizeMissionId(activeMissionId);
+            if (string.IsNullOrEmpty(activeMissionId))
+            {
+                if (ContainsMissionId(completedMissionIds, FinalMissionId))
+                {
+                    missionNotificationUnread = false;
+                }
+                else
+                {
+                    activeMissionId = FirstMissionId;
+                    if (sourceSchemaVersion < CurrentSchemaVersion)
+                    {
+                        missionNotificationUnread = true;
+                    }
+                }
+            }
+
+            activeMissionProgress = Mathf.Max(0f, activeMissionProgress);
+            activeMissionBaseline = Mathf.Max(0f, activeMissionBaseline);
+            lifetimeGatesSelected = Mathf.Max(0, lifetimeGatesSelected);
+            lifetimeMajorGatesSelected = Mathf.Clamp(
+                lifetimeMajorGatesSelected,
+                0,
+                lifetimeGatesSelected);
             if (shouldPreserveLegacyTutorialCompletion)
             {
                 gameplayTutorialCompleted = true;
@@ -83,6 +132,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             RemoveDuplicateOrInvalidUpgradeEntries(sourceSchemaVersion);
             EnsureAllUpgradeEntries();
             NormalizeSeenCutsceneIds();
+            NormalizeMissionIds();
         }
 
         public int GetUpgradeLevel(PlayerMetaUpgradeType type)
@@ -142,6 +192,25 @@ namespace _Project.Scripts.Systems.SaveSystem
             return true;
         }
 
+        public bool HasGrantedMissionReward(string missionId)
+        {
+            string safeId = NormalizeMissionId(missionId);
+            if (string.IsNullOrEmpty(safeId) || grantedMissionRewardIds == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < grantedMissionRewardIds.Count; index++)
+            {
+                if (string.Equals(grantedMissionRewardIds[index], safeId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public SaveData Clone()
         {
             var clone = new SaveData
@@ -156,12 +225,23 @@ namespace _Project.Scripts.Systems.SaveSystem
                 bestScore = bestScore,
                 totalEnemyKills = totalEnemyKills,
                 walletCoins = walletCoins,
+                lifetimeCoinsEarned = lifetimeCoinsEarned,
+                lifetimeCoinsSpent = lifetimeCoinsSpent,
                 totalRunsCompleted = totalRunsCompleted,
                 storyStage = storyStage,
                 gameplayTutorialCompleted = gameplayTutorialCompleted,
                 upgradeTutorialCompleted = upgradeTutorialCompleted,
                 tutorialFirstRunBonusGranted = tutorialFirstRunBonusGranted,
                 tutorialVersion = tutorialVersion,
+                activeMissionId = activeMissionId,
+                activeMissionProgress = activeMissionProgress,
+                activeMissionBaseline = activeMissionBaseline,
+                completedMissionIds = new List<string>(),
+                grantedMissionRewardIds = new List<string>(),
+                lifetimeGatesSelected = lifetimeGatesSelected,
+                lifetimeMajorGatesSelected = lifetimeMajorGatesSelected,
+                missionNotificationUnread = missionNotificationUnread,
+                finalChoiceResolved = finalChoiceResolved,
                 upgradeLevels = new List<UpgradeLevelSaveEntry>(),
                 seenCutsceneIds = new List<string>()
             };
@@ -191,6 +271,9 @@ namespace _Project.Scripts.Systems.SaveSystem
                     }
                 }
             }
+
+            CopyNormalizedMissionIds(completedMissionIds, clone.completedMissionIds);
+            CopyNormalizedMissionIds(grantedMissionRewardIds, clone.grantedMissionRewardIds);
 
             return clone;
         }
@@ -280,6 +363,12 @@ namespace _Project.Scripts.Systems.SaveSystem
             storyStage = Mathf.Max(storyStage, seenCutsceneIds.Count);
         }
 
+        private void NormalizeMissionIds()
+        {
+            completedMissionIds = BuildNormalizedMissionIdList(completedMissionIds);
+            grantedMissionRewardIds = BuildNormalizedMissionIdList(grantedMissionRewardIds);
+        }
+
         private bool HasLegacyProgressEvidence()
         {
             if (revision > 0
@@ -289,8 +378,15 @@ namespace _Project.Scripts.Systems.SaveSystem
                 || bestScore > 0
                 || totalEnemyKills > 0
                 || walletCoins > 0
+                || lifetimeCoinsEarned > 0
+                || lifetimeCoinsSpent > 0
                 || totalRunsCompleted > 0
                 || storyStage > 0
+                || lifetimeGatesSelected > 0
+                || lifetimeMajorGatesSelected > 0
+                || finalChoiceResolved
+                || (completedMissionIds != null && completedMissionIds.Count > 0)
+                || (grantedMissionRewardIds != null && grantedMissionRewardIds.Count > 0)
                 || upgradeTutorialCompleted
                 || tutorialFirstRunBonusGranted
                 || (seenCutsceneIds != null && seenCutsceneIds.Count > 0))
@@ -320,6 +416,72 @@ namespace _Project.Scripts.Systems.SaveSystem
             return string.IsNullOrWhiteSpace(cutsceneId)
                 ? string.Empty
                 : cutsceneId.Trim();
+        }
+
+        private static string NormalizeMissionId(string missionId)
+        {
+            return string.IsNullOrWhiteSpace(missionId)
+                ? string.Empty
+                : missionId.Trim();
+        }
+
+        private static List<string> BuildNormalizedMissionIdList(List<string> missionIds)
+        {
+            var cleanedIds = new List<string>();
+            if (missionIds == null)
+            {
+                return cleanedIds;
+            }
+
+            var seenIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = 0; index < missionIds.Count; index++)
+            {
+                string safeId = NormalizeMissionId(missionIds[index]);
+                if (string.IsNullOrEmpty(safeId) || !seenIds.Add(safeId))
+                {
+                    continue;
+                }
+
+                cleanedIds.Add(safeId);
+            }
+
+            return cleanedIds;
+        }
+
+        private static bool ContainsMissionId(List<string> missionIds, string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            if (string.IsNullOrEmpty(safeMissionId) || missionIds == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < missionIds.Count; index++)
+            {
+                if (string.Equals(
+                    NormalizeMissionId(missionIds[index]),
+                    safeMissionId,
+                    StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void CopyNormalizedMissionIds(List<string> source, List<string> destination)
+        {
+            if (destination == null)
+            {
+                return;
+            }
+
+            List<string> cleanedIds = BuildNormalizedMissionIdList(source);
+            for (int index = 0; index < cleanedIds.Count; index++)
+            {
+                destination.Add(cleanedIds[index]);
+            }
         }
 
         private UpgradeLevelSaveEntry FindUpgradeEntry(PlayerMetaUpgradeType type)

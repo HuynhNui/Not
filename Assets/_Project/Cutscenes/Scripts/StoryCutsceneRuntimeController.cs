@@ -1,4 +1,5 @@
 using System;
+using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
 using TMPro;
@@ -156,10 +157,23 @@ namespace _Project.Cutscenes
 
         private void HandleCutsceneFinished(string cutsceneId)
         {
+            string normalizedCutsceneId = StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(cutsceneId);
+            bool recordedCutscene = false;
             if (_recordActiveCutsceneSeen)
             {
-                SaveService.Instance.RecordCutsceneSeen(
-                    StoryCutsceneUnlockRules.NormalizePlayableCutsceneId(cutsceneId));
+                recordedCutscene = SaveService.Instance.RecordCutsceneSeen(normalizedCutsceneId);
+            }
+
+            if (recordedCutscene && IsFinalChoiceBranch(normalizedCutsceneId))
+            {
+                if (MissionSystem.ActiveInstance != null)
+                {
+                    MissionSystem.ActiveInstance.NotifyFinalChoiceResolved(normalizedCutsceneId);
+                }
+                else
+                {
+                    SaveService.Instance.MarkFinalChoiceResolved();
+                }
             }
 
             _isPlaying = false;
@@ -167,6 +181,12 @@ namespace _Project.Cutscenes
             Action callback = _onPlaybackComplete;
             _onPlaybackComplete = null;
             callback?.Invoke();
+        }
+
+        private static bool IsFinalChoiceBranch(string cutsceneId)
+        {
+            return cutsceneId == StoryCutsceneIds.FinalChoiceContinueProtocol
+                || cutsceneId == StoryCutsceneIds.FinalChoiceShutDownCore;
         }
 
         private void EnsureDirectorAndView()

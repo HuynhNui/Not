@@ -23,6 +23,8 @@ internal static class BalanceConfigExporter
             "Assets/_Project/Data/Balance/V1/CombatScalingConfig_v1.asset");
         PlayerMetaBalanceConfig meta = LoadOrCreateDefault<PlayerMetaBalanceConfig>(
             "Assets/_Project/Data/Balance/V1/PlayerMetaBalanceConfig_v1.asset");
+        PlayerMetaEconomyConfig metaEconomy = LoadOrCreateDefault<PlayerMetaEconomyConfig>(
+            "Assets/_Project/Data/Balance/V1_4_Economy/PlayerMetaEconomyConfig_v1_4_Run45.asset");
         RunPressureConfig pressure = LoadOrCreateDefault<RunPressureConfig>(
             "Assets/_Project/Data/Balance/V1/RunPressureConfig_v1.asset");
         GatePoolConfig gates = LoadOrCreateDefault<GatePoolConfig>(
@@ -32,6 +34,7 @@ internal static class BalanceConfigExporter
 
         combat.ValidateValues();
         meta.ValidateValues();
+        metaEconomy.ValidateValues();
         pressure.ValidateValues();
         gates.ValidateValues();
         economy.ValidateValues();
@@ -43,7 +46,7 @@ internal static class BalanceConfigExporter
             balanceVersion = CombatScalingConfig.DefaultConfigVersion,
             combat = BuildCombat(combat),
             metaLevels = BuildMetaLevels(meta, combat),
-            metaTracks = BuildMetaTracks(meta),
+            metaTracks = BuildMetaTracks(meta, metaEconomy),
             pressureSamples = BuildPressureSamples(pressure),
             enemyRoles = BuildEnemyRoles(),
             gateSchedule = BuildGateSchedule(gates),
@@ -70,6 +73,7 @@ internal static class BalanceConfigExporter
         bootstrap.ValidateValues();
         CombatScalingConfig combat = bootstrap.CombatScalingConfig;
         PlayerMetaBalanceConfig meta = bootstrap.PlayerMetaBalanceConfig;
+        PlayerMetaEconomyConfig metaEconomy = bootstrap.PlayerMetaEconomyConfig;
         RunPressureConfig pressure = bootstrap.RunPressureConfig;
         GatePoolConfig gates = bootstrap.GatePoolConfig;
         EconomyConfig economy = bootstrap.EconomyConfig;
@@ -78,6 +82,7 @@ internal static class BalanceConfigExporter
 
         combat?.ValidateValues();
         meta?.ValidateValues();
+        metaEconomy?.ValidateValues();
         pressure?.ValidateValues();
         gates?.ValidateValues();
         economy?.ValidateValues();
@@ -95,7 +100,7 @@ internal static class BalanceConfigExporter
             balanceVersion = bootstrap.ActiveBalanceVersion,
             combat = combat != null ? BuildCombat(combat) : null,
             metaLevels = meta != null && combat != null ? BuildMetaLevels(meta, combat) : new List<MetaLevelExport>(),
-            metaTracks = meta != null ? BuildMetaTracks(meta) : new List<MetaTrackExport>(),
+            metaTracks = meta != null ? BuildMetaTracks(meta, metaEconomy) : new List<MetaTrackExport>(),
             pressureSamples = pressure != null ? BuildPressureSamples(pressure) : new List<PressureSampleExport>(),
             enemyRoles = BuildEnemyRoles(bootstrap),
             gateSchedule = gates != null ? BuildGateSchedule(gates, gateScaling) : new List<GateScheduleExport>(),
@@ -109,7 +114,7 @@ internal static class BalanceConfigExporter
             damageForwardCapBenchmark = bootstrap.DamageForwardCapBenchmarkProfile != null
                 ? BuildBenchmark(bootstrap.DamageForwardCapBenchmarkProfile, combat)
                 : null,
-            economy = economy != null ? BuildEconomy(economy) : null
+            economy = economy != null ? BuildEconomy(economy, metaEconomy) : null
         };
 
         string jsonPath = Path.Combine(outputDirectory, $"true_gate_{safeVersion}.json");
@@ -198,7 +203,9 @@ internal static class BalanceConfigExporter
         return result;
     }
 
-    private static List<MetaTrackExport> BuildMetaTracks(PlayerMetaBalanceConfig meta)
+    private static List<MetaTrackExport> BuildMetaTracks(
+        PlayerMetaBalanceConfig meta,
+        PlayerMetaEconomyConfig metaEconomy)
     {
         var result = new List<MetaTrackExport>();
 
@@ -213,7 +220,11 @@ internal static class BalanceConfigExporter
             {
                 PlayerMetaLevelData data = meta.GetLevelData(level);
                 values.Add(GetMetaTrackValue(definition.Type, data));
-                costs.Add(level == 0 ? 0 : data.Cost);
+                costs.Add(level == 0
+                    ? 0
+                    : metaEconomy != null
+                        ? metaEconomy.GetPurchaseCost(definition.Type, level - 1)
+                        : data.Cost);
             }
 
             result.Add(new MetaTrackExport
@@ -221,7 +232,10 @@ internal static class BalanceConfigExporter
                 type = definition.Type.ToString(),
                 maxLevel = maxLevel,
                 values = values,
-                costs = costs
+                costs = costs,
+                totalCost = metaEconomy != null
+                    ? metaEconomy.GetTrackTotalCost(definition.Type)
+                    : SumCosts(costs)
             });
         }
 
@@ -351,7 +365,9 @@ internal static class BalanceConfigExporter
         return result;
     }
 
-    private static EconomyExport BuildEconomy(EconomyConfig economy)
+    private static EconomyExport BuildEconomy(
+        EconomyConfig economy,
+        PlayerMetaEconomyConfig metaEconomy = null)
     {
         return new EconomyExport
         {
@@ -360,8 +376,22 @@ internal static class BalanceConfigExporter
             timeScorePerSecond = economy.TimeScorePerSecond,
             eliteCoinBonusMin = economy.EliteCoinBonusMin,
             eliteCoinBonusMax = economy.EliteCoinBonusMax,
-            storyMilestones = new List<int>(economy.StoryMilestones)
+            storyMilestones = new List<int>(economy.StoryMilestones),
+            metaEconomyVersion = metaEconomy != null ? metaEconomy.ConfigVersion : string.Empty,
+            upgradeCostScale = metaEconomy != null ? metaEconomy.UpgradeCostScale : 1f,
+            fullUpgradeTreeCost = metaEconomy != null ? metaEconomy.GetFullTreeTotalCost() : 0
         };
+    }
+
+    private static int SumCosts(IReadOnlyList<int> costs)
+    {
+        int total = 0;
+        for (int index = 0; index < costs.Count; index++)
+        {
+            total += costs[index];
+        }
+
+        return total;
     }
 
     private static GateScalingExport BuildGateScaling(GateScalingProfile profile)
@@ -616,6 +646,7 @@ internal static class BalanceConfigExporter
         public int maxLevel;
         public List<float> values;
         public List<int> costs;
+        public int totalCost;
     }
 
     [Serializable]
@@ -676,6 +707,9 @@ internal static class BalanceConfigExporter
         public float eliteCoinBonusMin;
         public float eliteCoinBonusMax;
         public List<int> storyMilestones;
+        public string metaEconomyVersion;
+        public float upgradeCostScale;
+        public int fullUpgradeTreeCost;
     }
 
     [Serializable]

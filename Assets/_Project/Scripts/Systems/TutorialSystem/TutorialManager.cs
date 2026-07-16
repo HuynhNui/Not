@@ -193,6 +193,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
                 SaveService.Instance.MarkGameplayTutorialCompleted();
             }
 
+            _gameManager?.NotifyGameplayTutorialCompleted();
             overlayUI?.HideOverlay();
             _currentFlow = TutorialFlow.None;
 

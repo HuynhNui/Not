@@ -16,6 +16,7 @@ namespace _Project.Scripts.Systems.ProgressionSystem
         [Obsolete("Balance v1 uses explicit level values instead of a shared multiplier.")]
         public const float UpgradeMultiplier = 1.5f;
         private static PlayerMetaBalanceConfig _balanceConfig;
+        private static PlayerMetaEconomyConfig _economyConfig;
         private static CombatScalingConfig _combatScalingConfig;
 
         public static readonly UpgradeDefinition[] Definitions =
@@ -120,8 +121,9 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 return 0;
             }
 
-            int nextLevel = level + 1;
-            return GetLevelData(nextLevel).Cost;
+            return _economyConfig != null
+                ? _economyConfig.GetPurchaseCost(type, level)
+                : GetLevelData(level + 1).Cost;
         }
 
         public static float GetCurrentValue(PlayerMetaUpgradeType type)
@@ -159,7 +161,16 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             PlayerMetaBalanceConfig balanceConfig,
             CombatScalingConfig combatScalingConfig)
         {
+            Configure(balanceConfig, null, combatScalingConfig);
+        }
+
+        public static void Configure(
+            PlayerMetaBalanceConfig balanceConfig,
+            PlayerMetaEconomyConfig economyConfig,
+            CombatScalingConfig combatScalingConfig)
+        {
             _balanceConfig = balanceConfig;
+            _economyConfig = economyConfig;
             _combatScalingConfig = combatScalingConfig;
         }
 
@@ -194,6 +205,99 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             }
 
             return SaveService.Instance.TryPurchaseUpgrade(type, GetCost(type));
+        }
+
+        public static int GetTrackTotalCost(PlayerMetaUpgradeType type)
+        {
+            if (!IsSupportedUpgrade(type))
+            {
+                return 0;
+            }
+
+            if (_economyConfig != null)
+            {
+                return _economyConfig.GetTrackTotalCost(type);
+            }
+
+            int total = 0;
+            int maxLevel = GetMaxLevel(type);
+            for (int level = 1; level <= maxLevel; level++)
+            {
+                total += GetLevelData(level).Cost;
+            }
+
+            return total;
+        }
+
+        public static int GetFullTreeTotalCost()
+        {
+            int total = 0;
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                total += GetTrackTotalCost(Definitions[index].Type);
+            }
+
+            return total;
+        }
+
+        public static int GetUpgradeTreeCostCompleted()
+        {
+            int total = 0;
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                PlayerMetaUpgradeType type = Definitions[index].Type;
+                int level = GetLevel(type);
+                if (_economyConfig != null)
+                {
+                    total += _economyConfig.GetCostCompleted(type, level);
+                    continue;
+                }
+
+                for (int purchaseLevel = 1; purchaseLevel <= level; purchaseLevel++)
+                {
+                    total += GetLevelData(purchaseLevel).Cost;
+                }
+            }
+
+            return total;
+        }
+
+        public static int GetTotalUpgradePurchases()
+        {
+            int total = 0;
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                total += GetLevel(Definitions[index].Type);
+            }
+
+            return total;
+        }
+
+        public static int GetMaxUpgradePurchases()
+        {
+            int total = 0;
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                total += GetMaxLevel(Definitions[index].Type);
+            }
+
+            return total;
+        }
+
+        public static float GetUpgradeTreeCostCompletionRatio()
+        {
+            int fullTreeCost = GetFullTreeTotalCost();
+            return fullTreeCost > 0
+                ? Mathf.Clamp01(GetUpgradeTreeCostCompleted() / (float)fullTreeCost)
+                : 0f;
+        }
+
+        public static float GetUpgradeCountCompletionRatio()
+        {
+            int maxPurchases = GetMaxUpgradePurchases();
+            return maxPurchases > 0
+                ? Mathf.Clamp01(GetTotalUpgradePurchases() / (float)maxPurchases)
+                : 0f;
         }
 
         public static void ApplyToPlayer(MainPlayerUnit mainPlayerUnit, PlayerController playerController)

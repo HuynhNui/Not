@@ -2,11 +2,13 @@ using System;
 using _Project.Cutscenes;
 using _Project.Scripts.Core.StateMachine;
 using _Project.Scripts.Data.Balance;
+using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.CombatSystem;
 using _Project.Scripts.Systems.EnemySpawnerSystem;
 using _Project.Scripts.Systems.GateSystem;
 using _Project.Scripts.Systems.LevelSystem;
+using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
@@ -15,6 +17,7 @@ using _Project.Scripts.Systems.TutorialSystem;
 using _Project.Scripts.Systems.UISystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using RuntimeMissionSystem = _Project.Scripts.Systems.MissionSystem.MissionSystem;
 
 namespace _Project.Scripts.Core.GameLoop
 {
@@ -39,10 +42,12 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private MainPlayerUnit mainPlayerUnit;
         [SerializeField] private StoryCutsceneRuntimeController storyCutsceneRuntime;
         [SerializeField] private TutorialManager tutorialManager;
+        [SerializeField] private MissionCatalog missionCatalog;
 
         private bool _isGameOver;
         private bool _isRunActive;
         private bool _isBenchmarkRun;
+        private RuntimeMissionSystem _missionSystem;
         private static bool _startRunAfterReload;
         private static bool _showUpdateOnboardingAfterReload;
 
@@ -91,6 +96,7 @@ namespace _Project.Scripts.Core.GameLoop
             storyCutsceneRuntime?.Init();
 
             ApplyBalanceConfiguration();
+            InitializeMissionSystem();
 
             if (runStatsTracker != null)
             {
@@ -132,6 +138,11 @@ namespace _Project.Scripts.Core.GameLoop
             }
 
             gateSystem?.Init();
+            if (gateSystem != null)
+            {
+                gateSystem.GateSelected -= HandleMissionGateSelected;
+                gateSystem.GateSelected += HandleMissionGateSelected;
+            }
 
             if (tutorialManager == null)
             {
@@ -153,6 +164,9 @@ namespace _Project.Scripts.Core.GameLoop
                 playerController.SquadDefeated -= HandleSquadDefeated;
                 playerController.SquadDefeated += HandleSquadDefeated;
             }
+
+            SaveService.Instance.UpgradePurchased -= HandleMissionUpgradePurchased;
+            SaveService.Instance.UpgradePurchased += HandleMissionUpgradePurchased;
 
             Time.timeScale = 1f;
             _isGameOver = false;
@@ -208,6 +222,7 @@ namespace _Project.Scripts.Core.GameLoop
             CombatScalingConfig combatScalingConfig = balanceConfig.CombatScalingConfig;
             PlayerMetaUpgradeService.Configure(
                 balanceConfig.PlayerMetaBalanceConfig,
+                balanceConfig.PlayerMetaEconomyConfig,
                 combatScalingConfig);
 
             if (combatScalingConfig != null)
@@ -252,6 +267,24 @@ namespace _Project.Scripts.Core.GameLoop
             {
                 playerController.SquadDefeated -= HandleSquadDefeated;
             }
+
+            if (gateSystem != null)
+            {
+                gateSystem.GateSelected -= HandleMissionGateSelected;
+            }
+
+            if (SaveService.HasInstance)
+            {
+                SaveService.Instance.UpgradePurchased -= HandleMissionUpgradePurchased;
+            }
+
+            if (_missionSystem != null)
+            {
+                _missionSystem.MissionCompleted -= HandleMissionCompleted;
+            }
+
+            _missionSystem?.Dispose();
+            _missionSystem = null;
         }
 
         private void RequestStartRun()
@@ -272,6 +305,7 @@ namespace _Project.Scripts.Core.GameLoop
             _isGameOver = false;
             _isRunActive = true;
             _isBenchmarkRun = false;
+            _missionSystem?.SetProgressionSuppressed(false);
             runStatsTracker?.SetPersistenceSuppressed(false);
 
             if (playerController != null && !playerController.gameObject.activeSelf)
@@ -308,6 +342,7 @@ namespace _Project.Scripts.Core.GameLoop
             _isGameOver = false;
             _isRunActive = true;
             _isBenchmarkRun = IsBenchmarkProfileActive();
+            _missionSystem?.SetProgressionSuppressed(_isBenchmarkRun);
 
             if (playerController != null && !playerController.gameObject.activeSelf)
             {
@@ -328,6 +363,7 @@ namespace _Project.Scripts.Core.GameLoop
             _isGameOver = false;
             _isRunActive = true;
             _isBenchmarkRun = IsBenchmarkProfileActive();
+            _missionSystem?.SetProgressionSuppressed(_isBenchmarkRun);
 
             if (playerController != null && !playerController.gameObject.activeSelf)
             {
@@ -437,6 +473,11 @@ namespace _Project.Scripts.Core.GameLoop
             RunStatsSnapshot snapshot = runStatsTracker != null
                 ? runStatsTracker.CreateSnapshot()
                 : default;
+
+            if (!_isBenchmarkRun && runStatsTracker != null)
+            {
+                _missionSystem?.EndRun(snapshot);
+            }
 
             if (runStatsTracker != null)
             {
@@ -552,6 +593,45 @@ namespace _Project.Scripts.Core.GameLoop
         private bool IsBenchmarkProfileActive()
         {
             return benchmarkProfile != null && benchmarkProfile.IsActive;
+        }
+
+        public void NotifyGameplayTutorialCompleted()
+        {
+            _missionSystem?.NotifyGameplayTutorialCompleted();
+        }
+
+        private void InitializeMissionSystem()
+        {
+            if (missionCatalog == null)
+            {
+                missionCatalog = MissionCatalog.CreateRuntimeDefault();
+            }
+
+            if (_missionSystem != null)
+            {
+                _missionSystem.MissionCompleted -= HandleMissionCompleted;
+            }
+
+            _missionSystem?.Dispose();
+            _missionSystem = new RuntimeMissionSystem(missionCatalog, SaveService.Instance);
+            _missionSystem.MissionCompleted += HandleMissionCompleted;
+            _missionSystem.InitializeFromSave();
+        }
+
+        private void HandleMissionCompleted(MissionDefinition completedMission, MissionDefinition unlockedMission)
+        {
+            uiSystem?.ShowMissionButtonCompleteFeedback();
+        }
+
+        private void HandleMissionGateSelected(int gateSet, GateConfig config)
+        {
+            bool isTutorialGate = tutorialManager != null && tutorialManager.IsRunningGameplayTutorial;
+            _missionSystem?.NotifyGateSelected(config, isTutorialGate);
+        }
+
+        private void HandleMissionUpgradePurchased(UpgradePurchaseTelemetry purchase)
+        {
+            _missionSystem?.NotifyUpgradePurchased();
         }
 
         private bool ShouldSuppressBenchmarkStory()

@@ -52,6 +52,7 @@ namespace _Project.Scripts.Systems.SaveSystem
 
         public SaveConflict PendingConflict { get; private set; }
         public event Action DataChanged;
+        public event Action<UpgradePurchaseTelemetry> UpgradePurchased;
 
         public static SaveService CreateDefault()
         {
@@ -188,6 +189,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             if (safeCoinsEarned > 0)
             {
                 _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeCoinsEarned);
+                _data.lifetimeCoinsEarned = Mathf.Max(0, _data.lifetimeCoinsEarned + safeCoinsEarned);
                 changed = true;
             }
 
@@ -272,9 +274,20 @@ namespace _Project.Scripts.Systems.SaveSystem
                 return false;
             }
 
+            int fromLevel = _data.GetUpgradeLevel(type);
+            int walletBefore = _data.walletCoins;
             _data.walletCoins -= safeCost;
-            _data.SetUpgradeLevel(type, _data.GetUpgradeLevel(type) + 1);
+            _data.lifetimeCoinsSpent = Mathf.Max(0, _data.lifetimeCoinsSpent + safeCost);
+            _data.SetUpgradeLevel(type, fromLevel + 1);
             CommitAndQueueCloudUpload();
+            UpgradePurchased?.Invoke(new UpgradePurchaseTelemetry(
+                type,
+                fromLevel,
+                fromLevel + 1,
+                safeCost,
+                walletBefore,
+                _data.walletCoins,
+                _data.totalRunsCompleted));
             return true;
         }
 
@@ -338,6 +351,50 @@ namespace _Project.Scripts.Systems.SaveSystem
             return true;
         }
 
+        public bool GrantMissionRewardOnce(string missionId, int coinAmount)
+        {
+            EnsureLoaded();
+
+            string safeMissionId = NormalizeMissionId(missionId);
+            if (string.IsNullOrEmpty(safeMissionId)
+                || _data.HasGrantedMissionReward(safeMissionId))
+            {
+                return false;
+            }
+
+            _data.grantedMissionRewardIds ??= new System.Collections.Generic.List<string>();
+            _data.grantedMissionRewardIds.Add(safeMissionId);
+
+            int safeAmount = Mathf.Max(0, coinAmount);
+            if (safeAmount > 0)
+            {
+                _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeAmount);
+                _data.lifetimeCoinsEarned = Mathf.Max(0, _data.lifetimeCoinsEarned + safeAmount);
+            }
+
+            CommitAndQueueCloudUpload();
+            return true;
+        }
+
+        public void CommitMissionState()
+        {
+            EnsureLoaded();
+            CommitAndQueueCloudUpload();
+        }
+
+        public bool MarkFinalChoiceResolved()
+        {
+            EnsureLoaded();
+            if (_data.finalChoiceResolved)
+            {
+                return false;
+            }
+
+            _data.finalChoiceResolved = true;
+            CommitAndQueueCloudUpload();
+            return true;
+        }
+
         public bool IsUpdateOnboardingCompleted()
         {
             return IsUpgradeTutorialCompleted();
@@ -397,6 +454,7 @@ namespace _Project.Scripts.Systems.SaveSystem
             saveData.bestScore = PlayerPrefs.GetInt(RunStatsTracker.BestScorePrefsKey, 0);
             saveData.totalEnemyKills = saveData.bestKillCount;
             saveData.walletCoins = PlayerPrefs.GetInt(RunStatsTracker.WalletCoinsPrefsKey, 0);
+            saveData.lifetimeCoinsEarned = saveData.walletCoins;
 
             PlayerMetaUpgradeType[] upgradeTypes =
                 (PlayerMetaUpgradeType[])Enum.GetValues(typeof(PlayerMetaUpgradeType));
@@ -553,6 +611,13 @@ namespace _Project.Scripts.Systems.SaveSystem
                 || saveData.totalEnemyKills > 0
                 || saveData.totalRunsCompleted > 0
                 || saveData.storyStage > 0
+                || saveData.lifetimeGatesSelected > 0
+                || saveData.lifetimeMajorGatesSelected > 0
+                || saveData.activeMissionProgress > 0f
+                || saveData.activeMissionBaseline > 0f
+                || saveData.finalChoiceResolved
+                || (saveData.completedMissionIds != null && saveData.completedMissionIds.Count > 0)
+                || (saveData.grantedMissionRewardIds != null && saveData.grantedMissionRewardIds.Count > 0)
                 || (saveData.seenCutsceneIds != null && saveData.seenCutsceneIds.Count > 0))
             {
                 return false;
@@ -570,6 +635,13 @@ namespace _Project.Scripts.Systems.SaveSystem
             }
 
             return true;
+        }
+
+        private static string NormalizeMissionId(string missionId)
+        {
+            return string.IsNullOrWhiteSpace(missionId)
+                ? string.Empty
+                : missionId.Trim();
         }
 
         private void CommitAndQueueCloudUpload()
@@ -641,6 +713,35 @@ namespace _Project.Scripts.Systems.SaveSystem
             {
                 Debug.LogWarning($"Cloud save upload failed: {exception.Message}");
             }
+        }
+    }
+
+    public readonly struct UpgradePurchaseTelemetry
+    {
+        public readonly PlayerMetaUpgradeType UpgradeType;
+        public readonly int FromLevel;
+        public readonly int ToLevel;
+        public readonly int Cost;
+        public readonly int WalletBefore;
+        public readonly int WalletAfter;
+        public readonly int LifetimeRunCount;
+
+        public UpgradePurchaseTelemetry(
+            PlayerMetaUpgradeType upgradeType,
+            int fromLevel,
+            int toLevel,
+            int cost,
+            int walletBefore,
+            int walletAfter,
+            int lifetimeRunCount)
+        {
+            UpgradeType = upgradeType;
+            FromLevel = fromLevel;
+            ToLevel = toLevel;
+            Cost = cost;
+            WalletBefore = walletBefore;
+            WalletAfter = walletAfter;
+            LifetimeRunCount = lifetimeRunCount;
         }
     }
 }
