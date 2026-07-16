@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e378bf83da495d49ad79495c5eb3f5d, type: 3}
   m_Name: BalanceTelemetryConfig_v1_4_Run45
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.BalanceTelemetryConfig
-  telemetryConfigVersion: economy-v1.4.0-run45
+  telemetryConfigVersion: economy-v1.4.1-run45-progression
   snapshotIntervalSeconds: 15
   exportCsv: 1
   exportJsonl: 1

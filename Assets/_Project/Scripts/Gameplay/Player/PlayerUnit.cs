@@ -213,7 +213,6 @@ namespace _Project.Scripts.Gameplay.Player
             transform.position = source.transform.position;
             SetDamage(source.Damage);
             SetFireRate(source.FireRate);
-            SetMaxHp(source.MaxHp);
             _isDead = false;
             _barrierHits = source._barrierHits;
             _barrierRemainingSeconds = source._barrierRemainingSeconds;

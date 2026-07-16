@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5de410bb2fac459fb7bc7bba23a47d0d, type: 3}
   m_Name: PlayerMetaEconomyConfig_v1_4_Run45
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.PlayerMetaEconomyConfig
-  configVersion: economy-v1.4.0-run45
+  configVersion: economy-v1.4.1-run45-progression
   upgradeCostScale: 1
   costTracks:
   - upgradeType: 0

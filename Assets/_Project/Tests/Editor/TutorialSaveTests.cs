@@ -60,14 +60,15 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void GrantTutorialFirstRunBonus_OnlyOnce()
+        public void GrantTutorialFirstRunBonus_MarksOnlyOnceWithoutCoins()
         {
             bool firstGrant = _service.GrantTutorialFirstRunBonusIfNeeded(25);
             bool secondGrant = _service.GrantTutorialFirstRunBonusIfNeeded(25);
 
             Assert.That(firstGrant, Is.True);
             Assert.That(secondGrant, Is.False);
-            Assert.That(_service.Data.walletCoins, Is.EqualTo(25));
+            Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
+            Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(0));
             Assert.That(_service.HasGrantedTutorialFirstRunBonus(), Is.True);
         }
 

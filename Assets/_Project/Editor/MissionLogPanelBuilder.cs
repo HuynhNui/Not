@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.IO;
 using _Project.Scripts.Systems.UISystem;
 using TMPro;
 using UnityEditor;
@@ -16,6 +17,7 @@ namespace _Project.Editor
         private const string PanelPrefabPath = "Assets/_Project/Prefabs/UI/MissionLogPanel.prefab";
         private const string RowPrefabPath = "Assets/_Project/Prefabs/UI/MissionRow.prefab";
         private const string FontPath = "Assets/Front/Upheaval_TMP.asset";
+        private const string BackgroundPath = "Assets/_Project/Art/Sprites/background/BG-Temp.png";
         private const string ArtRoot = "Assets/_Project/Art/UI/MissionSystem/";
         private const string PanelSpritePath = ArtRoot + "mission_panel_9slice_128.png";
         private const string RowActivePath = ArtRoot + "mission_row_active_320x80.png";
@@ -26,18 +28,27 @@ namespace _Project.Editor
         private const string CheckIconPath = ArtRoot + "mission_check_icon_48.png";
         private const string LockIconPath = ArtRoot + "mission_lock_icon_48.png";
 
-        private static readonly Color32 OverlayColor = new Color32(2, 6, 16, 156);
+        private static readonly Color32 OverlayColor = new Color32(0, 0, 0, 0);
+        private static readonly Color32 BackgroundTint = new Color32(255, 255, 255, 242);
+        private static readonly Color32 BackgroundShade = new Color32(36, 48, 79, 189);
         private static readonly Color32 Ink = new Color32(13, 27, 52, 255);
         private static readonly Color32 MutedInk = new Color32(62, 77, 104, 255);
         private static readonly Color32 White = new Color32(246, 250, 255, 255);
+        private static readonly Color32 ActiveFrame = new Color32(255, 219, 83, 255);
+        private static readonly Color32 CompletedFrame = new Color32(112, 229, 163, 255);
+        private static readonly Color32 LockedFrame = new Color32(113, 129, 158, 255);
+        private static readonly Color32 RowFill = new Color32(242, 248, 255, 238);
+        private static readonly Color32 ActiveRowFill = new Color32(255, 246, 194, 245);
 
         [MenuItem("Chibi Pixel Gate/UI/Rebuild Mission Log Panel")]
         public static void Rebuild()
         {
+            GenerateCleanRowFrames();
             ConfigureSprites();
 
             TMP_FontAsset fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath)
                 ?? TMP_Settings.defaultFontAsset;
+            Sprite backgroundSprite = LoadSprite(BackgroundPath);
             Sprite panelSprite = LoadSprite(PanelSpritePath);
             Sprite rowActiveSprite = LoadSprite(RowActivePath);
             Sprite rowCompletedSprite = LoadSprite(RowCompletedPath);
@@ -74,7 +85,7 @@ namespace _Project.Editor
             Object.DestroyImmediate(rowPrefabObject);
 
             MissionRowUI rowPrefab = AssetDatabase.LoadAssetAtPath<MissionRowUI>(RowPrefabPath);
-            GameObject panelPrefabObject = BuildPanelObject(fontAsset, panelSprite, rowPrefab, out _, out _);
+            GameObject panelPrefabObject = BuildPanelObject(fontAsset, backgroundSprite, panelSprite, rowPrefab, out _, out _);
             PrefabUtility.SaveAsPrefabAsset(panelPrefabObject, PanelPrefabPath);
 
             InstallPanelInScene(panelPrefabObject);
@@ -88,6 +99,7 @@ namespace _Project.Editor
 
         private static GameObject BuildPanelObject(
             TMP_FontAsset fontAsset,
+            Sprite backgroundSprite,
             Sprite panelSprite,
             MissionRowUI rowPrefab,
             out Button backButton,
@@ -101,6 +113,25 @@ namespace _Project.Editor
             overlay.color = OverlayColor;
 
             panelUi = panel.AddComponent<MissionLogPanelUI>();
+
+            RectTransform backgroundLayer = CreateImage(
+                "BackgroundLayer",
+                panelRect,
+                backgroundSprite,
+                Image.Type.Simple,
+                BackgroundTint);
+            Stretch(backgroundLayer);
+
+            Image backgroundImage = backgroundLayer.GetComponent<Image>();
+            backgroundImage.preserveAspect = false;
+
+            RectTransform shade = CreateImage(
+                "BackgroundShade",
+                backgroundLayer,
+                null,
+                Image.Type.Simple,
+                BackgroundShade);
+            Stretch(shade);
 
             RectTransform card = CreateImage("PanelCard", panelRect, panelSprite, Image.Type.Sliced, Color.white);
             Anchor(card, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
@@ -123,20 +154,21 @@ namespace _Project.Editor
             title.rectTransform.offsetMin = new Vector2(110f, 46f);
             title.rectTransform.offsetMax = new Vector2(-110f, -10f);
 
-            TextMeshProUGUI activeMissionText = CreateText("ActiveMissionText", card, fontAsset, "ACTIVE MISSION", 34f, Ink, TextAlignmentOptions.Center);
+            TextMeshProUGUI activeMissionText = CreateText("ActiveMissionText", card, fontAsset, "MAIN OBJECTIVE", 34f, Ink, TextAlignmentOptions.Center);
             Anchor(activeMissionText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f));
             activeMissionText.rectTransform.sizeDelta = new Vector2(-96f, 54f);
             activeMissionText.rectTransform.anchoredPosition = new Vector2(0f, -176f);
 
-            TextMeshProUGUI summaryText = CreateText("SummaryText", card, fontAsset, "0 / 24 COMPLETE", 26f, MutedInk, TextAlignmentOptions.Center);
+            TextMeshProUGUI summaryText = CreateText("SummaryText", card, fontAsset, "COMPLETE ALL DIRECTIVES\n00 / 24 COMPLETE", 25f, MutedInk, TextAlignmentOptions.Center);
             Anchor(summaryText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f));
-            summaryText.rectTransform.sizeDelta = new Vector2(-96f, 42f);
-            summaryText.rectTransform.anchoredPosition = new Vector2(0f, -228f);
+            summaryText.textWrappingMode = TextWrappingModes.Normal;
+            summaryText.rectTransform.sizeDelta = new Vector2(-96f, 76f);
+            summaryText.rectTransform.anchoredPosition = new Vector2(0f, -236f);
 
             RectTransform scrollRoot = CreateRect("MissionScrollView", card).transform as RectTransform;
             Anchor(scrollRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0.5f, 0.5f));
             scrollRoot.offsetMin = new Vector2(54f, 72f);
-            scrollRoot.offsetMax = new Vector2(-54f, -290f);
+            scrollRoot.offsetMax = new Vector2(-54f, -326f);
 
             Image scrollMaskImage = scrollRoot.gameObject.AddComponent<Image>();
             scrollMaskImage.color = new Color32(255, 255, 255, 12);
@@ -230,6 +262,7 @@ namespace _Project.Editor
             Anchor(progressBg, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f));
             progressBg.offsetMin = new Vector2(114f, 24f);
             progressBg.offsetMax = new Vector2(-178f, 44f);
+            Image progressBackgroundImage = progressBg.GetComponent<Image>();
 
             Image progressFill = CreateImage("ProgressFill", progressBg, progressFillSprite, Image.Type.Filled, Color.white).GetComponent<Image>();
             progressFill.fillMethod = Image.FillMethod.Horizontal;
@@ -255,6 +288,7 @@ namespace _Project.Editor
             SerializedObject serializedRow = new SerializedObject(rowUi);
             SetRef(serializedRow, "backgroundImage", backgroundImage);
             SetRef(serializedRow, "statusIconImage", statusIcon);
+            SetRef(serializedRow, "progressBackgroundImage", progressBackgroundImage);
             SetRef(serializedRow, "progressFillImage", progressFill);
             SetRef(serializedRow, "activeSprite", activeSprite);
             SetRef(serializedRow, "completedSprite", completedSprite);
@@ -399,13 +433,97 @@ namespace _Project.Editor
         private static void ConfigureSprites()
         {
             ConfigureSprite(PanelSpritePath, new Vector4(24f, 24f, 24f, 24f));
-            ConfigureSprite(RowActivePath, Vector4.zero);
-            ConfigureSprite(RowCompletedPath, Vector4.zero);
-            ConfigureSprite(RowLockedPath, Vector4.zero);
-            ConfigureSprite(ProgressBgPath, Vector4.zero);
-            ConfigureSprite(ProgressFillPath, Vector4.zero);
+            ConfigureSprite(RowActivePath, new Vector4(14f, 14f, 14f, 14f));
+            ConfigureSprite(RowCompletedPath, new Vector4(14f, 14f, 14f, 14f));
+            ConfigureSprite(RowLockedPath, new Vector4(14f, 14f, 14f, 14f));
+            ConfigureSprite(ProgressBgPath, new Vector4(4f, 4f, 4f, 4f));
+            ConfigureSprite(ProgressFillPath, new Vector4(4f, 4f, 4f, 4f));
             ConfigureSprite(CheckIconPath, Vector4.zero);
             ConfigureSprite(LockIconPath, Vector4.zero);
+        }
+
+        private static void GenerateCleanRowFrames()
+        {
+            WriteCleanRowFrame(RowActivePath, ActiveFrame, ActiveRowFill);
+            WriteCleanRowFrame(RowCompletedPath, CompletedFrame, RowFill);
+            WriteCleanRowFrame(RowLockedPath, LockedFrame, RowFill);
+            AssetDatabase.Refresh();
+        }
+
+        private static void WriteCleanRowFrame(string assetPath, Color32 frameColor, Color32 fillColor)
+        {
+            const int width = 320;
+            const int height = 80;
+            const int outer = 4;
+            const int inner = 9;
+
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Point;
+
+            Color32 transparent = new Color32(0, 0, 0, 0);
+            Color32 innerLine = new Color32(
+                (byte)Mathf.RoundToInt(frameColor.r * 0.72f),
+                (byte)Mathf.RoundToInt(frameColor.g * 0.72f),
+                (byte)Mathf.RoundToInt(frameColor.b * 0.72f),
+                255);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    bool inOuterFrame = x < outer || x >= width - outer || y < outer || y >= height - outer;
+                    bool inInnerFrame = x < inner || x >= width - inner || y < inner || y >= height - inner;
+                    Color32 pixel = transparent;
+
+                    if (inOuterFrame)
+                    {
+                        pixel = frameColor;
+                    }
+                    else if (inInnerFrame)
+                    {
+                        pixel = innerLine;
+                    }
+                    else
+                    {
+                        pixel = fillColor;
+                    }
+
+                    texture.SetPixel(x, y, pixel);
+                }
+            }
+
+            texture.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            string fullPath = Path.Combine(projectRoot, assetPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            byte[] pngBytes = texture.EncodeToPNG();
+            Object.DestroyImmediate(texture);
+
+            if (File.Exists(fullPath) && BytesMatch(File.ReadAllBytes(fullPath), pngBytes))
+            {
+                return;
+            }
+
+            File.WriteAllBytes(fullPath, pngBytes);
+        }
+
+        private static bool BytesMatch(byte[] left, byte[] right)
+        {
+            if (left == null || right == null || left.Length != right.Length)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < left.Length; index++)
+            {
+                if (left[index] != right[index])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void ConfigureSprite(string path, Vector4 border)
@@ -456,6 +574,12 @@ namespace _Project.Editor
             if (importer.textureCompression != TextureImporterCompression.Uncompressed)
             {
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
+                changed = true;
+            }
+
+            if (!Mathf.Approximately(importer.spritePixelsPerUnit, 100f))
+            {
+                importer.spritePixelsPerUnit = 100f;
                 changed = true;
             }
 

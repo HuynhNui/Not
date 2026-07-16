@@ -4,6 +4,7 @@ using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.SaveSystem;
 using _Project.Scripts.Systems.UISystem;
 using NUnit.Framework;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -134,6 +135,39 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
+        public void RefreshMissionLog_RendersFilteredObjectiveDeckWithoutFutureDetails()
+        {
+            SaveData data = _saveService.Data;
+            data.completedMissionIds.Clear();
+            data.completedMissionIds.Add("boot_finish_tutorial");
+            data.completedMissionIds.Add("boot_first_loop");
+            data.activeMissionId = "boot_purchase_upgrade";
+            data.activeMissionProgress = 0.5f;
+            _saveService.CommitMissionState();
+            _missionSystem.InitializeFromSave();
+
+            GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
+            MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
+            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+
+            missionLogPanelUI.Refresh(_missionSystem, data);
+
+            string visibleText = GetVisibleMissionRowText(content);
+            int visibleRowCount = CountVisibleMissionRows(content);
+
+            Assert.That(visibleRowCount, Is.GreaterThanOrEqualTo(4));
+            Assert.That(visibleRowCount, Is.LessThan(24));
+            Assert.That(visibleText, Does.Contain("FINISH TUTORIAL"));
+            Assert.That(visibleText, Does.Contain("COMPLETE FIRST LOOP"));
+            Assert.That(visibleText, Does.Contain("PURCHASE ANY UPGRADE"));
+            Assert.That(visibleText, Does.Contain("ENCRYPTED OBJECTIVE"));
+            Assert.That(visibleText, Does.Contain("LOCKED PHASE"));
+            Assert.That(visibleText, Does.Not.Contain("PASS THROUGH 3 GATES"));
+            Assert.That(visibleText, Does.Not.Contain("COMPLETE 3 LOOPS"));
+            Assert.That(visibleText, Does.Not.Contain("DEFEAT 100 ENEMIES IN ONE RUN"));
+        }
+
+        [Test]
         public void ExistingPrimaryNavigationStillHasRequiredBindings()
         {
             UISystem uiSystem = UnityEngine.Object.FindAnyObjectByType<UISystem>(FindObjectsInactive.Include);
@@ -198,6 +232,42 @@ namespace _Project.Tests.Editor
             }
 
             return null;
+        }
+
+        private static int CountVisibleMissionRows(Transform content)
+        {
+            int count = 0;
+            for (int index = 0; index < content.childCount; index++)
+            {
+                Transform child = content.GetChild(index);
+                if (child.gameObject.activeSelf)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static string GetVisibleMissionRowText(Transform content)
+        {
+            System.Text.StringBuilder builder = new System.Text.StringBuilder();
+            for (int index = 0; index < content.childCount; index++)
+            {
+                Transform child = content.GetChild(index);
+                if (!child.gameObject.activeSelf)
+                {
+                    continue;
+                }
+
+                TextMeshProUGUI[] texts = child.GetComponentsInChildren<TextMeshProUGUI>(includeInactive: false);
+                for (int textIndex = 0; textIndex < texts.Length; textIndex++)
+                {
+                    builder.AppendLine(texts[textIndex].text);
+                }
+            }
+
+            return builder.ToString();
         }
 
         private static bool IsMainSceneObject(GameObject gameObject)

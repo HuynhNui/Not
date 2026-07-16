@@ -68,6 +68,11 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             return Mathf.Clamp(SaveService.Instance.GetUpgradeLevel(type), 0, GetMaxLevel(type));
         }
 
+        public static int GetLevel(SaveData saveData, PlayerMetaUpgradeType type)
+        {
+            return Mathf.Clamp(saveData != null ? saveData.GetUpgradeLevel(type) : 0, 0, GetMaxLevel(type));
+        }
+
         public static int GetMaxLevel(PlayerMetaUpgradeType type)
         {
             if (!TryGetDefinition(type, out UpgradeDefinition definition))
@@ -262,12 +267,45 @@ namespace _Project.Scripts.Systems.ProgressionSystem
             return total;
         }
 
+        public static int GetUpgradeTreeCostCompleted(SaveData saveData)
+        {
+            int total = 0;
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                PlayerMetaUpgradeType type = Definitions[index].Type;
+                int level = GetLevel(saveData, type);
+                if (_economyConfig != null)
+                {
+                    total += _economyConfig.GetCostCompleted(type, level);
+                    continue;
+                }
+
+                for (int purchaseLevel = 1; purchaseLevel <= level; purchaseLevel++)
+                {
+                    total += GetLevelData(purchaseLevel).Cost;
+                }
+            }
+
+            return total;
+        }
+
         public static int GetTotalUpgradePurchases()
         {
             int total = 0;
             for (int index = 0; index < Definitions.Length; index++)
             {
                 total += GetLevel(Definitions[index].Type);
+            }
+
+            return total;
+        }
+
+        public static int GetTotalUpgradePurchases(SaveData saveData)
+        {
+            int total = 0;
+            for (int index = 0; index < Definitions.Length; index++)
+            {
+                total += GetLevel(saveData, Definitions[index].Type);
             }
 
             return total;
@@ -313,6 +351,20 @@ namespace _Project.Scripts.Systems.ProgressionSystem
                 GetCurrentValue(PlayerMetaUpgradeType.MaxHp),
                 Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.ProjectileCount)),
                 Mathf.RoundToInt(GetCurrentValue(PlayerMetaUpgradeType.SquadSize)));
+        }
+
+        public static PlayerRunStartStats BuildRunStartStats(SaveData saveData)
+        {
+            return new PlayerRunStartStats(
+                GetValueForLevel(PlayerMetaUpgradeType.Damage, GetLevel(saveData, PlayerMetaUpgradeType.Damage)),
+                GetValueForLevel(PlayerMetaUpgradeType.FireRate, GetLevel(saveData, PlayerMetaUpgradeType.FireRate)),
+                GetValueForLevel(PlayerMetaUpgradeType.MaxHp, GetLevel(saveData, PlayerMetaUpgradeType.MaxHp)),
+                Mathf.RoundToInt(GetValueForLevel(
+                    PlayerMetaUpgradeType.ProjectileCount,
+                    GetLevel(saveData, PlayerMetaUpgradeType.ProjectileCount))),
+                Mathf.RoundToInt(GetValueForLevel(
+                    PlayerMetaUpgradeType.SquadSize,
+                    GetLevel(saveData, PlayerMetaUpgradeType.SquadSize))));
         }
 
         public static void ApplyStatsToPlayer(

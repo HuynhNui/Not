@@ -85,25 +85,29 @@ namespace _Project.Tests.Editor
         [Test]
         public void FullMetaEffectiveDps_RemainsInsideTargetRange()
         {
-            float baseline = BalanceV1Math.EffectiveDps(1f, 4f, 1, 1);
-            float fullMeta = BalanceV1Math.EffectiveDps(1.9f, 6.4f, 6, 12);
+            CombatScalingConfig combat = AssetDatabase.LoadAssetAtPath<CombatScalingConfig>(
+                "Assets/_Project/Data/Balance/V1_3_3_EliteSquad/CombatScalingConfig_v1_3_3_EliteSquad.asset");
+            float baseline = BalanceV1Math.EffectiveDps(1f, 4f, 1, 1, combat);
+            float fullMeta = BalanceV1Math.EffectiveDps(3f, 6.4f, 3, 4, combat);
             float ratio = fullMeta / baseline;
 
             Assert.That(baseline, Is.EqualTo(15.06f).Within(0.01f));
-            Assert.That(fullMeta, Is.EqualTo(178.68f).Within(0.1f));
-            Assert.That(ratio, Is.InRange(11f, 12.2f));
+            Assert.That(fullMeta, Is.EqualTo(344.6f).Within(0.2f));
+            Assert.That(ratio, Is.InRange(22.5f, 23.5f));
             Assert.That(
-                BalanceV1Math.DamagePerMainBullet(1.9f, 6),
-                Is.EqualTo(1.651f).Within(0.001f));
+                BalanceV1Math.DamagePerMainBullet(3f, 3, combat),
+                Is.EqualTo(4.496f).Within(0.001f));
         }
 
         [Test]
         public void FullMetaDurability_RemainsInsideTargetRange()
         {
+            CombatScalingConfig combat = AssetDatabase.LoadAssetAtPath<CombatScalingConfig>(
+                "Assets/_Project/Data/Balance/V1_3_3_EliteSquad/CombatScalingConfig_v1_3_3_EliteSquad.asset");
             float hpMultiplier = 20f / 10f;
-            float durabilityRatio = hpMultiplier * BalanceV1Math.SquadDurabilityFactor(12, 0.25f);
+            float durabilityRatio = hpMultiplier * BalanceV1Math.SquadDurabilityFactor(4, combat);
 
-            Assert.That(durabilityRatio, Is.EqualTo(7.5f).Within(0.0001f));
+            Assert.That(durabilityRatio, Is.EqualTo(8f).Within(0.0001f));
         }
 
         [Test]
@@ -915,10 +919,11 @@ namespace _Project.Tests.Editor
                 PlayerMetaLevelData fullMeta = config.GetLevelData(5);
 
                 Assert.That(config.Levels.Count, Is.EqualTo(6));
-                Assert.That(fullMeta.Damage, Is.EqualTo(1.9f).Within(0.0001f));
+                Assert.That(fullMeta.Damage, Is.EqualTo(3.0f).Within(0.0001f));
                 Assert.That(fullMeta.FireRate, Is.EqualTo(6.4f).Within(0.0001f));
-                Assert.That(fullMeta.ProjectileCount, Is.EqualTo(6));
-                Assert.That(fullMeta.SquadSize, Is.EqualTo(12));
+                Assert.That(fullMeta.MaxHp, Is.EqualTo(20f).Within(0.0001f));
+                Assert.That(fullMeta.ProjectileCount, Is.EqualTo(3));
+                Assert.That(fullMeta.SquadSize, Is.EqualTo(4));
                 Assert.That(fullMeta.Cost, Is.EqualTo(2200));
             }
             finally
@@ -932,7 +937,7 @@ namespace _Project.Tests.Editor
         {
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.Damage, 5),
-                Is.EqualTo(1.9f).Within(0.0001f));
+                Is.EqualTo(3.0f).Within(0.0001f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.FireRate, 5),
                 Is.EqualTo(6.4f).Within(0.0001f));
@@ -941,12 +946,12 @@ namespace _Project.Tests.Editor
                 Is.EqualTo(20f).Within(0.0001f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 5),
-                Is.EqualTo(6f));
+                Is.EqualTo(3f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.SquadSize, 5),
-                Is.EqualTo(12f));
+                Is.EqualTo(4f));
 
-            int[] expectedProjectiles = { 1, 2, 4, 6, 6, 6 };
+            int[] expectedProjectiles = { 1, 2, 3, 3, 3, 3 };
             for (int level = 0; level < expectedProjectiles.Length; level++)
             {
                 Assert.That(
@@ -954,46 +959,81 @@ namespace _Project.Tests.Editor
                     Is.EqualTo(expectedProjectiles[level]));
             }
 
-            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(3));
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
+            Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(3));
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
             Assert.That(PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.MoveSpeed), Is.EqualTo(0));
-            Assert.That(PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 4), Is.EqualTo(6f));
+            Assert.That(PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.ProjectileCount, 4), Is.EqualTo(3f));
         }
 
         [Test]
-        public void PlayerMetaUpgradeService_ProjectileCountUsesThreeLevelsAndCustomCosts()
+        public void PlayerMetaUpgradeService_UsesRun45ProgressionCosts()
         {
             string directoryPath = Path.Combine(
                 Path.GetTempPath(),
                 $"true-gate-projectile-cost-test-{System.Guid.NewGuid():N}");
             SaveService service = SaveService.CreateForTests(directoryPath);
+            PlayerMetaEconomyConfig economyConfig = PlayerMetaEconomyConfig.CreateRun45RuntimeConfig();
 
             try
             {
                 SaveService.SetInstanceForTests(service);
+                PlayerMetaUpgradeService.Configure(null, economyConfig, null);
                 service.EnsureLoaded();
-                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(100));
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(15000));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 1);
-                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(250));
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(55000));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 2);
-                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(550));
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(0));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 3);
                 Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(0));
 
                 service.Data.SetUpgradeLevel(PlayerMetaUpgradeType.Damage, 1);
-                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.Damage), Is.EqualTo(250));
+                Assert.That(PlayerMetaUpgradeService.GetCost(PlayerMetaUpgradeType.Damage), Is.EqualTo(12000));
+                Assert.That(PlayerMetaUpgradeService.GetFullTreeTotalCost(), Is.EqualTo(850000));
+                Assert.That(PlayerMetaEconomyConfig.Run45ConfigVersion, Is.EqualTo(PlayerProgressionMilestones.ConfigVersion));
             }
             finally
             {
+                Object.DestroyImmediate(economyConfig);
+                PlayerMetaUpgradeService.Configure(null, null, null);
                 SaveService.SetInstanceForTests(null);
                 if (Directory.Exists(directoryPath))
                 {
                     Directory.Delete(directoryPath, recursive: true);
                 }
             }
+        }
+
+        [Test]
+        public void PlayerProgressionMilestones_MatchRun45ReferencePlan()
+        {
+            Assert.That(PlayerProgressionMilestones.ConfigVersion, Is.EqualTo("economy-v1.4.1-run45-progression"));
+            Assert.That(PlayerProgressionMilestones.FullTreeCost, Is.EqualTo(850000));
+            Assert.That(PlayerProgressionMilestones.ReferenceCheckpoints.Count, Is.EqualTo(9));
+
+            Assert.That(PlayerProgressionMilestones.TryGetCheckpoint(10, out PlayerProgressionCheckpoint run10), Is.True);
+            Assert.That(run10.DamageValue, Is.EqualTo(1.4f).Within(0.0001f));
+            Assert.That(run10.FireRateValue, Is.EqualTo(4.4f).Within(0.0001f));
+            Assert.That(run10.MaxHpValue, Is.EqualTo(11.5f).Within(0.0001f));
+            Assert.That(run10.ProjectileCountValue, Is.EqualTo(2));
+            Assert.That(run10.SquadSizeValue, Is.EqualTo(2));
+            Assert.That(run10.TargetPurchases, Is.EqualTo(5));
+            Assert.That(run10.TargetSpent, Is.EqualTo(38000));
+
+            Assert.That(PlayerProgressionMilestones.TryGetCheckpoint(45, out PlayerProgressionCheckpoint run45), Is.True);
+            Assert.That(run45.DamageValue, Is.EqualTo(2.6f).Within(0.0001f));
+            Assert.That(run45.FireRateValue, Is.EqualTo(6.4f).Within(0.0001f));
+            Assert.That(run45.MaxHpValue, Is.EqualTo(20f).Within(0.0001f));
+            Assert.That(run45.ProjectileCountValue, Is.EqualTo(3));
+            Assert.That(run45.SquadSizeValue, Is.EqualTo(4));
+            Assert.That(run45.TargetPurchases, Is.EqualTo(19));
+            Assert.That(run45.TargetCumulativeIncome, Is.EqualTo(793000));
+            Assert.That(run45.TargetSpent, Is.EqualTo(711000));
+            Assert.That(run45.TargetWalletReserve, Is.EqualTo(82000));
         }
 
         [Test]

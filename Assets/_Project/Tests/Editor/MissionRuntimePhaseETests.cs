@@ -58,7 +58,8 @@ namespace _Project.Tests.Editor
             Assert.That(_service.Data.completedMissionIds, Does.Contain("boot_finish_tutorial"));
             Assert.That(_service.Data.activeMissionId, Is.EqualTo("boot_first_loop"));
             Assert.That(_service.Data.missionNotificationUnread, Is.True);
-            Assert.That(_service.Data.walletCoins, Is.EqualTo(1000));
+            Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
+            Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(0));
             Assert.That(_service.Data.grantedMissionRewardIds, Does.Contain("boot_finish_tutorial"));
         }
 

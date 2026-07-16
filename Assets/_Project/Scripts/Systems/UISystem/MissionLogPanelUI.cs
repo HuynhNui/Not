@@ -42,46 +42,56 @@ namespace _Project.Scripts.Systems.UISystem
         {
             if (missionSystem == null || missionSystem.Missions == null || saveData == null)
             {
-                SetText(activeMissionText, "MISSION SYSTEM OFFLINE");
+                SetText(activeMissionText, "MAIN OBJECTIVE");
                 SetText(summaryText, "NO DATA");
                 return;
             }
 
             IReadOnlyList<MissionDefinition> missions = missionSystem.Missions;
-            EnsureRowCount(missions.Count);
-
             string activeMissionId = saveData.activeMissionId;
             int completedCount = saveData.completedMissionIds != null
                 ? saveData.completedMissionIds.Count
                 : 0;
             _activeRowIndex = -1;
 
-            for (int index = 0; index < missions.Count; index++)
+            List<MissionDisplayEntry> displayEntries = BuildDisplayEntries(missions, activeMissionId, saveData);
+            EnsureRowCount(displayEntries.Count);
+
+            for (int index = 0; index < displayEntries.Count; index++)
             {
-                MissionDefinition mission = missions[index];
-                MissionRowState state = GetState(mission, activeMissionId, saveData);
-                if (state == MissionRowState.Active)
+                MissionDisplayEntry entry = displayEntries[index];
+                if (entry.IsLockedPhaseCard)
+                {
+                    _rows[index].ConfigureLockedPhaseCard();
+                    continue;
+                }
+
+                if (entry.State == MissionRowState.Active)
                 {
                     _activeRowIndex = index;
                 }
 
-                float progressValue = state == MissionRowState.Active
+                float progressValue = entry.State == MissionRowState.Active
                     ? saveData.activeMissionProgress
-                    : state == MissionRowState.Completed
-                        ? mission.TargetValue
+                    : entry.State == MissionRowState.Completed
+                        ? entry.Mission.TargetValue
                         : 0f;
 
-                _rows[index].Configure(mission, index + 1, state, progressValue, mission.TargetValue);
+                _rows[index].Configure(
+                    entry.Mission,
+                    entry.MissionNumber,
+                    entry.State,
+                    progressValue,
+                    entry.Mission.TargetValue);
             }
 
-            for (int index = missions.Count; index < _rows.Count; index++)
+            for (int index = displayEntries.Count; index < _rows.Count; index++)
             {
                 _rows[index].gameObject.SetActive(false);
             }
 
-            MissionDefinition activeMission = missionSystem.ActiveMission;
-            SetText(activeMissionText, activeMission != null ? activeMission.Title : "ALL MISSIONS COMPLETE");
-            SetText(summaryText, $"{completedCount:N0} / {missions.Count:N0} COMPLETE");
+            SetText(activeMissionText, "MAIN OBJECTIVE");
+            SetText(summaryText, $"COMPLETE ALL DIRECTIVES\n{completedCount:00} / {missions.Count:00} COMPLETE");
         }
 
         public void ScrollToActiveMission()
@@ -112,24 +122,182 @@ namespace _Project.Scripts.Systems.UISystem
             }
         }
 
-        private static MissionRowState GetState(
-            MissionDefinition mission,
+        private static List<MissionDisplayEntry> BuildDisplayEntries(
+            IReadOnlyList<MissionDefinition> missions,
             string activeMissionId,
             SaveData saveData)
         {
-            if (mission == null)
+            List<MissionDisplayEntry> entries = new List<MissionDisplayEntry>();
+            if (missions == null || missions.Count == 0)
             {
-                return MissionRowState.Locked;
+                return entries;
             }
 
-            if (ContainsMissionId(saveData.completedMissionIds, mission.Id))
+            int activeIndex = FindMissionIndex(missions, activeMissionId);
+            if (activeIndex < 0)
             {
-                return MissionRowState.Completed;
+                activeIndex = FindFirstIncompleteIndex(missions, saveData);
             }
 
-            return mission.Id == activeMissionId
-                ? MissionRowState.Active
-                : MissionRowState.Locked;
+            MissionDefinition activeMission = GetMissionAt(missions, activeIndex);
+            string currentPhase = activeMission != null
+                ? activeMission.Phase
+                : FindLastCompletedPhase(missions, saveData);
+
+            AddRecentCompletedFromCurrentPhase(entries, missions, saveData, currentPhase, activeIndex);
+
+            if (activeMission != null)
+            {
+                entries.Add(new MissionDisplayEntry(activeMission, activeIndex + 1, MissionRowState.Active));
+            }
+
+            int nextLockedIndex = FindNextLockedIndex(missions, activeIndex, saveData);
+            if (nextLockedIndex >= 0)
+            {
+                entries.Add(new MissionDisplayEntry(
+                    missions[nextLockedIndex],
+                    nextLockedIndex + 1,
+                    MissionRowState.Locked));
+            }
+
+            AddFuturePhaseCards(entries, missions, currentPhase, nextLockedIndex);
+            return entries;
+        }
+
+        private static void AddRecentCompletedFromCurrentPhase(
+            List<MissionDisplayEntry> entries,
+            IReadOnlyList<MissionDefinition> missions,
+            SaveData saveData,
+            string currentPhase,
+            int activeIndex)
+        {
+            if (string.IsNullOrWhiteSpace(currentPhase))
+            {
+                return;
+            }
+
+            List<MissionDisplayEntry> completedRows = new List<MissionDisplayEntry>();
+            int scanStart = activeIndex >= 0 ? activeIndex - 1 : missions.Count - 1;
+            for (int index = scanStart; index >= 0 && completedRows.Count < 3; index--)
+            {
+                MissionDefinition mission = missions[index];
+                if (mission == null || mission.Phase != currentPhase)
+                {
+                    continue;
+                }
+
+                if (ContainsMissionId(saveData.completedMissionIds, mission.Id))
+                {
+                    completedRows.Add(new MissionDisplayEntry(
+                        mission,
+                        index + 1,
+                        MissionRowState.Completed));
+                }
+            }
+
+            for (int index = completedRows.Count - 1; index >= 0; index--)
+            {
+                entries.Add(completedRows[index]);
+            }
+        }
+
+        private static void AddFuturePhaseCards(
+            List<MissionDisplayEntry> entries,
+            IReadOnlyList<MissionDefinition> missions,
+            string currentPhase,
+            int nextLockedIndex)
+        {
+            HashSet<string> lockedPhases = new HashSet<string>();
+            string nextLockedPhase = GetMissionAt(missions, nextLockedIndex)?.Phase;
+            int scanStart = nextLockedIndex >= 0 ? nextLockedIndex + 1 : 0;
+
+            for (int index = scanStart; index < missions.Count; index++)
+            {
+                MissionDefinition mission = missions[index];
+                if (mission == null
+                    || mission.Phase == currentPhase
+                    || mission.Phase == nextLockedPhase
+                    || string.IsNullOrWhiteSpace(mission.Phase)
+                    || !lockedPhases.Add(mission.Phase))
+                {
+                    continue;
+                }
+
+                entries.Add(MissionDisplayEntry.LockedPhaseCard());
+            }
+        }
+
+        private static int FindMissionIndex(IReadOnlyList<MissionDefinition> missions, string missionId)
+        {
+            if (string.IsNullOrWhiteSpace(missionId))
+            {
+                return -1;
+            }
+
+            string safeMissionId = missionId.Trim();
+            for (int index = 0; index < missions.Count; index++)
+            {
+                MissionDefinition mission = missions[index];
+                if (mission != null && mission.Id == safeMissionId)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int FindFirstIncompleteIndex(IReadOnlyList<MissionDefinition> missions, SaveData saveData)
+        {
+            for (int index = 0; index < missions.Count; index++)
+            {
+                MissionDefinition mission = missions[index];
+                if (mission != null && !ContainsMissionId(saveData.completedMissionIds, mission.Id))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int FindNextLockedIndex(
+            IReadOnlyList<MissionDefinition> missions,
+            int activeIndex,
+            SaveData saveData)
+        {
+            int scanStart = Mathf.Max(0, activeIndex + 1);
+            for (int index = scanStart; index < missions.Count; index++)
+            {
+                MissionDefinition mission = missions[index];
+                if (mission != null && !ContainsMissionId(saveData.completedMissionIds, mission.Id))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        private static string FindLastCompletedPhase(IReadOnlyList<MissionDefinition> missions, SaveData saveData)
+        {
+            for (int index = missions.Count - 1; index >= 0; index--)
+            {
+                MissionDefinition mission = missions[index];
+                if (mission != null && ContainsMissionId(saveData.completedMissionIds, mission.Id))
+                {
+                    return mission.Phase;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static MissionDefinition GetMissionAt(IReadOnlyList<MissionDefinition> missions, int index)
+        {
+            return missions != null && index >= 0 && index < missions.Count
+                ? missions[index]
+                : null;
         }
 
         private static bool ContainsMissionId(List<string> values, string missionId)
@@ -156,6 +324,38 @@ namespace _Project.Scripts.Systems.UISystem
             if (target != null)
             {
                 target.text = value;
+            }
+        }
+
+        private readonly struct MissionDisplayEntry
+        {
+            private MissionDisplayEntry(bool isLockedPhaseCard)
+            {
+                Mission = null;
+                MissionNumber = 0;
+                State = MissionRowState.Locked;
+                IsLockedPhaseCard = isLockedPhaseCard;
+            }
+
+            public MissionDisplayEntry(
+                MissionDefinition mission,
+                int missionNumber,
+                MissionRowState state)
+            {
+                Mission = mission;
+                MissionNumber = missionNumber;
+                State = state;
+                IsLockedPhaseCard = false;
+            }
+
+            public MissionDefinition Mission { get; }
+            public int MissionNumber { get; }
+            public MissionRowState State { get; }
+            public bool IsLockedPhaseCard { get; }
+
+            public static MissionDisplayEntry LockedPhaseCard()
+            {
+                return new MissionDisplayEntry(true);
             }
         }
     }

@@ -48,6 +48,7 @@ internal static class BalanceConfigExporter
             metaLevels = BuildMetaLevels(meta, combat),
             metaTracks = BuildMetaTracks(meta, metaEconomy),
             pressureSamples = BuildPressureSamples(pressure),
+            progressionCheckpoints = BuildProgressionCheckpoints(combat),
             enemyRoles = BuildEnemyRoles(),
             gateSchedule = BuildGateSchedule(gates),
             gateEntries = BuildGateEntries(gates),
@@ -102,6 +103,7 @@ internal static class BalanceConfigExporter
             metaLevels = meta != null && combat != null ? BuildMetaLevels(meta, combat) : new List<MetaLevelExport>(),
             metaTracks = meta != null ? BuildMetaTracks(meta, metaEconomy) : new List<MetaTrackExport>(),
             pressureSamples = pressure != null ? BuildPressureSamples(pressure) : new List<PressureSampleExport>(),
+            progressionCheckpoints = BuildProgressionCheckpoints(combat),
             enemyRoles = BuildEnemyRoles(bootstrap),
             gateSchedule = gates != null ? BuildGateSchedule(gates, gateScaling) : new List<GateScheduleExport>(),
             gateEntries = gates != null ? BuildGateEntries(gates) : new List<GateEntryExport>(),
@@ -120,9 +122,11 @@ internal static class BalanceConfigExporter
         string jsonPath = Path.Combine(outputDirectory, $"true_gate_{safeVersion}.json");
         string phasePath = Path.Combine(outputDirectory, "gate_phase_values.csv");
         string curvePath = Path.Combine(outputDirectory, "benchmark_target_curve.csv");
+        string progressionPath = Path.Combine(outputDirectory, "progression_checkpoints.csv");
         File.WriteAllText(jsonPath, JsonUtility.ToJson(export, prettyPrint: true));
         File.WriteAllText(phasePath, BuildGatePhaseCsv(gateScaling));
         File.WriteAllText(curvePath, BuildBenchmarkCurveCsv(benchmark, gateScaling, combat));
+        File.WriteAllText(progressionPath, BuildProgressionCheckpointCsv(combat));
         Debug.Log($"Exported active bootstrap config to {outputDirectory}");
     }
 
@@ -236,6 +240,41 @@ internal static class BalanceConfigExporter
                 totalCost = metaEconomy != null
                     ? metaEconomy.GetTrackTotalCost(definition.Type)
                     : SumCosts(costs)
+            });
+        }
+
+        return result;
+    }
+
+    private static List<ProgressionCheckpointExport> BuildProgressionCheckpoints(
+        CombatScalingConfig combat)
+    {
+        var result = new List<ProgressionCheckpointExport>();
+        IReadOnlyList<PlayerProgressionCheckpoint> checkpoints =
+            PlayerProgressionMilestones.ReferenceCheckpoints;
+
+        for (int index = 0; index < checkpoints.Count; index++)
+        {
+            PlayerProgressionCheckpoint checkpoint = checkpoints[index];
+            result.Add(new ProgressionCheckpointExport
+            {
+                run = checkpoint.RunNumber,
+                damageLevel = checkpoint.DamageLevel,
+                fireRateLevel = checkpoint.FireRateLevel,
+                maxHpLevel = checkpoint.MaxHpLevel,
+                projectileCountLevel = checkpoint.ProjectileCountLevel,
+                squadSizeLevel = checkpoint.SquadSizeLevel,
+                damage = checkpoint.DamageValue,
+                fireRate = checkpoint.FireRateValue,
+                maxHp = checkpoint.MaxHpValue,
+                projectileCount = checkpoint.ProjectileCountValue,
+                squadSize = checkpoint.SquadSizeValue,
+                purchases = checkpoint.TargetPurchases,
+                targetCumulativeIncome = checkpoint.TargetCumulativeIncome,
+                targetSpent = checkpoint.TargetSpent,
+                targetWalletReserve = checkpoint.TargetWalletReserve,
+                effectiveDps = checkpoint.EstimateDps(combat),
+                estimatedBaseProjectileEmissionsPerSecond = checkpoint.EstimateEmissions(combat)
             });
         }
 
@@ -567,6 +606,42 @@ internal static class BalanceConfigExporter
                 combat)));
     }
 
+    private static string BuildProgressionCheckpointCsv(CombatScalingConfig combat)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine(
+            "run,damage_level,fire_rate_level,max_hp_level,projectile_count_level,squad_size_level,"
+            + "damage,fire_rate,max_hp,projectile_count,squad_size,purchases,"
+            + "target_cumulative_income,target_spent,target_wallet_reserve,"
+            + "effective_dps,estimated_base_projectile_emissions_per_second");
+
+        IReadOnlyList<PlayerProgressionCheckpoint> checkpoints =
+            PlayerProgressionMilestones.ReferenceCheckpoints;
+        for (int index = 0; index < checkpoints.Count; index++)
+        {
+            PlayerProgressionCheckpoint checkpoint = checkpoints[index];
+            builder.Append(checkpoint.RunNumber).Append(',')
+                .Append(checkpoint.DamageLevel).Append(',')
+                .Append(checkpoint.FireRateLevel).Append(',')
+                .Append(checkpoint.MaxHpLevel).Append(',')
+                .Append(checkpoint.ProjectileCountLevel).Append(',')
+                .Append(checkpoint.SquadSizeLevel).Append(',')
+                .Append(F(checkpoint.DamageValue)).Append(',')
+                .Append(F(checkpoint.FireRateValue)).Append(',')
+                .Append(F(checkpoint.MaxHpValue)).Append(',')
+                .Append(checkpoint.ProjectileCountValue).Append(',')
+                .Append(checkpoint.SquadSizeValue).Append(',')
+                .Append(checkpoint.TargetPurchases).Append(',')
+                .Append(checkpoint.TargetCumulativeIncome).Append(',')
+                .Append(checkpoint.TargetSpent).Append(',')
+                .Append(checkpoint.TargetWalletReserve).Append(',')
+                .Append(F(checkpoint.EstimateDps(combat))).Append(',')
+                .Append(F(checkpoint.EstimateEmissions(combat))).AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
     private static string MakeSafeFileName(string value)
     {
         string safe = string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
@@ -601,6 +676,7 @@ internal static class BalanceConfigExporter
         public List<MetaLevelExport> metaLevels;
         public List<MetaTrackExport> metaTracks;
         public List<PressureSampleExport> pressureSamples;
+        public List<ProgressionCheckpointExport> progressionCheckpoints;
         public List<EnemyRoleExport> enemyRoles;
         public List<GateScheduleExport> gateSchedule;
         public List<GateEntryExport> gateEntries;
@@ -647,6 +723,28 @@ internal static class BalanceConfigExporter
         public List<float> values;
         public List<int> costs;
         public int totalCost;
+    }
+
+    [Serializable]
+    private sealed class ProgressionCheckpointExport
+    {
+        public int run;
+        public int damageLevel;
+        public int fireRateLevel;
+        public int maxHpLevel;
+        public int projectileCountLevel;
+        public int squadSizeLevel;
+        public float damage;
+        public float fireRate;
+        public float maxHp;
+        public int projectileCount;
+        public int squadSize;
+        public int purchases;
+        public int targetCumulativeIncome;
+        public int targetSpent;
+        public int targetWalletReserve;
+        public float effectiveDps;
+        public float estimatedBaseProjectileEmissionsPerSecond;
     }
 
     [Serializable]

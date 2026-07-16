@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a35169cd1d2c264b865f00ad1455823, type: 3}
   m_Name: BalanceBootstrapConfig_v1_4_Run45
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.BalanceBootstrapConfig
-  activeBalanceVersion: economy-v1.4.0-run45
+  activeBalanceVersion: economy-v1.4.1-run45-progression
   combatScalingConfig: {fileID: 11400000, guid: c84ed3d74c1ea7748b6100e570cedd35, type: 2}
   playerMetaBalanceConfig: {fileID: 11400000, guid: 03eca001474cbe84e8b4dfc80c4a3f0b, type: 2}
   playerMetaEconomyConfig: {fileID: 11400000, guid: 4d2c2912a04f4823914d69d24ebda960, type: 2}

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d64a798920abfe4d8af0bda3b0a5656, type: 3}
   m_Name: EconomyConfig_v1_4_Run45
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Data.Balance.EconomyConfig
-  configVersion: economy-v1.4.0-run45
+  configVersion: economy-v1.4.1-run45-progression
   rewardScale: 0.85
-  timeCoinPer30Seconds: 300
+  timeCoinPer30Seconds: 0
   timeScorePerSecond: 0.5
   eliteCoinBonusMin: 12
   eliteCoinBonusMax: 18

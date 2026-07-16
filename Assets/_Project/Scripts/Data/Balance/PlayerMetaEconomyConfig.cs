@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Project.Scripts.Systems.Balance;
 using _Project.Scripts.Systems.ProgressionSystem;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Player Meta Economy Config")]
     public sealed class PlayerMetaEconomyConfig : ScriptableObject
     {
-        public const string Run45ConfigVersion = "economy-v1.4.0-run45";
+        public const string Run45ConfigVersion = PlayerProgressionMilestones.ConfigVersion;
 
         [SerializeField] private string configVersion = Run45ConfigVersion;
         [SerializeField] private float upgradeCostScale = 1f;
@@ -127,6 +128,106 @@ namespace _Project.Scripts.Data.Balance
         private void OnValidate()
         {
             ValidateValues();
+        }
+    }
+
+    public static class PlayerProgressionMilestones
+    {
+        public const string ConfigVersion = "economy-v1.4.1-run45-progression";
+        public const int FullTreeCost = 850000;
+
+        private static readonly PlayerProgressionCheckpoint[] Checkpoints =
+        {
+            new PlayerProgressionCheckpoint(5, 1, 1, 1, 0, 0, 3, 12500, 11000, 1500),
+            new PlayerProgressionCheckpoint(10, 1, 1, 1, 1, 1, 5, 40000, 38000, 2000),
+            new PlayerProgressionCheckpoint(15, 2, 2, 2, 1, 1, 8, 78000, 68000, 10000),
+            new PlayerProgressionCheckpoint(20, 2, 2, 3, 1, 2, 10, 138000, 136000, 2000),
+            new PlayerProgressionCheckpoint(25, 3, 2, 3, 2, 2, 12, 223000, 221000, 2000),
+            new PlayerProgressionCheckpoint(30, 3, 3, 4, 2, 2, 14, 333000, 285000, 48000),
+            new PlayerProgressionCheckpoint(35, 4, 4, 4, 2, 2, 16, 468000, 402000, 66000),
+            new PlayerProgressionCheckpoint(40, 4, 4, 5, 2, 3, 18, 623000, 611000, 12000),
+            new PlayerProgressionCheckpoint(45, 4, 5, 5, 2, 3, 19, 793000, 711000, 82000)
+        };
+
+        public static IReadOnlyList<PlayerProgressionCheckpoint> ReferenceCheckpoints => Checkpoints;
+
+        public static bool TryGetCheckpoint(int runNumber, out PlayerProgressionCheckpoint checkpoint)
+        {
+            for (int index = 0; index < Checkpoints.Length; index++)
+            {
+                if (Checkpoints[index].RunNumber == runNumber)
+                {
+                    checkpoint = Checkpoints[index];
+                    return true;
+                }
+            }
+
+            checkpoint = default;
+            return false;
+        }
+    }
+
+    [Serializable]
+    public readonly struct PlayerProgressionCheckpoint
+    {
+        public readonly int RunNumber;
+        public readonly int DamageLevel;
+        public readonly int FireRateLevel;
+        public readonly int MaxHpLevel;
+        public readonly int ProjectileCountLevel;
+        public readonly int SquadSizeLevel;
+        public readonly int TargetPurchases;
+        public readonly int TargetCumulativeIncome;
+        public readonly int TargetSpent;
+        public readonly int TargetWalletReserve;
+
+        public PlayerProgressionCheckpoint(
+            int runNumber,
+            int damageLevel,
+            int fireRateLevel,
+            int maxHpLevel,
+            int projectileCountLevel,
+            int squadSizeLevel,
+            int targetPurchases,
+            int targetCumulativeIncome,
+            int targetSpent,
+            int targetWalletReserve)
+        {
+            RunNumber = runNumber;
+            DamageLevel = damageLevel;
+            FireRateLevel = fireRateLevel;
+            MaxHpLevel = maxHpLevel;
+            ProjectileCountLevel = projectileCountLevel;
+            SquadSizeLevel = squadSizeLevel;
+            TargetPurchases = targetPurchases;
+            TargetCumulativeIncome = targetCumulativeIncome;
+            TargetSpent = targetSpent;
+            TargetWalletReserve = targetWalletReserve;
+        }
+
+        public float DamageValue => PlayerMetaBalanceConfig.GetDefaultLevelData(DamageLevel).Damage;
+        public float FireRateValue => PlayerMetaBalanceConfig.GetDefaultLevelData(FireRateLevel).FireRate;
+        public float MaxHpValue => PlayerMetaBalanceConfig.GetDefaultLevelData(MaxHpLevel).MaxHp;
+        public int ProjectileCountValue => PlayerMetaBalanceConfig.GetDefaultLevelData(ProjectileCountLevel).ProjectileCount;
+        public int SquadSizeValue => PlayerMetaBalanceConfig.GetDefaultLevelData(SquadSizeLevel).SquadSize;
+
+        public float EstimateDps(CombatScalingConfig combatConfig)
+        {
+            return BalanceV1Math.EffectiveDps(
+                DamageValue,
+                FireRateValue,
+                ProjectileCountValue,
+                SquadSizeValue,
+                combatConfig);
+        }
+
+        public float EstimateEmissions(CombatScalingConfig combatConfig)
+        {
+            return BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                FireRateValue,
+                ProjectileCountValue,
+                SquadSizeValue,
+                combatConfig);
         }
     }
 

@@ -10,6 +10,7 @@ namespace _Project.Scripts.Systems.UISystem
         [Header("State")]
         [SerializeField] private Image backgroundImage;
         [SerializeField] private Image statusIconImage;
+        [SerializeField] private Image progressBackgroundImage;
         [SerializeField] private Image progressFillImage;
         [SerializeField] private Sprite activeSprite;
         [SerializeField] private Sprite completedSprite;
@@ -40,26 +41,57 @@ namespace _Project.Scripts.Systems.UISystem
             gameObject.SetActive(true);
 
             float safeTarget = Mathf.Max(0f, targetValue);
-            float safeProgress = state == MissionRowState.Completed
-                ? safeTarget
-                : Mathf.Clamp(progressValue, 0f, safeTarget);
+            float safeProgress = Mathf.Clamp(progressValue, 0f, safeTarget);
             float normalizedProgress = safeTarget > 0f
                 ? Mathf.Clamp01(safeProgress / safeTarget)
                 : 1f;
 
             SetSprite(backgroundImage, GetBackgroundSprite(state));
             SetSprite(statusIconImage, GetStatusIconSprite(state));
-            SetText(phaseText, $"{missionNumber:00} / {mission.Phase}");
-            SetText(titleText, mission.Title);
-            SetText(progressText, state == MissionRowState.Locked
-                ? "LOCKED"
-                : $"{FormatValue(safeProgress)} / {FormatValue(safeTarget)}");
-            SetText(rewardText, mission.RewardCoins > 0 ? $"+{mission.RewardCoins:N0}" : string.Empty);
-            SetText(stateText, GetStateLabel(state));
+            SetText(phaseText, state == MissionRowState.Active ? $"{missionNumber:00} / {mission.Phase}" : string.Empty);
+            SetText(titleText, GetTitle(mission, state));
+            SetText(progressText, state == MissionRowState.Active
+                ? $"{FormatValue(safeProgress)} / {FormatValue(safeTarget)}"
+                : string.Empty);
+            SetText(rewardText, string.Empty);
+            SetText(stateText, string.Empty);
+
+            SetGraphicVisible(statusIconImage, state == MissionRowState.Completed || state == MissionRowState.Locked);
+            SetTextVisible(phaseText, state == MissionRowState.Active);
+            SetTextVisible(progressText, state == MissionRowState.Active);
+            SetTextVisible(rewardText, false);
+            SetTextVisible(stateText, false);
+            SetGraphicVisible(progressBackgroundImage, state == MissionRowState.Active);
 
             if (progressFillImage != null)
             {
-                progressFillImage.fillAmount = state == MissionRowState.Locked ? 0f : normalizedProgress;
+                progressFillImage.fillAmount = state == MissionRowState.Active ? normalizedProgress : 0f;
+                progressFillImage.gameObject.SetActive(state == MissionRowState.Active);
+            }
+        }
+
+        public void ConfigureLockedPhaseCard()
+        {
+            gameObject.SetActive(true);
+
+            SetSprite(backgroundImage, lockedSprite);
+            SetSprite(statusIconImage, lockIconSprite);
+            SetGraphicVisible(statusIconImage, true);
+            SetText(titleText, "LOCKED PHASE");
+            SetText(phaseText, string.Empty);
+            SetText(progressText, string.Empty);
+            SetText(rewardText, string.Empty);
+            SetText(stateText, string.Empty);
+            SetTextVisible(phaseText, false);
+            SetTextVisible(progressText, false);
+            SetTextVisible(rewardText, false);
+            SetTextVisible(stateText, false);
+            SetGraphicVisible(progressBackgroundImage, false);
+
+            if (progressFillImage != null)
+            {
+                progressFillImage.fillAmount = 0f;
+                progressFillImage.gameObject.SetActive(false);
             }
         }
 
@@ -84,15 +116,29 @@ namespace _Project.Scripts.Systems.UISystem
             };
         }
 
-        private static string GetStateLabel(MissionRowState state)
+        private static string GetTitle(MissionDefinition mission, MissionRowState state)
         {
             return state switch
             {
-                MissionRowState.Active => "ACTIVE",
-                MissionRowState.Completed => "DONE",
-                MissionRowState.Locked => "LOCKED",
-                _ => string.Empty
+                MissionRowState.Locked => "ENCRYPTED OBJECTIVE",
+                _ => mission.Title
             };
+        }
+
+        private static void SetGraphicVisible(Graphic graphic, bool visible)
+        {
+            if (graphic != null)
+            {
+                graphic.gameObject.SetActive(visible);
+            }
+        }
+
+        private static void SetTextVisible(TextMeshProUGUI text, bool visible)
+        {
+            if (text != null)
+            {
+                text.gameObject.SetActive(visible);
+            }
         }
 
         private static string FormatValue(float value)
@@ -104,9 +150,10 @@ namespace _Project.Scripts.Systems.UISystem
 
         private static void SetSprite(Image image, Sprite sprite)
         {
-            if (image != null && sprite != null)
+            if (image != null)
             {
                 image.sprite = sprite;
+                image.enabled = sprite != null;
             }
         }
 

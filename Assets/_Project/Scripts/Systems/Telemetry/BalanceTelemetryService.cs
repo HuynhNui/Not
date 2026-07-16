@@ -141,6 +141,16 @@ namespace _Project.Scripts.Systems.Telemetry
             CaptureSnapshot(force: true);
             RecordEvent("run_end");
             SaveData saveData = SaveService.Instance.Data;
+            PlayerRunStartStats permanentStartStats = PlayerMetaUpgradeService.BuildRunStartStats(saveData);
+            int damageLevel = PlayerMetaUpgradeService.GetLevel(saveData, PlayerMetaUpgradeType.Damage);
+            int fireRateLevel = PlayerMetaUpgradeService.GetLevel(saveData, PlayerMetaUpgradeType.FireRate);
+            int maxHpLevel = PlayerMetaUpgradeService.GetLevel(saveData, PlayerMetaUpgradeType.MaxHp);
+            int projectileCountLevel = PlayerMetaUpgradeService.GetLevel(saveData, PlayerMetaUpgradeType.ProjectileCount);
+            int squadSizeLevel = PlayerMetaUpgradeService.GetLevel(saveData, PlayerMetaUpgradeType.SquadSize);
+            int totalUpgradePurchases = PlayerMetaUpgradeService.GetTotalUpgradePurchases(saveData);
+            int upgradeTreeCostCompleted = PlayerMetaUpgradeService.GetUpgradeTreeCostCompleted(saveData);
+            float permanentStartDps = EstimateEffectiveDps(permanentStartStats);
+            float permanentStartEmissions = EstimateBaseProjectileEmissions(permanentStartStats);
 
             _writer.BufferSummary(new BalanceRunSummaryRow
             {
@@ -165,8 +175,20 @@ namespace _Project.Scripts.Systems.Telemetry
                 walletAfterRun = saveData.walletCoins,
                 lifetimeCoinsEarned = saveData.lifetimeCoinsEarned,
                 lifetimeCoinsSpent = saveData.lifetimeCoinsSpent,
-                totalUpgradePurchases = PlayerMetaUpgradeService.GetTotalUpgradePurchases(),
-                upgradeTreeCostCompleted = PlayerMetaUpgradeService.GetUpgradeTreeCostCompleted(),
+                damageLevel = damageLevel,
+                damageValue = permanentStartStats.Damage,
+                fireRateLevel = fireRateLevel,
+                fireRateValue = permanentStartStats.FireRate,
+                maxHpLevel = maxHpLevel,
+                maxHpValue = permanentStartStats.MaxHp,
+                projectileCountLevel = projectileCountLevel,
+                projectileCountValue = permanentStartStats.ProjectileCount,
+                squadSizeLevel = squadSizeLevel,
+                squadSizeValue = permanentStartStats.SquadSize,
+                permanentStartDpsEstimate = permanentStartDps,
+                permanentStartEmissionsPerSecond = permanentStartEmissions,
+                totalUpgradePurchases = totalUpgradePurchases,
+                upgradeTreeCostCompleted = upgradeTreeCostCompleted,
                 upgradeTreeCostCompletionRatio = PlayerMetaUpgradeService.GetUpgradeTreeCostCompletionRatio(),
                 upgradeCountCompletionRatio = PlayerMetaUpgradeService.GetUpgradeCountCompletionRatio(),
                 startingDamage = _configuredStartStats.Damage,
@@ -209,6 +231,25 @@ namespace _Project.Scripts.Systems.Telemetry
                     ? enemySpawnerSystem.GateSpeedMultiplier
                     : 1f
             });
+
+            if (PlayerProgressionMilestones.TryGetCheckpoint(
+                _runSequenceNumber,
+                out PlayerProgressionCheckpoint checkpoint))
+            {
+                _writer.BufferCheckpoint(BuildCheckpointRow(
+                    checkpoint,
+                    saveData,
+                    permanentStartStats,
+                    damageLevel,
+                    fireRateLevel,
+                    maxHpLevel,
+                    projectileCountLevel,
+                    squadSizeLevel,
+                    totalUpgradePurchases,
+                    upgradeTreeCostCompleted,
+                    permanentStartDps,
+                    permanentStartEmissions));
+            }
 
             _writer.Flush();
             _isRunActive = false;
@@ -737,28 +778,120 @@ namespace _Project.Scripts.Systems.Telemetry
 
         private float EstimateEffectiveDps(GateStatSnapshot snapshot)
         {
-            CombatScalingConfig combatConfig = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
-                ? mainPlayerUnit.BulletSpawner.CurrentCombatScalingConfig
-                : null;
             return BalanceV1Math.EffectiveDps(
                 snapshot.Damage,
                 snapshot.FireRate,
                 snapshot.ProjectileCount,
                 snapshot.SquadCount,
-                combatConfig);
+                CurrentCombatConfig);
+        }
+
+        private float EstimateEffectiveDps(PlayerRunStartStats stats)
+        {
+            return BalanceV1Math.EffectiveDps(
+                stats.Damage,
+                stats.FireRate,
+                stats.ProjectileCount,
+                stats.SquadSize,
+                CurrentCombatConfig);
         }
 
         private float EstimateBaseProjectileEmissions(GateStatSnapshot snapshot)
         {
-            CombatScalingConfig combatConfig = mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
-                ? mainPlayerUnit.BulletSpawner.CurrentCombatScalingConfig
-                : null;
             return BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
                 snapshot.FireRate,
                 snapshot.ProjectileCount,
                 snapshot.SquadCount,
-                combatConfig);
+                CurrentCombatConfig);
         }
+
+        private float EstimateBaseProjectileEmissions(PlayerRunStartStats stats)
+        {
+            return BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                stats.FireRate,
+                stats.ProjectileCount,
+                stats.SquadSize,
+                CurrentCombatConfig);
+        }
+
+        private BalanceProgressionCheckpointRow BuildCheckpointRow(
+            PlayerProgressionCheckpoint checkpoint,
+            SaveData saveData,
+            PlayerRunStartStats actualStats,
+            int damageLevel,
+            int fireRateLevel,
+            int maxHpLevel,
+            int projectileCountLevel,
+            int squadSizeLevel,
+            int totalUpgradePurchases,
+            int upgradeTreeCostCompleted,
+            float actualDps,
+            float actualEmissions)
+        {
+            CombatScalingConfig combatConfig = CurrentCombatConfig;
+            float targetDps = checkpoint.EstimateDps(combatConfig);
+            float targetEmissions = checkpoint.EstimateEmissions(combatConfig);
+
+            return new BalanceProgressionCheckpointRow
+            {
+                runId = _runId,
+                runSequenceNumber = _runSequenceNumber,
+                balanceVersion = BalanceVersion,
+                checkpointRun = checkpoint.RunNumber,
+                actualDamageLevel = damageLevel,
+                targetDamageLevel = checkpoint.DamageLevel,
+                actualDamage = actualStats.Damage,
+                targetDamage = checkpoint.DamageValue,
+                actualFireRateLevel = fireRateLevel,
+                targetFireRateLevel = checkpoint.FireRateLevel,
+                actualFireRate = actualStats.FireRate,
+                targetFireRate = checkpoint.FireRateValue,
+                actualMaxHpLevel = maxHpLevel,
+                targetMaxHpLevel = checkpoint.MaxHpLevel,
+                actualMaxHp = actualStats.MaxHp,
+                targetMaxHp = checkpoint.MaxHpValue,
+                actualProjectileCountLevel = projectileCountLevel,
+                targetProjectileCountLevel = checkpoint.ProjectileCountLevel,
+                actualProjectileCount = actualStats.ProjectileCount,
+                targetProjectileCount = checkpoint.ProjectileCountValue,
+                actualSquadSizeLevel = squadSizeLevel,
+                targetSquadSizeLevel = checkpoint.SquadSizeLevel,
+                actualSquadSize = actualStats.SquadSize,
+                targetSquadSize = checkpoint.SquadSizeValue,
+                actualTotalPurchases = totalUpgradePurchases,
+                targetTotalPurchases = checkpoint.TargetPurchases,
+                purchaseDelta = totalUpgradePurchases - checkpoint.TargetPurchases,
+                actualCostCompleted = upgradeTreeCostCompleted,
+                targetCostCompleted = checkpoint.TargetSpent,
+                costDelta = upgradeTreeCostCompleted - checkpoint.TargetSpent,
+                actualPermanentStartDps = actualDps,
+                targetPermanentStartDps = targetDps,
+                dpsDelta = actualDps - targetDps,
+                actualPermanentStartEmissions = actualEmissions,
+                targetPermanentStartEmissions = targetEmissions,
+                emissionsDelta = actualEmissions - targetEmissions,
+                wallet = saveData.walletCoins,
+                targetWalletReserve = checkpoint.TargetWalletReserve,
+                walletDelta = saveData.walletCoins - checkpoint.TargetWalletReserve,
+                lifetimeCoinsEarned = saveData.lifetimeCoinsEarned,
+                targetCumulativeIncome = checkpoint.TargetCumulativeIncome,
+                lifetimeWealthRatio = PlayerProgressionMilestones.FullTreeCost > 0
+                    ? saveData.lifetimeCoinsEarned / (float)PlayerProgressionMilestones.FullTreeCost
+                    : 0f,
+                targetWealthRatio = PlayerProgressionMilestones.FullTreeCost > 0
+                    ? checkpoint.TargetCumulativeIncome / (float)PlayerProgressionMilestones.FullTreeCost
+                    : 0f,
+                run45WealthBandPass = checkpoint.RunNumber != 45
+                    || (saveData.lifetimeCoinsEarned >= Mathf.RoundToInt(PlayerProgressionMilestones.FullTreeCost * 0.90f)
+                        && saveData.lifetimeCoinsEarned <= Mathf.RoundToInt(PlayerProgressionMilestones.FullTreeCost * 0.95f)),
+                run45PurchaseBandPass = checkpoint.RunNumber != 45
+                    || (totalUpgradePurchases >= 18 && totalUpgradePurchases <= 19)
+            };
+        }
+
+        private CombatScalingConfig CurrentCombatConfig => mainPlayerUnit != null && mainPlayerUnit.BulletSpawner != null
+            ? mainPlayerUnit.BulletSpawner.CurrentCombatScalingConfig
+            : null;
 
         private float GetTotalSquadCurrentHp()
         {
@@ -841,6 +974,7 @@ namespace _Project.Scripts.Systems.Telemetry
         public const string SummaryFileName = "run_summary.csv";
         public const string SnapshotFileName = "run_snapshot_15s.csv";
         public const string EventFileName = "gate_events.jsonl";
+        public const string CheckpointFileName = "progression_checkpoint_report.csv";
 
         private static readonly string[] SummaryHeader =
         {
@@ -850,6 +984,10 @@ namespace _Project.Scripts.Systems.Telemetry
             "coins_earned", "score", "wallet_coins",
             "run_sequence_number", "wallet_before_run", "run_coins",
             "wallet_after_run", "lifetime_coins_earned", "lifetime_coins_spent",
+            "damage_level", "damage_value", "fire_rate_level", "fire_rate_value",
+            "max_hp_level", "max_hp_value", "projectile_count_level", "projectile_count_value",
+            "squad_size_level", "squad_size_value", "permanent_start_dps_estimate",
+            "permanent_start_emissions_per_second",
             "total_upgrade_purchases", "upgrade_tree_cost_completed",
             "upgrade_tree_cost_completion_ratio", "upgrade_count_completion_ratio",
             "starting_damage", "starting_fire_rate", "starting_max_hp", "starting_projectile_count",
@@ -862,6 +1000,25 @@ namespace _Project.Scripts.Systems.Telemetry
             "ending_effective_dps_estimate", "ending_total_squad_current_hp",
             "ending_total_squad_max_hp", "ending_incoming_damage_multiplier",
             "ending_enemy_pressure_multiplier", "ending_enemy_speed_multiplier"
+        };
+
+        private static readonly string[] CheckpointHeader =
+        {
+            "run_id", "balance_version", "run_sequence_number", "checkpoint_run",
+            "actual_damage_level", "target_damage_level", "actual_damage", "target_damage",
+            "actual_fire_rate_level", "target_fire_rate_level", "actual_fire_rate", "target_fire_rate",
+            "actual_max_hp_level", "target_max_hp_level", "actual_max_hp", "target_max_hp",
+            "actual_projectile_count_level", "target_projectile_count_level",
+            "actual_projectile_count", "target_projectile_count",
+            "actual_squad_size_level", "target_squad_size_level", "actual_squad_size", "target_squad_size",
+            "actual_total_purchases", "target_total_purchases", "purchase_delta",
+            "actual_cost_completed", "target_cost_completed", "cost_delta",
+            "actual_permanent_start_dps", "target_permanent_start_dps", "dps_delta",
+            "actual_permanent_start_emissions", "target_permanent_start_emissions", "emissions_delta",
+            "wallet", "target_wallet_reserve", "wallet_delta",
+            "lifetime_coins_earned", "target_cumulative_income",
+            "lifetime_wealth_ratio", "target_wealth_ratio",
+            "run45_wealth_band_pass", "run45_purchase_band_pass"
         };
 
         private static readonly string[] SnapshotHeader =
@@ -888,6 +1045,7 @@ namespace _Project.Scripts.Systems.Telemetry
         private readonly List<string> _summaryRows = new List<string>();
         private readonly List<string> _snapshotRows = new List<string>();
         private readonly List<string> _eventRows = new List<string>();
+        private readonly List<string> _checkpointRows = new List<string>();
         private bool _hasWarned;
 
         public BalanceTelemetryWriter(
@@ -903,9 +1061,11 @@ namespace _Project.Scripts.Systems.Telemetry
         public string SummaryPath => Path.Combine(_directoryPath, SummaryFileName);
         public string SnapshotPath => Path.Combine(_directoryPath, SnapshotFileName);
         public string EventPath => Path.Combine(_directoryPath, EventFileName);
+        public string CheckpointPath => Path.Combine(_directoryPath, CheckpointFileName);
         public int BufferedSummaryCount => _summaryRows.Count;
         public int BufferedSnapshotCount => _snapshotRows.Count;
         public int BufferedEventCount => _eventRows.Count;
+        public int BufferedCheckpointCount => _checkpointRows.Count;
 
         public void BufferSummary(BalanceRunSummaryRow row)
         {
@@ -931,6 +1091,14 @@ namespace _Project.Scripts.Systems.Telemetry
             }
         }
 
+        public void BufferCheckpoint(BalanceProgressionCheckpointRow row)
+        {
+            if (row != null)
+            {
+                _checkpointRows.Add(row.ToCsv());
+            }
+        }
+
         public void Flush()
         {
             try
@@ -941,6 +1109,7 @@ namespace _Project.Scripts.Systems.Telemetry
                 {
                     AppendCsv(SummaryPath, SummaryHeader, _summaryRows);
                     AppendCsv(SnapshotPath, SnapshotHeader, _snapshotRows);
+                    AppendCsv(CheckpointPath, CheckpointHeader, _checkpointRows);
                 }
 
                 if (_exportJsonl && _eventRows.Count > 0)
@@ -965,6 +1134,7 @@ namespace _Project.Scripts.Systems.Telemetry
             _summaryRows.Clear();
             _snapshotRows.Clear();
             _eventRows.Clear();
+            _checkpointRows.Clear();
         }
 
         public static string EscapeCsv(string value)
@@ -1085,6 +1255,18 @@ namespace _Project.Scripts.Systems.Telemetry
         public int walletAfterRun;
         public int lifetimeCoinsEarned;
         public int lifetimeCoinsSpent;
+        public int damageLevel;
+        public float damageValue;
+        public int fireRateLevel;
+        public float fireRateValue;
+        public int maxHpLevel;
+        public float maxHpValue;
+        public int projectileCountLevel;
+        public int projectileCountValue;
+        public int squadSizeLevel;
+        public int squadSizeValue;
+        public float permanentStartDpsEstimate;
+        public float permanentStartEmissionsPerSecond;
         public int totalUpgradePurchases;
         public int upgradeTreeCostCompleted;
         public float upgradeTreeCostCompletionRatio;
@@ -1140,6 +1322,18 @@ namespace _Project.Scripts.Systems.Telemetry
                 walletAfterRun,
                 lifetimeCoinsEarned,
                 lifetimeCoinsSpent,
+                damageLevel,
+                F(damageValue),
+                fireRateLevel,
+                F(fireRateValue),
+                maxHpLevel,
+                F(maxHpValue),
+                projectileCountLevel,
+                projectileCountValue,
+                squadSizeLevel,
+                squadSizeValue,
+                F(permanentStartDpsEstimate),
+                F(permanentStartEmissionsPerSecond),
                 totalUpgradePurchases,
                 upgradeTreeCostCompleted,
                 F(upgradeTreeCostCompletionRatio),
@@ -1172,6 +1366,110 @@ namespace _Project.Scripts.Systems.Telemetry
                 F(endingIncomingDamageMultiplier),
                 F(endingEnemyPressureMultiplier),
                 F(endingEnemySpeedMultiplier));
+        }
+
+        private static string F(float value)
+        {
+            return value.ToString("0.###", CultureInfo.InvariantCulture);
+        }
+    }
+
+    public sealed class BalanceProgressionCheckpointRow
+    {
+        public string runId;
+        public string balanceVersion;
+        public int runSequenceNumber;
+        public int checkpointRun;
+        public int actualDamageLevel;
+        public int targetDamageLevel;
+        public float actualDamage;
+        public float targetDamage;
+        public int actualFireRateLevel;
+        public int targetFireRateLevel;
+        public float actualFireRate;
+        public float targetFireRate;
+        public int actualMaxHpLevel;
+        public int targetMaxHpLevel;
+        public float actualMaxHp;
+        public float targetMaxHp;
+        public int actualProjectileCountLevel;
+        public int targetProjectileCountLevel;
+        public int actualProjectileCount;
+        public int targetProjectileCount;
+        public int actualSquadSizeLevel;
+        public int targetSquadSizeLevel;
+        public int actualSquadSize;
+        public int targetSquadSize;
+        public int actualTotalPurchases;
+        public int targetTotalPurchases;
+        public int purchaseDelta;
+        public int actualCostCompleted;
+        public int targetCostCompleted;
+        public int costDelta;
+        public float actualPermanentStartDps;
+        public float targetPermanentStartDps;
+        public float dpsDelta;
+        public float actualPermanentStartEmissions;
+        public float targetPermanentStartEmissions;
+        public float emissionsDelta;
+        public int wallet;
+        public int targetWalletReserve;
+        public int walletDelta;
+        public int lifetimeCoinsEarned;
+        public int targetCumulativeIncome;
+        public float lifetimeWealthRatio;
+        public float targetWealthRatio;
+        public bool run45WealthBandPass;
+        public bool run45PurchaseBandPass;
+
+        public string ToCsv()
+        {
+            return string.Join(",",
+                BalanceTelemetryWriter.EscapeCsv(runId),
+                BalanceTelemetryWriter.EscapeCsv(balanceVersion),
+                runSequenceNumber,
+                checkpointRun,
+                actualDamageLevel,
+                targetDamageLevel,
+                F(actualDamage),
+                F(targetDamage),
+                actualFireRateLevel,
+                targetFireRateLevel,
+                F(actualFireRate),
+                F(targetFireRate),
+                actualMaxHpLevel,
+                targetMaxHpLevel,
+                F(actualMaxHp),
+                F(targetMaxHp),
+                actualProjectileCountLevel,
+                targetProjectileCountLevel,
+                actualProjectileCount,
+                targetProjectileCount,
+                actualSquadSizeLevel,
+                targetSquadSizeLevel,
+                actualSquadSize,
+                targetSquadSize,
+                actualTotalPurchases,
+                targetTotalPurchases,
+                purchaseDelta,
+                actualCostCompleted,
+                targetCostCompleted,
+                costDelta,
+                F(actualPermanentStartDps),
+                F(targetPermanentStartDps),
+                F(dpsDelta),
+                F(actualPermanentStartEmissions),
+                F(targetPermanentStartEmissions),
+                F(emissionsDelta),
+                wallet,
+                targetWalletReserve,
+                walletDelta,
+                lifetimeCoinsEarned,
+                targetCumulativeIncome,
+                F(lifetimeWealthRatio),
+                F(targetWealthRatio),
+                run45WealthBandPass ? "true" : "false",
+                run45PurchaseBandPass ? "true" : "false");
         }
 
         private static string F(float value)

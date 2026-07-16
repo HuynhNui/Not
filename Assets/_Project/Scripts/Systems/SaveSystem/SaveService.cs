@@ -344,8 +344,6 @@ namespace _Project.Scripts.Systems.SaveSystem
                 return false;
             }
 
-            int safeAmount = Mathf.Max(0, amount);
-            _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeAmount);
             _data.tutorialFirstRunBonusGranted = true;
             CommitAndQueueCloudUpload();
             return true;
@@ -364,13 +362,6 @@ namespace _Project.Scripts.Systems.SaveSystem
 
             _data.grantedMissionRewardIds ??= new System.Collections.Generic.List<string>();
             _data.grantedMissionRewardIds.Add(safeMissionId);
-
-            int safeAmount = Mathf.Max(0, coinAmount);
-            if (safeAmount > 0)
-            {
-                _data.walletCoins = Mathf.Max(0, _data.walletCoins + safeAmount);
-                _data.lifetimeCoinsEarned = Mathf.Max(0, _data.lifetimeCoinsEarned + safeAmount);
-            }
 
             CommitAndQueueCloudUpload();
             return true;
