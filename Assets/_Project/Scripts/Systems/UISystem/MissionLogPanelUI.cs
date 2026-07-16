@@ -26,7 +26,9 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private Button backButton;
 
         private readonly List<MissionRowUI> _rows = new List<MissionRowUI>();
-        private int _activeRowIndex = -1;
+        private int _focusRowIndex = -1;
+        private RuntimeMissionSystem _missionSystem;
+        private SaveData _saveData;
 
         public Button BackButton => backButton;
 
@@ -52,7 +54,9 @@ namespace _Project.Scripts.Systems.UISystem
             int completedCount = saveData.completedMissionIds != null
                 ? saveData.completedMissionIds.Count
                 : 0;
-            _activeRowIndex = -1;
+            _missionSystem = missionSystem;
+            _saveData = saveData;
+            _focusRowIndex = -1;
 
             List<MissionDisplayEntry> displayEntries = BuildDisplayEntries(missions, activeMissionId, saveData);
             EnsureRowCount(displayEntries.Count);
@@ -66,23 +70,26 @@ namespace _Project.Scripts.Systems.UISystem
                     continue;
                 }
 
-                if (entry.State == MissionRowState.Active)
+                if (entry.State == MissionRowState.CompletedUnclaimed)
                 {
-                    _activeRowIndex = index;
+                    _focusRowIndex = index;
+                }
+                else if (entry.State == MissionRowState.Active && _focusRowIndex < 0)
+                {
+                    _focusRowIndex = index;
                 }
 
                 float progressValue = entry.State == MissionRowState.Active
                     ? saveData.activeMissionProgress
-                    : entry.State == MissionRowState.Completed
-                        ? entry.Mission.TargetValue
-                        : 0f;
+                    : 0f;
 
                 _rows[index].Configure(
                     entry.Mission,
                     entry.MissionNumber,
                     entry.State,
                     progressValue,
-                    entry.Mission.TargetValue);
+                    entry.Mission.TargetValue,
+                    HandleClaimRequested);
             }
 
             for (int index = displayEntries.Count; index < _rows.Count; index++)
@@ -96,14 +103,14 @@ namespace _Project.Scripts.Systems.UISystem
 
         public void ScrollToActiveMission()
         {
-            if (scrollRect == null || contentRoot == null || _activeRowIndex < 0 || _rows.Count <= 1)
+            if (scrollRect == null || contentRoot == null || _focusRowIndex < 0 || _rows.Count <= 1)
             {
                 return;
             }
 
             Canvas.ForceUpdateCanvases();
 
-            float normalized = 1f - Mathf.Clamp01((float)_activeRowIndex / Mathf.Max(1, _rows.Count - 1));
+            float normalized = 1f - Mathf.Clamp01((float)_focusRowIndex / Mathf.Max(1, _rows.Count - 1));
             scrollRect.verticalNormalizedPosition = normalized;
         }
 
@@ -191,7 +198,7 @@ namespace _Project.Scripts.Systems.UISystem
                     completedRows.Add(new MissionDisplayEntry(
                         mission,
                         index + 1,
-                        MissionRowState.Completed));
+                        ResolveCompletedState(saveData, mission.Id)));
                 }
             }
 
@@ -317,6 +324,25 @@ namespace _Project.Scripts.Systems.UISystem
             }
 
             return false;
+        }
+
+        private bool HandleClaimRequested(string missionId)
+        {
+            if (_missionSystem == null || !_missionSystem.TryClaimMissionReward(missionId))
+            {
+                return false;
+            }
+
+            _saveData = SaveService.Instance.Data;
+            Refresh(_missionSystem, _saveData);
+            return true;
+        }
+
+        private static MissionRowState ResolveCompletedState(SaveData saveData, string missionId)
+        {
+            return ContainsMissionId(saveData.grantedMissionRewardIds, missionId)
+                ? MissionRowState.CompletedClaimed
+                : MissionRowState.CompletedUnclaimed;
         }
 
         private static void SetText(TextMeshProUGUI target, string value)

@@ -9,6 +9,7 @@ namespace _Project.Scripts.Data.Balance
         menuName = "Chibi Pixel Gate/Balance/Player Meta Balance Config")]
     public sealed class PlayerMetaBalanceConfig : ScriptableObject
     {
+        public const string MetaProgressionConfigVersion = "balance-v1.4.1-meta-stat-progression";
         public const int DefaultMaxLevel = 5;
         private static readonly PlayerMetaLevelData[] DefaultLevels =
         {
@@ -20,7 +21,7 @@ namespace _Project.Scripts.Data.Balance
             new PlayerMetaLevelData(5, 3.0f, 6.4f, 20f, 3, 4, 2200)
         };
 
-        [SerializeField] private string configVersion = CombatScalingConfig.DefaultConfigVersion;
+        [SerializeField] private string configVersion = MetaProgressionConfigVersion;
         [SerializeField] private List<PlayerMetaLevelData> levels = CreateDefaultLevels();
 
         public string ConfigVersion => configVersion;
@@ -42,7 +43,7 @@ namespace _Project.Scripts.Data.Balance
         {
             if (string.IsNullOrWhiteSpace(configVersion))
             {
-                configVersion = CombatScalingConfig.DefaultConfigVersion;
+                configVersion = MetaProgressionConfigVersion;
             }
 
             EnsureDefaults();

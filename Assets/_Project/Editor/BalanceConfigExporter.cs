@@ -46,7 +46,7 @@ internal static class BalanceConfigExporter
             balanceVersion = CombatScalingConfig.DefaultConfigVersion,
             combat = BuildCombat(combat),
             metaLevels = BuildMetaLevels(meta, combat),
-            metaTracks = BuildMetaTracks(meta, metaEconomy),
+            metaTracks = BuildMetaTracks(meta, metaEconomy, combat),
             pressureSamples = BuildPressureSamples(pressure),
             progressionCheckpoints = BuildProgressionCheckpoints(combat),
             enemyRoles = BuildEnemyRoles(),
@@ -101,7 +101,7 @@ internal static class BalanceConfigExporter
             balanceVersion = bootstrap.ActiveBalanceVersion,
             combat = combat != null ? BuildCombat(combat) : null,
             metaLevels = meta != null && combat != null ? BuildMetaLevels(meta, combat) : new List<MetaLevelExport>(),
-            metaTracks = meta != null ? BuildMetaTracks(meta, metaEconomy) : new List<MetaTrackExport>(),
+            metaTracks = meta != null ? BuildMetaTracks(meta, metaEconomy, combat) : new List<MetaTrackExport>(),
             pressureSamples = pressure != null ? BuildPressureSamples(pressure) : new List<PressureSampleExport>(),
             progressionCheckpoints = BuildProgressionCheckpoints(combat),
             enemyRoles = BuildEnemyRoles(bootstrap),
@@ -209,7 +209,8 @@ internal static class BalanceConfigExporter
 
     private static List<MetaTrackExport> BuildMetaTracks(
         PlayerMetaBalanceConfig meta,
-        PlayerMetaEconomyConfig metaEconomy)
+        PlayerMetaEconomyConfig metaEconomy,
+        CombatScalingConfig combat)
     {
         var result = new List<MetaTrackExport>();
 
@@ -219,24 +220,41 @@ internal static class BalanceConfigExporter
             int maxLevel = Mathf.Clamp(definition.MaxLevel, 0, meta.MaxLevel);
             var values = new List<float>();
             var costs = new List<int>();
+            var purchasableLevels = new List<MetaTrackLevelExport>();
 
             for (int level = 0; level <= maxLevel; level++)
             {
                 PlayerMetaLevelData data = meta.GetLevelData(level);
                 values.Add(GetMetaTrackValue(definition.Type, data));
-                costs.Add(level == 0
+                int purchaseCost = level == 0
                     ? 0
                     : metaEconomy != null
                         ? metaEconomy.GetPurchaseCost(definition.Type, level - 1)
-                        : data.Cost);
+                        : data.Cost;
+                costs.Add(purchaseCost);
+
+                if (level > 0)
+                {
+                    PlayerMetaLevelData previousData = meta.GetLevelData(level - 1);
+                    purchasableLevels.Add(new MetaTrackLevelExport
+                    {
+                        level = level,
+                        value = GetMetaTrackValue(definition.Type, data),
+                        purchaseCost = purchaseCost,
+                        dpsDelta = EstimateTrackDpsDelta(definition.Type, previousData, data, combat),
+                        emissionDelta = EstimateTrackEmissionDelta(definition.Type, previousData, data, combat)
+                    });
+                }
             }
 
             result.Add(new MetaTrackExport
             {
                 type = definition.Type.ToString(),
                 maxLevel = maxLevel,
+                maxPurchasableLevel = maxLevel,
                 values = values,
                 costs = costs,
+                purchasableLevels = purchasableLevels,
                 totalCost = metaEconomy != null
                     ? metaEconomy.GetTrackTotalCost(definition.Type)
                     : SumCosts(costs)
@@ -293,6 +311,81 @@ internal static class BalanceConfigExporter
             PlayerMetaUpgradeType.ProjectileCount => data.ProjectileCount,
             PlayerMetaUpgradeType.SquadSize => data.SquadSize,
             _ => 0f
+        };
+    }
+
+    private static float EstimateTrackDpsDelta(
+        PlayerMetaUpgradeType type,
+        PlayerMetaLevelData before,
+        PlayerMetaLevelData after,
+        CombatScalingConfig combat)
+    {
+        PlayerMetaLevelData baseline = PlayerMetaBalanceConfig.GetDefaultLevelData(0);
+        (float beforeDamage, float beforeFire, int beforeProjectiles, int beforeSquad) =
+            BuildTrackDeltaStats(type, before, baseline);
+        (float afterDamage, float afterFire, int afterProjectiles, int afterSquad) =
+            BuildTrackDeltaStats(type, after, baseline);
+
+        return BalanceV1Math.EffectiveDps(afterDamage, afterFire, afterProjectiles, afterSquad, combat)
+            - BalanceV1Math.EffectiveDps(beforeDamage, beforeFire, beforeProjectiles, beforeSquad, combat);
+    }
+
+    private static float EstimateTrackEmissionDelta(
+        PlayerMetaUpgradeType type,
+        PlayerMetaLevelData before,
+        PlayerMetaLevelData after,
+        CombatScalingConfig combat)
+    {
+        PlayerMetaLevelData baseline = PlayerMetaBalanceConfig.GetDefaultLevelData(0);
+        (float beforeDamage, float beforeFire, int beforeProjectiles, int beforeSquad) =
+            BuildTrackDeltaStats(type, before, baseline);
+        (float afterDamage, float afterFire, int afterProjectiles, int afterSquad) =
+            BuildTrackDeltaStats(type, after, baseline);
+
+        return BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                afterFire,
+                afterProjectiles,
+                afterSquad,
+                combat)
+            - BalanceV1Math.EstimatedBaseProjectileEmissionsPerSecond(
+                beforeFire,
+                beforeProjectiles,
+                beforeSquad,
+                combat);
+    }
+
+    private static (float damage, float fireRate, int projectileCount, int squadSize) BuildTrackDeltaStats(
+        PlayerMetaUpgradeType type,
+        PlayerMetaLevelData trackData,
+        PlayerMetaLevelData baseline)
+    {
+        return type switch
+        {
+            PlayerMetaUpgradeType.Damage => (
+                trackData.Damage,
+                baseline.FireRate,
+                baseline.ProjectileCount,
+                baseline.SquadSize),
+            PlayerMetaUpgradeType.FireRate => (
+                baseline.Damage,
+                trackData.FireRate,
+                baseline.ProjectileCount,
+                baseline.SquadSize),
+            PlayerMetaUpgradeType.ProjectileCount => (
+                baseline.Damage,
+                baseline.FireRate,
+                trackData.ProjectileCount,
+                baseline.SquadSize),
+            PlayerMetaUpgradeType.SquadSize => (
+                baseline.Damage,
+                baseline.FireRate,
+                baseline.ProjectileCount,
+                trackData.SquadSize),
+            _ => (
+                baseline.Damage,
+                baseline.FireRate,
+                baseline.ProjectileCount,
+                baseline.SquadSize)
         };
     }
 
@@ -720,9 +813,21 @@ internal static class BalanceConfigExporter
     {
         public string type;
         public int maxLevel;
+        public int maxPurchasableLevel;
         public List<float> values;
         public List<int> costs;
+        public List<MetaTrackLevelExport> purchasableLevels;
         public int totalCost;
+    }
+
+    [Serializable]
+    private sealed class MetaTrackLevelExport
+    {
+        public int level;
+        public float value;
+        public int purchaseCost;
+        public float dpsDelta;
+        public float emissionDelta;
     }
 
     [Serializable]

@@ -69,14 +69,23 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void DefaultPermanentDamageValues_UseDamageForwardMetaProgression()
+        public void DefaultPermanentStatValues_MatchMetaProgressionPlan()
         {
             PlayerMetaBalanceConfig config = ScriptableObject.CreateInstance<PlayerMetaBalanceConfig>();
             float[] expectedDamage = { 1.00f, 1.40f, 1.80f, 2.20f, 2.60f, 3.00f };
+            float[] expectedFireRate = { 4.00f, 4.40f, 4.80f, 5.20f, 5.80f, 6.40f };
+            float[] expectedMaxHp = { 10.00f, 11.50f, 13.00f, 15.00f, 17.50f, 20.00f };
+            int[] expectedProjectiles = { 1, 2, 3, 3, 3, 3 };
+            int[] expectedSquad = { 1, 2, 3, 4, 4, 4 };
 
             for (int level = 0; level < expectedDamage.Length; level++)
             {
-                Assert.That(config.GetLevelData(level).Damage, Is.EqualTo(expectedDamage[level]).Within(0.0001f));
+                PlayerMetaLevelData levelData = config.GetLevelData(level);
+                Assert.That(levelData.Damage, Is.EqualTo(expectedDamage[level]).Within(0.0001f));
+                Assert.That(levelData.FireRate, Is.EqualTo(expectedFireRate[level]).Within(0.0001f));
+                Assert.That(levelData.MaxHp, Is.EqualTo(expectedMaxHp[level]).Within(0.0001f));
+                Assert.That(levelData.ProjectileCount, Is.EqualTo(expectedProjectiles[level]));
+                Assert.That(levelData.SquadSize, Is.EqualTo(expectedSquad[level]));
             }
 
             UnityEngine.Object.DestroyImmediate(config);
@@ -215,6 +224,30 @@ namespace _Project.Tests.Editor
             Assert.That(saveData.walletCoins, Is.EqualTo(1234));
             Assert.That(saveData.storyStage, Is.EqualTo(2));
             Assert.That(saveData.gameplayTutorialCompleted, Is.True);
+        }
+
+        [Test]
+        public void SavedQuantityLevels_AlwaysClampToMetaProgressionCaps()
+        {
+            var saveData = SaveData.CreateNew(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            saveData.schemaVersion = SaveData.CurrentSchemaVersion;
+            saveData.walletCoins = 5555;
+            saveData.lifetimeCoinsEarned = 9999;
+            saveData.SetUpgradeLevel(PlayerMetaUpgradeType.Damage, 5);
+            saveData.SetUpgradeLevel(PlayerMetaUpgradeType.FireRate, 5);
+            saveData.SetUpgradeLevel(PlayerMetaUpgradeType.MaxHp, 5);
+            saveData.SetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount, 5);
+            saveData.SetUpgradeLevel(PlayerMetaUpgradeType.SquadSize, 5);
+
+            saveData.Normalize(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.Damage), Is.EqualTo(5));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.FireRate), Is.EqualTo(5));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.MaxHp), Is.EqualTo(5));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount), Is.EqualTo(2));
+            Assert.That(saveData.GetUpgradeLevel(PlayerMetaUpgradeType.SquadSize), Is.EqualTo(3));
+            Assert.That(saveData.walletCoins, Is.EqualTo(5555));
+            Assert.That(saveData.lifetimeCoinsEarned, Is.EqualTo(9999));
         }
 
         [Test]

@@ -135,15 +135,15 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void GrantMissionRewardOnce_MarksMissionOnlyOnceWithoutCoins()
+        public void GrantMissionRewardOnce_AddsCoinsOnlyOnce()
         {
             bool firstGrant = _service.GrantMissionRewardOnce(" boot_finish_tutorial ", 250);
             bool secondGrant = _service.GrantMissionRewardOnce("boot_finish_tutorial", 250);
 
             Assert.That(firstGrant, Is.True);
             Assert.That(secondGrant, Is.False);
-            Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
-            Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(0));
+            Assert.That(_service.Data.walletCoins, Is.EqualTo(250));
+            Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(250));
             Assert.That(_service.Data.grantedMissionRewardIds, Is.EqualTo(new[] { "boot_finish_tutorial" }));
         }
 

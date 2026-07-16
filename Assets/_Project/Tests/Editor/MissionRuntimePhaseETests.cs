@@ -60,7 +60,8 @@ namespace _Project.Tests.Editor
             Assert.That(_service.Data.missionNotificationUnread, Is.True);
             Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
             Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(0));
-            Assert.That(_service.Data.grantedMissionRewardIds, Does.Contain("boot_finish_tutorial"));
+            Assert.That(_service.Data.grantedMissionRewardIds, Does.Not.Contain("boot_finish_tutorial"));
+            Assert.That(_missionSystem.IsMissionRewardClaimable("boot_finish_tutorial"), Is.True);
         }
 
         [Test]
@@ -136,6 +137,38 @@ namespace _Project.Tests.Editor
             Assert.That(_service.Data.activeMissionId, Is.EqualTo("boot_first_loop"));
             Assert.That(_service.Data.completedMissionIds, Is.Empty);
             Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ClaimMissionReward_GrantsCoinsOnceAndMarksClaimed()
+        {
+            _service.MarkGameplayTutorialCompleted();
+            _missionSystem.NotifyGameplayTutorialCompleted();
+
+            MissionDefinition completedMission = _catalog.GetMissionById("boot_finish_tutorial");
+            Assert.That(completedMission, Is.Not.Null);
+            Assert.That(_missionSystem.HasAnyUnclaimedMissionRewards, Is.True);
+
+            bool firstClaim = _missionSystem.TryClaimMissionReward("boot_finish_tutorial");
+            bool secondClaim = _missionSystem.TryClaimMissionReward("boot_finish_tutorial");
+
+            Assert.That(firstClaim, Is.True);
+            Assert.That(secondClaim, Is.False);
+            Assert.That(_service.Data.walletCoins, Is.EqualTo(completedMission.RewardCoins));
+            Assert.That(_service.Data.lifetimeCoinsEarned, Is.EqualTo(completedMission.RewardCoins));
+            Assert.That(_service.Data.grantedMissionRewardIds, Does.Contain("boot_finish_tutorial"));
+            Assert.That(_missionSystem.IsMissionRewardClaimed("boot_finish_tutorial"), Is.True);
+            Assert.That(_missionSystem.HasAnyUnclaimedMissionRewards, Is.False);
+        }
+
+        [Test]
+        public void ClaimMissionReward_FailsForLockedOrActiveIncompleteMission()
+        {
+            Assert.That(_missionSystem.TryClaimMissionReward("boot_finish_tutorial"), Is.False);
+            Assert.That(_missionSystem.TryClaimMissionReward("boot_first_loop"), Is.False);
+            Assert.That(_missionSystem.TryClaimMissionReward("missing_mission"), Is.False);
+            Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
+            Assert.That(_service.Data.grantedMissionRewardIds, Is.Empty);
         }
 
         private void SetActiveMission(string missionId)

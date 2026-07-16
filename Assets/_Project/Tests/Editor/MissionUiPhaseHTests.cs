@@ -104,6 +104,8 @@ namespace _Project.Tests.Editor
             Assert.That(panel.transform.Find("PanelCard/MissionScrollView/Content/MissionRowTemplate"), Is.Not.Null);
             Assert.That(panelPrefab, Is.Not.Null);
             Assert.That(rowPrefab, Is.Not.Null);
+            Assert.That(rowPrefab.transform.Find("ClaimButton")?.GetComponent<Button>(), Is.Not.Null);
+            Assert.That(rowPrefab.transform.Find("RewardCoin")?.GetComponent<Image>(), Is.Not.Null);
         }
 
         [Test]
@@ -132,6 +134,26 @@ namespace _Project.Tests.Editor
             Assert.That(uiSystem.CurrentScreen, Is.EqualTo(UISystem.UIScreen.MainMenu));
             Assert.That(mainMenuPanel.activeSelf, Is.True);
             Assert.That(missionPanel.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void ShowMissionLog_KeepsBadgeVisibleWhileRewardIsUnclaimed()
+        {
+            UISystem uiSystem = UnityEngine.Object.FindAnyObjectByType<UISystem>(FindObjectsInactive.Include);
+            GameObject badge = FindSceneObjectByPath(MissionButtonPath + "/MissionBadge");
+
+            _saveService.Data.completedMissionIds.Add("boot_finish_tutorial");
+            _saveService.Data.activeMissionId = "boot_first_loop";
+            _saveService.Data.missionNotificationUnread = true;
+            _saveService.CommitMissionState();
+            _missionSystem.InitializeFromSave();
+
+            uiSystem.Init();
+            uiSystem.ShowMissionLog();
+
+            Assert.That(_saveService.Data.missionNotificationUnread, Is.False);
+            Assert.That(_missionSystem.HasAnyUnclaimedMissionRewards, Is.True);
+            Assert.That(badge.activeSelf, Is.True);
         }
 
         [Test]
@@ -165,6 +187,39 @@ namespace _Project.Tests.Editor
             Assert.That(visibleText, Does.Not.Contain("PASS THROUGH 3 GATES"));
             Assert.That(visibleText, Does.Not.Contain("COMPLETE 3 LOOPS"));
             Assert.That(visibleText, Does.Not.Contain("DEFEAT 100 ENEMIES IN ONE RUN"));
+        }
+
+        [Test]
+        public void ClaimButton_GrantsCompletedMissionRewardAndRefreshesRow()
+        {
+            SaveData data = _saveService.Data;
+            data.completedMissionIds.Clear();
+            data.grantedMissionRewardIds.Clear();
+            data.completedMissionIds.Add("boot_finish_tutorial");
+            data.activeMissionId = "boot_first_loop";
+            data.activeMissionProgress = 0f;
+            _saveService.CommitMissionState();
+            _missionSystem.InitializeFromSave();
+
+            GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
+            MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
+            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+
+            missionLogPanelUI.Refresh(_missionSystem, data);
+            string beforeText = GetVisibleMissionRowText(content);
+            Button claimButton = FindVisibleClaimButton(content);
+
+            Assert.That(beforeText, Does.Contain("CLAIM"));
+            Assert.That(beforeText, Does.Contain("+1000"));
+            Assert.That(claimButton, Is.Not.Null);
+
+            claimButton.onClick.Invoke();
+
+            string afterText = GetVisibleMissionRowText(content);
+            Assert.That(_saveService.Data.walletCoins, Is.EqualTo(1000));
+            Assert.That(_saveService.Data.lifetimeCoinsEarned, Is.EqualTo(1000));
+            Assert.That(_saveService.Data.grantedMissionRewardIds, Does.Contain("boot_finish_tutorial"));
+            Assert.That(afterText, Does.Not.Contain("CLAIM"));
         }
 
         [Test]
@@ -268,6 +323,29 @@ namespace _Project.Tests.Editor
             }
 
             return builder.ToString();
+        }
+
+        private static Button FindVisibleClaimButton(Transform content)
+        {
+            for (int index = 0; index < content.childCount; index++)
+            {
+                Transform child = content.GetChild(index);
+                if (!child.gameObject.activeSelf)
+                {
+                    continue;
+                }
+
+                Transform claimTransform = child.Find("ClaimButton");
+                Button button = claimTransform != null
+                    ? claimTransform.GetComponent<Button>()
+                    : null;
+                if (button != null && button.gameObject.activeSelf)
+                {
+                    return button;
+                }
+            }
+
+            return null;
         }
 
         private static bool IsMainSceneObject(GameObject gameObject)

@@ -606,12 +606,16 @@ namespace _Project.Scripts.Systems.UISystem
         private void RefreshMissionButton(SaveData saveData = null)
         {
             saveData ??= SaveService.Instance.Data;
+            bool hasUnclaimedRewards = HasUnclaimedMissionRewards(saveData);
+            bool hasUnreadMission = saveData.missionNotificationUnread;
 
             if (mainMenuMissionButtonImage != null)
             {
                 Sprite targetSprite = _missionButtonCompleteFeedbackPending
                     ? missionButtonCompleteSprite
-                    : saveData.missionNotificationUnread
+                    : hasUnclaimedRewards
+                        ? missionButtonCompleteSprite
+                    : hasUnreadMission
                         ? missionButtonAlertSprite
                         : missionButtonNormalSprite;
                 if (targetSprite != null)
@@ -620,7 +624,7 @@ namespace _Project.Scripts.Systems.UISystem
                 }
             }
 
-            SetActive(mainMenuMissionBadge, saveData.missionNotificationUnread);
+            SetActive(mainMenuMissionBadge, hasUnreadMission || hasUnclaimedRewards);
         }
 
         public void ShowMissionButtonCompleteFeedback()
@@ -866,6 +870,52 @@ namespace _Project.Scripts.Systems.UISystem
             {
                 missionLogPanelUI.Refresh(RuntimeMissionSystem.ActiveInstance, SaveService.Instance.Data);
             }
+        }
+
+        private static bool HasUnclaimedMissionRewards(SaveData saveData)
+        {
+            RuntimeMissionSystem missionSystem = RuntimeMissionSystem.ActiveInstance;
+            if (missionSystem != null)
+            {
+                return missionSystem.HasAnyUnclaimedMissionRewards;
+            }
+
+            if (saveData?.completedMissionIds == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < saveData.completedMissionIds.Count; index++)
+            {
+                string missionId = saveData.completedMissionIds[index];
+                if (string.IsNullOrWhiteSpace(missionId) || ContainsMissionId(saveData.grantedMissionRewardIds, missionId))
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ContainsMissionId(List<string> values, string missionId)
+        {
+            if (values == null || string.IsNullOrWhiteSpace(missionId))
+            {
+                return false;
+            }
+
+            string safeMissionId = missionId.Trim();
+            for (int index = 0; index < values.Count; index++)
+            {
+                if (values[index] == safeMissionId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public enum UIScreen

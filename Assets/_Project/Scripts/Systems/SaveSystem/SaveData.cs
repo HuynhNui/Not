@@ -311,11 +311,10 @@ namespace _Project.Scripts.Systems.SaveSystem
                     continue;
                 }
 
-                if (sourceSchemaVersion < 8
-                    && upgradeType == PlayerMetaUpgradeType.ProjectileCount
-                    && entry.level > 2)
+                if (upgradeType == PlayerMetaUpgradeType.ProjectileCount
+                    && entry.level > PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount))
                 {
-                    entry.level = 2;
+                    entry.level = PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.ProjectileCount);
                     if (!loggedProjectileMigration
                         && (Application.isEditor || Debug.isDebugBuild))
                     {
@@ -325,11 +324,10 @@ namespace _Project.Scripts.Systems.SaveSystem
                     }
                 }
 
-                if (sourceSchemaVersion < 8
-                    && upgradeType == PlayerMetaUpgradeType.SquadSize
-                    && entry.level > 3)
+                if (upgradeType == PlayerMetaUpgradeType.SquadSize
+                    && entry.level > PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.SquadSize))
                 {
-                    entry.level = 3;
+                    entry.level = PlayerMetaUpgradeService.GetMaxLevel(PlayerMetaUpgradeType.SquadSize);
                     if (!loggedSquadMigration
                         && (Application.isEditor || Debug.isDebugBuild))
                     {

@@ -242,9 +242,7 @@ namespace _Project.Scripts.Core.GameLoop
             telemetryConfig = balanceConfig.TelemetryConfig != null
                 ? balanceConfig.TelemetryConfig
                 : telemetryConfig;
-            benchmarkProfile = balanceConfig.ActiveBenchmarkProfile != null
-                ? balanceConfig.ActiveBenchmarkProfile
-                : benchmarkProfile;
+            benchmarkProfile = balanceConfig.ActiveBenchmarkProfile;
         }
 
         private void Awake()

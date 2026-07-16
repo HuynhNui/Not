@@ -13,6 +13,7 @@ namespace _Project.Scripts.Systems.MissionSystem
         private readonly MissionCatalog _catalog;
         private readonly SaveService _saveService;
         private readonly HashSet<string> _completedMissionIds = new HashSet<string>();
+        private readonly HashSet<string> _grantedMissionRewardIds = new HashSet<string>();
         private string _activeMissionId;
         private float _activeMissionStoredProgressOrBaseline;
         private bool _progressionSuppressed;
@@ -32,6 +33,7 @@ namespace _Project.Scripts.Systems.MissionSystem
         public static MissionSystem ActiveInstance { get; private set; }
 
         public event System.Action<MissionDefinition, MissionDefinition> MissionCompleted;
+        public event System.Action<MissionDefinition> MissionRewardClaimed;
 
         public MissionDefinition ActiveMission => _catalog != null
             ? _catalog.GetMissionById(_activeMissionId)
@@ -47,6 +49,23 @@ namespace _Project.Scripts.Systems.MissionSystem
             : -1;
         public float ActiveMissionStoredProgressOrBaseline => _activeMissionStoredProgressOrBaseline;
         public bool MissionNotificationUnread { get; private set; }
+        public bool ShouldShowMissionAttention => MissionNotificationUnread || HasAnyUnclaimedMissionRewards;
+        public bool HasAnyUnclaimedMissionRewards
+        {
+            get
+            {
+                foreach (string missionId in _completedMissionIds)
+                {
+                    if (IsMissionRewardClaimable(missionId))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         public IReadOnlyCollection<string> CompletedMissionIds => _completedMissionIds;
 
         public void Dispose()
@@ -170,6 +189,62 @@ namespace _Project.Scripts.Systems.MissionSystem
                 _activeMissionStoredProgressOrBaseline);
         }
 
+        public bool IsMissionCompleted(string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            return !string.IsNullOrEmpty(safeMissionId)
+                && _completedMissionIds.Contains(safeMissionId);
+        }
+
+        public bool IsMissionRewardClaimed(string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            return !string.IsNullOrEmpty(safeMissionId)
+                && _grantedMissionRewardIds.Contains(safeMissionId);
+        }
+
+        public bool IsMissionRewardClaimable(string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            return !string.IsNullOrEmpty(safeMissionId)
+                && _catalog != null
+                && _catalog.GetMissionById(safeMissionId) != null
+                && _completedMissionIds.Contains(safeMissionId)
+                && !_grantedMissionRewardIds.Contains(safeMissionId);
+        }
+
+        public bool TryClaimMissionReward(string missionId)
+        {
+            if (_saveService == null)
+            {
+                return false;
+            }
+
+            string safeMissionId = NormalizeMissionId(missionId);
+            if (string.IsNullOrEmpty(safeMissionId))
+            {
+                return false;
+            }
+
+            MissionDefinition mission = _catalog != null
+                ? _catalog.GetMissionById(safeMissionId)
+                : null;
+            if (mission == null || !IsMissionRewardClaimable(safeMissionId))
+            {
+                return false;
+            }
+
+            if (!_saveService.GrantMissionRewardOnce(mission.Id, mission.RewardCoins))
+            {
+                return false;
+            }
+
+            SyncMissionListsFromSave();
+            MissionNotificationUnread = _saveService.Data.missionNotificationUnread;
+            MissionRewardClaimed?.Invoke(mission);
+            return true;
+        }
+
         public bool TryCompleteActiveMission(
             MissionProgressSnapshot snapshot,
             out MissionDefinition completedMission,
@@ -204,7 +279,7 @@ namespace _Project.Scripts.Systems.MissionSystem
             {
                 _activeMissionId = null;
                 _activeMissionStoredProgressOrBaseline = 0f;
-                MissionNotificationUnread = false;
+                MissionNotificationUnread = true;
                 return true;
             }
 
@@ -220,18 +295,7 @@ namespace _Project.Scripts.Systems.MissionSystem
         private void SyncFromSave(MissionProgressSnapshot snapshot)
         {
             SaveData data = _saveService.Data;
-            _completedMissionIds.Clear();
-            if (data.completedMissionIds != null)
-            {
-                for (int index = 0; index < data.completedMissionIds.Count; index++)
-                {
-                    string missionId = data.completedMissionIds[index];
-                    if (!string.IsNullOrWhiteSpace(missionId))
-                    {
-                        _completedMissionIds.Add(missionId.Trim());
-                    }
-                }
-            }
+            SyncMissionListsFromSave();
 
             MissionDefinition activeMission = _catalog.GetMissionById(data.activeMissionId);
             if (activeMission == null)
@@ -318,14 +382,13 @@ namespace _Project.Scripts.Systems.MissionSystem
                 data.activeMissionId = string.Empty;
                 data.activeMissionBaseline = 0f;
                 data.activeMissionProgress = 0f;
-                data.missionNotificationUnread = false;
+                data.missionNotificationUnread = true;
                 _activeMissionId = null;
                 _activeMissionStoredProgressOrBaseline = 0f;
-                MissionNotificationUnread = false;
+                MissionNotificationUnread = true;
             }
 
             _saveService.CommitMissionState();
-            _saveService.GrantMissionRewardOnce(completedMission.Id, completedMission.RewardCoins);
             MissionCompleted?.Invoke(completedMission, unlockedMission);
         }
 
@@ -372,6 +435,44 @@ namespace _Project.Scripts.Systems.MissionSystem
             }
 
             values.Add(safeValue);
+        }
+
+        private void SyncMissionListsFromSave()
+        {
+            _completedMissionIds.Clear();
+            _grantedMissionRewardIds.Clear();
+            if (_saveService == null)
+            {
+                return;
+            }
+
+            SaveData data = _saveService.Data;
+            AddMissionIdsToSet(data.completedMissionIds, _completedMissionIds);
+            AddMissionIdsToSet(data.grantedMissionRewardIds, _grantedMissionRewardIds);
+        }
+
+        private static void AddMissionIdsToSet(List<string> missionIds, HashSet<string> target)
+        {
+            if (missionIds == null || target == null)
+            {
+                return;
+            }
+
+            for (int index = 0; index < missionIds.Count; index++)
+            {
+                string safeMissionId = NormalizeMissionId(missionIds[index]);
+                if (!string.IsNullOrEmpty(safeMissionId))
+                {
+                    target.Add(safeMissionId);
+                }
+            }
+        }
+
+        private static string NormalizeMissionId(string missionId)
+        {
+            return string.IsNullOrWhiteSpace(missionId)
+                ? string.Empty
+                : missionId.Trim();
         }
 
         private bool SetActiveMission(
