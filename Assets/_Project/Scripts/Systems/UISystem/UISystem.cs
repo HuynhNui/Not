@@ -4,6 +4,7 @@ using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
+using _Project.Scripts.Systems.AudioSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -123,6 +124,9 @@ namespace _Project.Scripts.Systems.UISystem
         public event Action RestartRequested;
         public event Action HomeRequested;
         public event Action<UIScreen> ScreenChanged;
+        public event Action<AudioCueId> UiCueRequested;
+        public event Action<bool> MusicSettingChanged;
+        public event Action<bool> SfxSettingChanged;
 
         public UIScreen CurrentScreen => _currentScreen;
         public RectTransform MainMenuPlayButtonTarget =>
@@ -275,25 +279,25 @@ namespace _Project.Scripts.Systems.UISystem
         private void WireButtons()
         {
             ResolveGameOverReferences();
-            WireButton(playButton, nameof(playButton), () => PlayRequested?.Invoke());
-            WireButton(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), ShowUpgrade);
-            WireButton(mainMenuSettingsButton, nameof(mainMenuSettingsButton), ShowSettingsFromMainMenu);
-            WireButton(mainMenuMissionButton, nameof(mainMenuMissionButton), ShowMissionLog);
-            WireButton(missionBackButton, nameof(missionBackButton), ShowMainMenu);
-            WireButton(pauseButton, nameof(pauseButton), () => PauseRequested?.Invoke());
-            WireButton(upgradeBackButton, nameof(upgradeBackButton), ShowMainMenu);
-            WireButton(settingsBackButton, nameof(settingsBackButton), HandleSettingsBack);
-            WireButton(resetDataButton, nameof(resetDataButton), ShowResetConfirmPopup);
-            WireButton(resetConfirmCancelButton, nameof(resetConfirmCancelButton), HideResetConfirmPopup);
-            WireButton(resetConfirmButton, nameof(resetConfirmButton), ConfirmResetPlayerProgression);
+            WireButton(playButton, nameof(playButton), () => PlayRequested?.Invoke(), AudioCueId.UiConfirm);
+            WireButton(mainMenuUpgradeButton, nameof(mainMenuUpgradeButton), ShowUpgrade, AudioCueId.UiPanelOpen);
+            WireButton(mainMenuSettingsButton, nameof(mainMenuSettingsButton), ShowSettingsFromMainMenu, AudioCueId.UiPanelOpen);
+            WireButton(mainMenuMissionButton, nameof(mainMenuMissionButton), ShowMissionLog, AudioCueId.UiPanelOpen);
+            WireButton(missionBackButton, nameof(missionBackButton), ShowMainMenu, AudioCueId.UiPanelClose);
+            WireButton(pauseButton, nameof(pauseButton), () => PauseRequested?.Invoke(), AudioCueId.UiPanelOpen);
+            WireButton(upgradeBackButton, nameof(upgradeBackButton), ShowMainMenu, AudioCueId.UiPanelClose);
+            WireButton(settingsBackButton, nameof(settingsBackButton), HandleSettingsBack, AudioCueId.UiPanelClose);
+            WireButton(resetDataButton, nameof(resetDataButton), ShowResetConfirmPopup, AudioCueId.UiPanelOpen);
+            WireButton(resetConfirmCancelButton, nameof(resetConfirmCancelButton), HideResetConfirmPopup, AudioCueId.UiPanelClose);
+            WireButton(resetConfirmButton, nameof(resetConfirmButton), ConfirmResetPlayerProgression, AudioCueId.UiConfirm);
             WireOptionalButton(debugAddCoinsButton, HandleDebugAddCoins);
-            WireButton(resumeButton, nameof(resumeButton), () => ResumeRequested?.Invoke());
-            WireButton(pauseRestartButton, nameof(pauseRestartButton), () => RestartRequested?.Invoke());
-            WireButton(pauseSettingsButton, nameof(pauseSettingsButton), ShowSettingsFromPause);
-            WireButton(pauseHomeButton, nameof(pauseHomeButton), () => HomeRequested?.Invoke());
-            WireButton(retryButton, nameof(retryButton), () => RestartRequested?.Invoke());
-            WireButton(gameOverUpgradeButton, nameof(gameOverUpgradeButton), ShowUpgrade);
-            WireButton(gameOverHomeButton, nameof(gameOverHomeButton), () => HomeRequested?.Invoke());
+            WireButton(resumeButton, nameof(resumeButton), () => ResumeRequested?.Invoke(), AudioCueId.UiConfirm);
+            WireButton(pauseRestartButton, nameof(pauseRestartButton), () => RestartRequested?.Invoke(), AudioCueId.UiConfirm);
+            WireButton(pauseSettingsButton, nameof(pauseSettingsButton), ShowSettingsFromPause, AudioCueId.UiPanelOpen);
+            WireButton(pauseHomeButton, nameof(pauseHomeButton), () => HomeRequested?.Invoke(), AudioCueId.UiBack);
+            WireButton(retryButton, nameof(retryButton), () => RestartRequested?.Invoke(), AudioCueId.UiConfirm);
+            WireButton(gameOverUpgradeButton, nameof(gameOverUpgradeButton), ShowUpgrade, AudioCueId.UiPanelOpen);
+            WireButton(gameOverHomeButton, nameof(gameOverHomeButton), () => HomeRequested?.Invoke(), AudioCueId.UiBack);
 
             WireSettingsControls();
             WireUpgradeRows();
@@ -346,7 +350,11 @@ namespace _Project.Scripts.Systems.UISystem
             }
         }
 
-        private void WireButton(Button button, string fieldName, Action action)
+        private void WireButton(
+            Button button,
+            string fieldName,
+            Action action,
+            AudioCueId cue = AudioCueId.None)
         {
             if (button == null)
             {
@@ -355,7 +363,11 @@ namespace _Project.Scripts.Systems.UISystem
             }
 
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => action?.Invoke());
+            button.onClick.AddListener(() =>
+            {
+                RequestUiCue(cue);
+                action?.Invoke();
+            });
         }
 
         private static void WireOptionalButton(Button button, Action action)
@@ -386,6 +398,15 @@ namespace _Project.Scripts.Systems.UISystem
                 SetBoolSetting(prefsKey, value);
                 SetToggleSprite(toggle, value);
                 PlayerPrefs.Save();
+                RequestUiCue(AudioCueId.UiFocus);
+                if (prefsKey == MusicEnabledPrefsKey)
+                {
+                    MusicSettingChanged?.Invoke(value);
+                }
+                else if (prefsKey == SfxEnabledPrefsKey)
+                {
+                    SfxSettingChanged?.Invoke(value);
+                }
             });
         }
 
@@ -406,9 +427,11 @@ namespace _Project.Scripts.Systems.UISystem
         {
             if (!PlayerMetaUpgradeService.TryPurchase(upgradeType))
             {
+                RequestUiCue(AudioCueId.UiInvalidLocked);
                 return;
             }
 
+            RequestUiCue(AudioCueId.UiUpgradePurchase);
             RefreshUpgradePanel();
             RefreshMenuStats();
         }
@@ -742,6 +765,14 @@ namespace _Project.Scripts.Systems.UISystem
             if (changed)
             {
                 ScreenChanged?.Invoke(screen);
+            }
+        }
+
+        private void RequestUiCue(AudioCueId cue)
+        {
+            if (cue != AudioCueId.None)
+            {
+                UiCueRequested?.Invoke(cue);
             }
         }
 

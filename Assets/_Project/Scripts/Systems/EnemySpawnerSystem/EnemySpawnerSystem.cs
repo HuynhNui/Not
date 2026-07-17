@@ -50,6 +50,8 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         private readonly List<EnemyController> _tutorialEnemies = new List<EnemyController>();
 
         public event Action<EnemyController> EnemyKilled;
+        public event Action<EnemyController, float, float> EnemyDamaged;
+        public event Action<ChomboomController> ChomboomExploded;
 
         public int ActiveEnemyCount => GetActiveEnemyCount();
         public int VisibleEnemyCount => GetVisibleEnemyCount();
@@ -248,6 +250,14 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             enemyInstance.Killed += HandleEnemyKilled;
             enemyInstance.Despawned -= HandleEnemyDespawned;
             enemyInstance.Despawned += HandleEnemyDespawned;
+            enemyInstance.Damaged -= HandleEnemyDamaged;
+            enemyInstance.Damaged += HandleEnemyDamaged;
+            ChomboomController chomboomController = enemyInstance.GetComponent<ChomboomController>();
+            if (chomboomController != null)
+            {
+                chomboomController.Exploded -= HandleChomboomExploded;
+                chomboomController.Exploded += HandleChomboomExploded;
+            }
             enemyInstance.Spawn();
             TrackEnemy(enemyInstance, selectedEntry != null ? selectedEntry.GetThreatCost() : 0f);
             return enemyInstance;
@@ -480,6 +490,16 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
             UntrackEnemy(enemy);
         }
 
+        private void HandleEnemyDamaged(EnemyController enemy, float damageAmount, float currentHealth)
+        {
+            EnemyDamaged?.Invoke(enemy, damageAmount, currentHealth);
+        }
+
+        private void HandleChomboomExploded(ChomboomController chomboom)
+        {
+            ChomboomExploded?.Invoke(chomboom);
+        }
+
         private void TrackEnemy(EnemyController enemy, float threatCost)
         {
             if (enemy == null)
@@ -515,6 +535,12 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
 
             enemy.Killed -= HandleEnemyKilled;
             enemy.Despawned -= HandleEnemyDespawned;
+            enemy.Damaged -= HandleEnemyDamaged;
+            ChomboomController chomboomController = enemy.GetComponent<ChomboomController>();
+            if (chomboomController != null)
+            {
+                chomboomController.Exploded -= HandleChomboomExploded;
+            }
         }
 
         private int GetActiveEnemyCount()

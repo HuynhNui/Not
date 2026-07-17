@@ -24,6 +24,9 @@ namespace _Project.Cutscenes
 
         public event Action<string> OnCutsceneStarted;
         public event Action<string> OnCutsceneFinished;
+        public event Action OnDialogueAdvanceRequested;
+        public event Action<string, int, int, StoryDialogueLine> OnDialogueLineShown;
+        public event Action<string> OnFinalChoiceSelected;
 
         public void Init(EcCutsceneManager easyManager, CutsceneDemoUIView demoView)
         {
@@ -163,6 +166,7 @@ namespace _Project.Cutscenes
                 return;
             }
 
+            OnDialogueAdvanceRequested?.Invoke();
             _activeLineIndex++;
             if (_activeLineIndex >= _activeDefinition.Lines.Count)
             {
@@ -192,6 +196,11 @@ namespace _Project.Cutscenes
 
             view.ShowCutscene();
             view.SetDialogueLine(line);
+            OnDialogueLineShown?.Invoke(
+                _activeCutsceneId,
+                _activeLineIndex,
+                _activeDefinition.Lines.Count,
+                line);
         }
 
         private void CompleteActiveDefinition()
@@ -219,11 +228,13 @@ namespace _Project.Cutscenes
 
         private void PlayContinueProtocol()
         {
+            OnFinalChoiceSelected?.Invoke(StoryCutsceneIds.FinalChoiceContinueProtocol);
             Play(StoryCutsceneIds.FinalChoiceContinueProtocol);
         }
 
         private void PlayShutDownCore()
         {
+            OnFinalChoiceSelected?.Invoke(StoryCutsceneIds.FinalChoiceShutDownCore);
             Play(StoryCutsceneIds.FinalChoiceShutDownCore);
         }
 

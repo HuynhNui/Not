@@ -30,6 +30,8 @@ namespace _Project.Scripts.Gameplay.Dialogue
         private bool _warnedProtocolPeriodicFallback;
         private bool _isSubscribed;
 
+        public event Action<GameplayDialogueEntry> DialogueShown;
+
         public bool IsRunActive => _scheduler != null && _scheduler.IsRunActive;
         public PsychologyPhase CurrentPhase => _currentPhase;
 
@@ -308,6 +310,7 @@ namespace _Project.Scripts.Gameplay.Dialogue
 
             _lastDialogueId = entry.DialogueId;
             presenter?.Show(entry.Text, playerController);
+            DialogueShown?.Invoke(entry);
         }
 
         private bool CanAccumulatePlayingTime()

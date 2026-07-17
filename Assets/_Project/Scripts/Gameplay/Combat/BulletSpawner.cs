@@ -42,6 +42,8 @@ namespace _Project.Scripts.Gameplay.Combat
         private float _nextShotTime;
         private float _shooterDamageScale = 1f;
 
+        public event Action<BulletSpawner, int> VolleyFired;
+
         public float FireRate => fireRate;
         public float EffectiveFireRate => BalanceV1Math.EffectiveFireRate(fireRate, combatScalingConfig);
         public float Damage => damage;
@@ -180,13 +182,21 @@ namespace _Project.Scripts.Gameplay.Combat
             float startOffset = -(shots - 1) * 0.5f * burstSpread;
             Vector3 center = firePoint.position;
 
+            int spawnedCount = 0;
             for (int shotIndex = 0; shotIndex < shots; shotIndex++)
             {
                 Vector3 shotPosition = center + Vector3.right * (startOffset + shotIndex * burstSpread);
-                SpawnBullet(shotPosition, rotation, shotDamage, bulletSpeed, BuildModifierConfigBuffer());
+                if (SpawnBullet(shotPosition, rotation, shotDamage, bulletSpeed, BuildModifierConfigBuffer()) != null)
+                {
+                    spawnedCount++;
+                }
             }
 
             _nextShotTime = Time.time + GetShotInterval();
+            if (spawnedCount > 0)
+            {
+                VolleyFired?.Invoke(this, spawnedCount);
+            }
         }
 
         public void SpawnChildBullet(

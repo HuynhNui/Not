@@ -1,0 +1,306 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5092dfae8cf38e14bba40f4f0e7ea5ca, type: 3}
+  m_Name: AudioCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.AudioSystem.AudioCatalog
+  audioMixer: {fileID: 24100000, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+  cues:
+  - id: 1
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: ececcf2eecd2739429b84933c4156080, type: 3}
+    mixerGroup: {fileID: -5301839340151445176, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 1
+    loop: 1
+    priority: 100
+  - id: 2
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: a0a1f5fb419fff14d873c7721ceb4f98, type: 3}
+    mixerGroup: {fileID: -5301839340151445176, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 1
+    loop: 1
+    priority: 100
+  - id: 3
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: bb6a21ceb85b7bd4789be1fe5774370a, type: 3}
+    mixerGroup: {fileID: -5301839340151445176, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.84
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 1
+    loop: 1
+    priority: 100
+  - id: 4
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: f466df36d654c074a8d3d341deec9c04, type: 3}
+    mixerGroup: {fileID: -5301839340151445176, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.78
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 1
+    loop: 1
+    priority: 100
+  - id: 5
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 820643742d6157249a2fb36e5ff76bb1, type: 3}
+    mixerGroup: {fileID: -5301839340151445176, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 1
+    loop: 1
+    priority: 100
+  - id: 6
+    category: 1
+    clips:
+    - {fileID: 8300000, guid: 01997f75b2896574382653004ad5b959, type: 3}
+    mixerGroup: {fileID: -7020389663026760020, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.52
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 1
+    loop: 1
+    priority: 80
+  - id: 7
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 30a14cc257b557b47945429e36a6f25f, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.9
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.15
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 80
+  - id: 8
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: fb3c5a4fcd48a70468bdaaab24bba8b5, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.02
+    maximumSimultaneousVoices: 2
+    loop: 0
+    priority: 60
+  - id: 9
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: 46954beba946c6c45bcfa13ae21c5845, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.78
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.02
+    maximumSimultaneousVoices: 2
+    loop: 0
+    priority: 60
+  - id: 10
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: ddf677ccecae3374a9030577d3015232, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.85
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.08
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 60
+  - id: 11
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: e15db5623b0e1444f9167ccf255ba8d6, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.03
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 60
+  - id: 12
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: 0d627b31d83f3294191217aac2aaf113, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.03
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 60
+  - id: 13
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: 83ff57f60a919ba42a3601d1968ebca4, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.88
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.05
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 60
+  - id: 14
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: dd426b285b32c99419202d2589c1c2aa, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.62
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.02
+    maximumSimultaneousVoices: 2
+    loop: 0
+    priority: 60
+  - id: 15
+    category: 3
+    clips:
+    - {fileID: 8300000, guid: 62cd1c6db05495f4482c080bcca0cf5a, type: 3}
+    mixerGroup: {fileID: -1642233002398962616, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.72
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.03
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 60
+  - id: 16
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: a9bde64265d7adc44823f98ef9be4352, type: 3}
+    - {fileID: 8300000, guid: 1b0e63835db936f439be7311673675e9, type: 3}
+    - {fileID: 8300000, guid: 7544500e876d52849b8c919d0b613279, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.62
+    pitchRange: {x: 0.96, y: 1.04}
+    minimumInterval: 0.075
+    maximumSimultaneousVoices: 2
+    loop: 0
+    priority: 20
+  - id: 17
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: f67e38709b0022147a8b68b3deae47f9, type: 3}
+    - {fileID: 8300000, guid: 7f84e1c5059d73d4fbc7358b3395f099, type: 3}
+    - {fileID: 8300000, guid: 2c61fc7e29458d847a3ecbb491ef8d03, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.55
+    pitchRange: {x: 0.96, y: 1.04}
+    minimumInterval: 0.04
+    maximumSimultaneousVoices: 3
+    loop: 0
+    priority: 15
+  - id: 18
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: fa5050661d6c39f40bb13cf38cb0a21f, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.95
+    pitchRange: {x: 0.98, y: 1.02}
+    minimumInterval: 0
+    maximumSimultaneousVoices: 3
+    loop: 0
+    priority: 85
+  - id: 19
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 5630c48cbfbba57499acb654bb400c95, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.82
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.05
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 70
+  - id: 20
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 8f85979006c219843812c4fa63cb6589, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.9
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.5
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 80
+  - id: 21
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: b3ead8b77f45c814db71302d8c191b75, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.9
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.5
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 90
+  - id: 22
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 19e761ba59821ac4da61f2883cfcbfdc, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.9
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.5
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 90
+  - id: 23
+    category: 4
+    clips:
+    - {fileID: 8300000, guid: 112d299812e81e74e8d0fbc447372e29, type: 3}
+    mixerGroup: {fileID: 1482895035187960460, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.7
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.01
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 75
+  - id: 24
+    category: 4
+    clips:
+    - {fileID: 8300000, guid: f8e6589f33292fa40a71b26414da0f85, type: 3}
+    mixerGroup: {fileID: 1482895035187960460, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.72
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.01
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 75
+  - id: 25
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: ab5680350ea5c5441ad574e626f588d7, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.95
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.5
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 95
+  - id: 26
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: b58cdd145560e1042acca49adcb4d393, type: 3}
+    mixerGroup: {fileID: -5159937653168498550, guid: fc55514e6694a614a811fab865ea1d87, type: 2}
+    volume: 0.96
+    pitchRange: {x: 1, y: 1}
+    minimumInterval: 0.5
+    maximumSimultaneousVoices: 1
+    loop: 0
+    priority: 100

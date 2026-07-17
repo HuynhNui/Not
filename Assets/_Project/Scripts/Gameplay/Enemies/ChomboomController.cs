@@ -1,5 +1,6 @@
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.PoolSystem;
+using System;
 using UnityEngine;
 
 namespace _Project.Scripts.Gameplay.Enemies
@@ -34,6 +35,8 @@ namespace _Project.Scripts.Gameplay.Enemies
         private string _currentAnimationState;
         private bool _hasBaseRuntimeValues;
         private float _baseExplosionDamage;
+
+        public event Action<ChomboomController> Exploded;
 
         public bool AllowsProjectilePassThrough => _state == ChomboomState.Arming;
 
@@ -245,6 +248,7 @@ namespace _Project.Scripts.Gameplay.Enemies
             fx.SetPoolSystem(activePoolSystem);
             fx.Init(enemyController != null ? enemyController.PlayerUnit : null, explosionDamage, explosionRadius);
             fx.Spawn();
+            Exploded?.Invoke(this);
         }
 
         private void CacheBaseRuntimeValues()

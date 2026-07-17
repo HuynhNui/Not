@@ -13,6 +13,7 @@ using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.ProgressionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
+using _Project.Scripts.Systems.AudioSystem;
 using _Project.Scripts.Systems.Telemetry;
 using _Project.Scripts.Systems.TutorialSystem;
 using _Project.Scripts.Systems.UISystem;
@@ -45,6 +46,7 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private TutorialManager tutorialManager;
         [SerializeField] private MissionCatalog missionCatalog;
         [SerializeField] private GameplayDialogueController gameplayDialogueController;
+        [SerializeField] private AudioEventRouter audioEventRouter;
 
         private bool _isGameOver;
         private bool _isRunActive;
@@ -52,6 +54,10 @@ namespace _Project.Scripts.Core.GameLoop
         private RuntimeMissionSystem _missionSystem;
         private static bool _startRunAfterReload;
         private static bool _showUpdateOnboardingAfterReload;
+
+        public event Action RunBecamePlayable;
+        public event Action RunEnded;
+        public event Action ReturnedToMenu;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetSessionState()
@@ -105,6 +111,11 @@ namespace _Project.Scripts.Core.GameLoop
             if (storyCutsceneRuntime == null)
             {
                 storyCutsceneRuntime = FindAnyObjectByType<StoryCutsceneRuntimeController>(FindObjectsInactive.Include);
+            }
+
+            if (audioEventRouter == null)
+            {
+                audioEventRouter = FindAnyObjectByType<AudioEventRouter>(FindObjectsInactive.Include);
             }
 
             if (tutorialManager == null)
@@ -370,6 +381,7 @@ namespace _Project.Scripts.Core.GameLoop
             telemetryService?.BeginRun();
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
+            RunBecamePlayable?.Invoke();
         }
 
         public void StartNormalRunFromTutorial()
@@ -434,6 +446,7 @@ namespace _Project.Scripts.Core.GameLoop
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
             gameplayDialogueController?.BeginNormalRun();
+            RunBecamePlayable?.Invoke();
         }
 
         private void PauseRun()
@@ -472,6 +485,7 @@ namespace _Project.Scripts.Core.GameLoop
             gameplayDialogueController?.EndRun();
             _startRunAfterReload = false;
             _showUpdateOnboardingAfterReload = false;
+            ReturnedToMenu?.Invoke();
             ReloadCurrentScene();
         }
 
@@ -506,6 +520,7 @@ namespace _Project.Scripts.Core.GameLoop
 
             _isGameOver = true;
             _isRunActive = false;
+            RunEnded?.Invoke();
             gameplayDialogueController?.EndRun();
 
             playerController?.SetControlsEnabled(false);
@@ -659,6 +674,7 @@ namespace _Project.Scripts.Core.GameLoop
             _missionSystem = new RuntimeMissionSystem(missionCatalog, SaveService.Instance);
             _missionSystem.MissionCompleted += HandleMissionCompleted;
             _missionSystem.InitializeFromSave();
+            audioEventRouter?.BindMissionSystem(_missionSystem);
         }
 
         private void HandleMissionCompleted(MissionDefinition completedMission, MissionDefinition unlockedMission)
