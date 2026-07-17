@@ -91,8 +91,7 @@ namespace _Project.Tests.Editor
 
                 Assert.That(_service.Data.lifetimeGatesSelected, Is.EqualTo(2));
                 Assert.That(_service.Data.lifetimeMajorGatesSelected, Is.EqualTo(1));
-                Assert.That(_service.Data.activeMissionId, Is.EqualTo("fatigue_major_5"));
-                Assert.That(_service.Data.activeMissionProgress, Is.EqualTo(1f));
+                Assert.That(_missionSystem.EvaluateMission("fatigue_major_5").ProgressValue, Is.EqualTo(1f));
             }
             finally
             {
@@ -122,7 +121,7 @@ namespace _Project.Tests.Editor
 
             Assert.That(_service.Data.finalChoiceResolved, Is.True);
             Assert.That(_service.Data.completedMissionIds, Does.Contain("break_final_choice"));
-            Assert.That(_service.Data.activeMissionId, Is.EqualTo("terminal_1000_kills_run"));
+            Assert.That(_missionSystem.IsMissionUnlocked("terminal_1000_kills_run"), Is.True);
         }
 
         [Test]
@@ -135,7 +134,7 @@ namespace _Project.Tests.Editor
             _missionSystem.EndRun(new RunStatsSnapshot(10f, 1, 0, 1, 0, 10f, 1, 0, 1));
 
             Assert.That(_service.Data.activeMissionId, Is.EqualTo("boot_first_loop"));
-            Assert.That(_service.Data.completedMissionIds, Is.Empty);
+            Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("boot_first_loop"));
             Assert.That(_service.Data.walletCoins, Is.EqualTo(0));
         }
 
@@ -146,7 +145,6 @@ namespace _Project.Tests.Editor
 
             EndRun(60f, 9999);
             Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("terminal_10000_total_kills"));
-            Assert.That(_service.Data.activeMissionId, Is.EqualTo("terminal_10000_total_kills"));
 
             EndRun(60f, 1);
             Assert.That(_service.Data.completedMissionIds, Does.Contain("terminal_10000_total_kills"));
@@ -159,7 +157,6 @@ namespace _Project.Tests.Editor
 
             EndRun(60f, 999);
             Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("terminal_1000_kills_run"));
-            Assert.That(_service.Data.activeMissionId, Is.EqualTo("terminal_1000_kills_run"));
 
             EndRun(60f, 1000);
             Assert.That(_service.Data.completedMissionIds, Does.Contain("terminal_1000_kills_run"));
@@ -171,10 +168,10 @@ namespace _Project.Tests.Editor
             SetActiveMission("terminal_1000_kills_run");
 
             EndRun(60f, 700);
-            Assert.That(_service.Data.activeMissionProgress, Is.EqualTo(700f));
+            Assert.That(_missionSystem.EvaluateMission("terminal_1000_kills_run").ProgressValue, Is.EqualTo(700f));
 
             EndRun(60f, 500);
-            Assert.That(_service.Data.activeMissionProgress, Is.EqualTo(700f));
+            Assert.That(_missionSystem.EvaluateMission("terminal_1000_kills_run").ProgressValue, Is.EqualTo(700f));
             Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("terminal_1000_kills_run"));
         }
 
@@ -188,7 +185,6 @@ namespace _Project.Tests.Editor
             EndRun(10f, 0);
             Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(44));
             Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("break_45_loops"));
-            Assert.That(_service.Data.activeMissionId, Is.EqualTo("break_45_loops"));
 
             EndRun(10f, 0);
             Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(45));
@@ -205,7 +201,6 @@ namespace _Project.Tests.Editor
             EndRun(10f, 0);
             Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(49));
             Assert.That(_service.Data.completedMissionIds, Does.Not.Contain("break_50_loops"));
-            Assert.That(_service.Data.activeMissionId, Is.EqualTo("break_50_loops"));
 
             EndRun(10f, 0);
             Assert.That(_service.Data.totalRunsCompleted, Is.EqualTo(50));
@@ -262,10 +257,28 @@ namespace _Project.Tests.Editor
             Assert.That(_service.Data.grantedMissionRewardIds, Is.Empty);
         }
 
+        [Test]
+        public void CategoryUnlocks_FirstPostBootMissionIsFreeThenRequiresPreviousSameCategory()
+        {
+            CompleteAllBootMissionsForTest();
+            _service.Data.totalEnemyKills = 100;
+            _service.CommitMissionState();
+            _missionSystem.InitializeFromSave();
+
+            Assert.That(_missionSystem.IsMissionUnlocked("observe_100_total_kills"), Is.True);
+            Assert.That(_missionSystem.IsMissionUnlocked("memory_250_total_kills"), Is.False);
+
+            _missionSystem.EndRun(new RunStatsSnapshot(30f, 0, 0, 0, 0, 30f, 0, 0, 0));
+
+            Assert.That(_service.Data.completedMissionIds, Does.Contain("observe_100_total_kills"));
+            Assert.That(_missionSystem.IsMissionUnlocked("memory_250_total_kills"), Is.True);
+        }
+
         private void SetActiveMission(string missionId)
         {
             MissionDefinition mission = _catalog.GetMissionById(missionId);
             Assert.That(mission, Is.Not.Null);
+            CompletePrerequisitesForTest(mission);
             _service.Data.activeMissionId = missionId;
             _service.Data.activeMissionProgress = 0f;
             _service.Data.activeMissionBaseline = MissionProgressEvaluator.CaptureBaseline(
@@ -286,6 +299,88 @@ namespace _Project.Tests.Editor
             _service.Data.missionNotificationUnread = false;
             _service.CommitMissionState();
             _missionSystem.InitializeFromSave();
+        }
+
+        private void CompletePrerequisitesForTest(MissionDefinition mission)
+        {
+            int missionIndex = _catalog.IndexOf(mission.Id);
+            if (missionIndex < 0)
+            {
+                return;
+            }
+
+            if (mission.Phase == "BOOT")
+            {
+                for (int index = 0; index < missionIndex; index++)
+                {
+                    AddCompletedForTest(_catalog.GetMissionAt(index));
+                }
+
+                return;
+            }
+
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                MissionDefinition candidate = _catalog.GetMissionAt(index);
+                if (candidate != null && candidate.Phase == "BOOT")
+                {
+                    AddCompletedForTest(candidate);
+                }
+            }
+
+            string categoryKey = GetCategoryKeyForTest(mission);
+            for (int index = 0; index < missionIndex; index++)
+            {
+                MissionDefinition candidate = _catalog.GetMissionAt(index);
+                if (candidate != null
+                    && candidate.Phase != "BOOT"
+                    && GetCategoryKeyForTest(candidate) == categoryKey)
+                {
+                    AddCompletedForTest(candidate);
+                }
+            }
+        }
+
+        private void CompleteAllBootMissionsForTest()
+        {
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                MissionDefinition mission = _catalog.GetMissionAt(index);
+                if (mission != null && mission.Phase == "BOOT")
+                {
+                    AddCompletedForTest(mission);
+                }
+            }
+        }
+
+        private void AddCompletedForTest(MissionDefinition mission)
+        {
+            if (mission == null || _service.Data.completedMissionIds.Contains(mission.Id))
+            {
+                return;
+            }
+
+            _service.Data.completedMissionIds.Add(mission.Id);
+        }
+
+        private static string GetCategoryKeyForTest(MissionDefinition mission)
+        {
+            return mission.ObjectiveType switch
+            {
+                MissionObjectiveType.SingleRunSurvivalTime => "SURVIVAL",
+                MissionObjectiveType.SingleRunEnemyKills => "COMBAT_RUN",
+                MissionObjectiveType.TotalEnemyKills => "COMBAT_TOTAL",
+                MissionObjectiveType.TotalRunsCompleted => "LOOP",
+                MissionObjectiveType.GatesSelected => "GATE",
+                MissionObjectiveType.MajorGatesSelected => "MAJOR_GATE",
+                MissionObjectiveType.AnyCoreUpgradePurchased => "UPGRADE",
+                MissionObjectiveType.UpgradeLevel => "UPGRADE",
+                MissionObjectiveType.CoreUpgradesAtLevel => "UPGRADE",
+                MissionObjectiveType.MaxedCoreUpgrades => "UPGRADE",
+                MissionObjectiveType.SquadSize => "SQUAD",
+                MissionObjectiveType.FinalChoiceResolved => "STORY",
+                _ => mission.ObjectiveType.ToString()
+            };
         }
 
         private void EndRun(float survivalTime, int enemyKills)

@@ -72,7 +72,7 @@ namespace _Project.Tests.Editor
         public void DefaultPermanentStatValues_MatchMetaProgressionPlan()
         {
             PlayerMetaBalanceConfig config = ScriptableObject.CreateInstance<PlayerMetaBalanceConfig>();
-            float[] expectedDamage = { 1.00f, 1.40f, 1.80f, 2.20f, 2.60f, 3.00f };
+            float[] expectedDamage = { 3.00f, 3.50f, 4.00f, 4.50f, 4.75f, 5.00f };
             float[] expectedFireRate = { 4.00f, 4.40f, 4.80f, 5.20f, 5.80f, 6.40f };
             float[] expectedMaxHp = { 10.00f, 11.50f, 13.00f, 15.00f, 17.50f, 20.00f };
             int[] expectedProjectiles = { 1, 2, 3, 3, 3, 3 };

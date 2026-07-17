@@ -13,12 +13,12 @@ namespace _Project.Scripts.Data.Balance
         public const int DefaultMaxLevel = 5;
         private static readonly PlayerMetaLevelData[] DefaultLevels =
         {
-            new PlayerMetaLevelData(0, 1f, 4f, 10f, 1, 1, 0),
-            new PlayerMetaLevelData(1, 1.4f, 4.4f, 11.5f, 2, 2, 100),
-            new PlayerMetaLevelData(2, 1.8f, 4.8f, 13f, 3, 3, 250),
-            new PlayerMetaLevelData(3, 2.2f, 5.2f, 15f, 3, 4, 550),
-            new PlayerMetaLevelData(4, 2.6f, 5.8f, 17.5f, 3, 4, 1100),
-            new PlayerMetaLevelData(5, 3.0f, 6.4f, 20f, 3, 4, 2200)
+            new PlayerMetaLevelData(0, 3f, 4f, 10f, 1, 1, 0),
+            new PlayerMetaLevelData(1, 3.5f, 4.4f, 11.5f, 2, 2, 100),
+            new PlayerMetaLevelData(2, 4.0f, 4.8f, 13f, 3, 3, 250),
+            new PlayerMetaLevelData(3, 4.5f, 5.2f, 15f, 3, 4, 550),
+            new PlayerMetaLevelData(4, 4.75f, 5.8f, 17.5f, 3, 4, 1100),
+            new PlayerMetaLevelData(5, 5.0f, 6.4f, 20f, 3, 4, 2200)
         };
 
         [SerializeField] private string configVersion = MetaProgressionConfigVersion;

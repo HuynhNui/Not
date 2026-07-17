@@ -157,11 +157,13 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void RefreshMissionLog_RendersFilteredObjectiveDeckWithoutFutureDetails()
+        public void RefreshMissionLog_RendersFullMissionListWithLockedRows()
         {
             SaveData data = _saveService.Data;
             data.completedMissionIds.Clear();
             data.completedMissionIds.Add("boot_finish_tutorial");
+            data.completedMissionIds.Add("boot_survive_30");
+            data.completedMissionIds.Add("boot_10_kills_run");
             data.completedMissionIds.Add("boot_first_loop");
             data.activeMissionId = "boot_purchase_upgrade";
             data.activeMissionProgress = 0.5f;
@@ -177,13 +179,14 @@ namespace _Project.Tests.Editor
             string visibleText = GetVisibleMissionRowText(content);
             int visibleRowCount = CountVisibleMissionRows(content);
 
-            Assert.That(visibleRowCount, Is.GreaterThanOrEqualTo(4));
-            Assert.That(visibleRowCount, Is.LessThan(24));
+            Assert.That(visibleRowCount, Is.EqualTo(_catalog.Missions.Count));
             Assert.That(visibleText, Does.Contain("FINISH TUTORIAL"));
             Assert.That(visibleText, Does.Contain("COMPLETE FIRST LOOP"));
             Assert.That(visibleText, Does.Contain("PURCHASE ANY UPGRADE"));
+            Assert.That(visibleText, Does.Contain("05 / BOOT - UPGRADE"));
+            Assert.That(visibleText, Does.Contain("06 / BOOT - GATE"));
+            Assert.That(visibleText, Does.Contain("UNLOCK: COMPLETE 05 / BOOT"));
             Assert.That(visibleText, Does.Contain("ENCRYPTED OBJECTIVE"));
-            Assert.That(visibleText, Does.Contain("LOCKED PHASE"));
             Assert.That(visibleText, Does.Not.Contain("PASS THROUGH 3 GATES"));
             Assert.That(visibleText, Does.Not.Contain("COMPLETE 3 LOOPS"));
             Assert.That(visibleText, Does.Not.Contain("DEFEAT 100 ENEMIES IN ONE RUN"));
@@ -229,6 +232,9 @@ namespace _Project.Tests.Editor
             data.completedMissionIds.Clear();
             data.grantedMissionRewardIds.Clear();
             data.completedMissionIds.Add("boot_finish_tutorial");
+            data.completedMissionIds.Add("boot_survive_30");
+            data.completedMissionIds.Add("boot_10_kills_run");
+            data.completedMissionIds.Add("boot_first_loop");
             data.activeMissionId = "boot_survive_30";
             data.activeMissionProgress = 0f;
             _saveService.CommitMissionState();
@@ -261,6 +267,8 @@ namespace _Project.Tests.Editor
             data.completedMissionIds.Clear();
             data.grantedMissionRewardIds.Clear();
             data.completedMissionIds.Add("boot_finish_tutorial");
+            data.completedMissionIds.Add("boot_survive_30");
+            data.completedMissionIds.Add("boot_10_kills_run");
             data.completedMissionIds.Add("boot_first_loop");
             data.grantedMissionRewardIds.Add("boot_finish_tutorial");
             data.activeMissionId = "boot_purchase_upgrade";
@@ -276,7 +284,7 @@ namespace _Project.Tests.Editor
                 ?.GetComponent<TextMeshProUGUI>();
 
             uiSystem.ShowMissionLog();
-            Assert.That(summaryText.text, Does.Contain("02 / 47 COMPLETE"));
+            Assert.That(summaryText.text, Does.Contain("04 / 47 COMPLETE"));
             Assert.That(GetVisibleMissionRowText(content), Does.Contain("PURCHASE ANY UPGRADE"));
 
             _saveService.ResetPlayerProgression();
@@ -287,6 +295,10 @@ namespace _Project.Tests.Editor
 
             string visibleText = GetVisibleMissionRowText(content);
             Assert.That(visibleText, Does.Contain("FINISH TUTORIAL"));
+            Assert.That(visibleText, Does.Contain("01 / BOOT - TUTORIAL"));
+            Assert.That(visibleText, Does.Contain("02 / BOOT - SURVIVAL"));
+            Assert.That(visibleText, Does.Contain("UNLOCK: COMPLETE 01 / BOOT"));
+            Assert.That(visibleText, Does.Contain("ENCRYPTED OBJECTIVE"));
             Assert.That(visibleText, Does.Not.Contain("PURCHASE ANY UPGRADE"));
             Assert.That(missionLogPanelUI, Is.Not.Null);
         }

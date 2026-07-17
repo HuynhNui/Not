@@ -8,7 +8,7 @@ namespace _Project.Scripts.Systems.SaveSystem
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentSchemaVersion = 10;
+        public const int CurrentSchemaVersion = 11;
         public const string FirstMissionId = "boot_finish_tutorial";
         public const string FinalMissionId = "terminal_250000_total_kills";
 
@@ -33,6 +33,7 @@ namespace _Project.Scripts.Systems.SaveSystem
         public string activeMissionId = FirstMissionId;
         public float activeMissionProgress;
         public float activeMissionBaseline;
+        public List<MissionProgressSaveEntry> missionProgressEntries = new List<MissionProgressSaveEntry>();
         public List<string> completedMissionIds = new List<string>();
         public List<string> grantedMissionRewardIds = new List<string>();
         public int lifetimeGatesSelected;
@@ -89,6 +90,11 @@ namespace _Project.Scripts.Systems.SaveSystem
                 grantedMissionRewardIds = new List<string>();
             }
 
+            if (missionProgressEntries == null)
+            {
+                missionProgressEntries = new List<MissionProgressSaveEntry>();
+            }
+
             activeMissionId = NormalizeMissionId(activeMissionId);
             if (string.IsNullOrEmpty(activeMissionId))
             {
@@ -108,6 +114,7 @@ namespace _Project.Scripts.Systems.SaveSystem
 
             activeMissionProgress = Mathf.Max(0f, activeMissionProgress);
             activeMissionBaseline = Mathf.Max(0f, activeMissionBaseline);
+            NormalizeMissionProgressEntries();
             lifetimeGatesSelected = Mathf.Max(0, lifetimeGatesSelected);
             lifetimeMajorGatesSelected = Mathf.Clamp(
                 lifetimeMajorGatesSelected,
@@ -236,6 +243,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 activeMissionId = activeMissionId,
                 activeMissionProgress = activeMissionProgress,
                 activeMissionBaseline = activeMissionBaseline,
+                missionProgressEntries = new List<MissionProgressSaveEntry>(),
                 completedMissionIds = new List<string>(),
                 grantedMissionRewardIds = new List<string>(),
                 lifetimeGatesSelected = lifetimeGatesSelected,
@@ -274,6 +282,7 @@ namespace _Project.Scripts.Systems.SaveSystem
 
             CopyNormalizedMissionIds(completedMissionIds, clone.completedMissionIds);
             CopyNormalizedMissionIds(grantedMissionRewardIds, clone.grantedMissionRewardIds);
+            CopyNormalizedMissionProgressEntries(missionProgressEntries, clone.missionProgressEntries);
 
             return clone;
         }
@@ -367,6 +376,33 @@ namespace _Project.Scripts.Systems.SaveSystem
             grantedMissionRewardIds = BuildNormalizedMissionIdList(grantedMissionRewardIds);
         }
 
+        private void NormalizeMissionProgressEntries()
+        {
+            var cleanedEntries = new List<MissionProgressSaveEntry>();
+            var seenIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = 0; index < missionProgressEntries.Count; index++)
+            {
+                MissionProgressSaveEntry entry = missionProgressEntries[index];
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                string safeMissionId = NormalizeMissionId(entry.missionId);
+                if (string.IsNullOrEmpty(safeMissionId) || !seenIds.Add(safeMissionId))
+                {
+                    continue;
+                }
+
+                entry.missionId = safeMissionId;
+                entry.progress = Mathf.Max(0f, entry.progress);
+                entry.baseline = Mathf.Max(0f, entry.baseline);
+                cleanedEntries.Add(entry);
+            }
+
+            missionProgressEntries = cleanedEntries;
+        }
+
         private bool HasLegacyProgressEvidence()
         {
             if (revision > 0
@@ -385,6 +421,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 || finalChoiceResolved
                 || (completedMissionIds != null && completedMissionIds.Count > 0)
                 || (grantedMissionRewardIds != null && grantedMissionRewardIds.Count > 0)
+                || (missionProgressEntries != null && missionProgressEntries.Count > 0)
                 || upgradeTutorialCompleted
                 || tutorialFirstRunBonusGranted
                 || (seenCutsceneIds != null && seenCutsceneIds.Count > 0))
@@ -482,6 +519,37 @@ namespace _Project.Scripts.Systems.SaveSystem
             }
         }
 
+        private static void CopyNormalizedMissionProgressEntries(
+            List<MissionProgressSaveEntry> source,
+            List<MissionProgressSaveEntry> destination)
+        {
+            if (source == null || destination == null)
+            {
+                return;
+            }
+
+            var seenIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = 0; index < source.Count; index++)
+            {
+                MissionProgressSaveEntry entry = source[index];
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                string safeMissionId = NormalizeMissionId(entry.missionId);
+                if (string.IsNullOrEmpty(safeMissionId) || !seenIds.Add(safeMissionId))
+                {
+                    continue;
+                }
+
+                destination.Add(new MissionProgressSaveEntry(
+                    safeMissionId,
+                    Mathf.Max(0f, entry.progress),
+                    Mathf.Max(0f, entry.baseline)));
+            }
+        }
+
         private UpgradeLevelSaveEntry FindUpgradeEntry(PlayerMetaUpgradeType type)
         {
             string key = type.ToString();
@@ -500,6 +568,25 @@ namespace _Project.Scripts.Systems.SaveSystem
             }
 
             return null;
+        }
+    }
+
+    [Serializable]
+    public sealed class MissionProgressSaveEntry
+    {
+        public string missionId;
+        public float progress;
+        public float baseline;
+
+        public MissionProgressSaveEntry()
+        {
+        }
+
+        public MissionProgressSaveEntry(string missionId, float progress, float baseline)
+        {
+            this.missionId = missionId;
+            this.progress = progress;
+            this.baseline = baseline;
         }
     }
 

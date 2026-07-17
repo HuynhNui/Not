@@ -15,7 +15,7 @@ MonoBehaviour:
   configVersion: balance-v1.3.3-elite-squad
   fireSoftCapStart: 6
   fireSoftCapMax: 18
-  baseProjectileCount: 5
+  baseProjectileCount: 1
   projectileCoverageCoefficient: 0.2
   squadCoverageCoefficient: 0.55
   followerHpRatio: 1

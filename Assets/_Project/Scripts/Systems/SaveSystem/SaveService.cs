@@ -612,6 +612,7 @@ namespace _Project.Scripts.Systems.SaveSystem
                 || saveData.finalChoiceResolved
                 || (saveData.completedMissionIds != null && saveData.completedMissionIds.Count > 0)
                 || (saveData.grantedMissionRewardIds != null && saveData.grantedMissionRewardIds.Count > 0)
+                || (saveData.missionProgressEntries != null && saveData.missionProgressEntries.Count > 0)
                 || (saveData.seenCutsceneIds != null && saveData.seenCutsceneIds.Count > 0))
             {
                 return false;

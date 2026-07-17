@@ -39,7 +39,9 @@ namespace _Project.Scripts.Systems.UISystem
             MissionRowState state,
             float progressValue,
             float targetValue,
-            Func<string, bool> onClaimRequested = null)
+            Func<string, bool> onClaimRequested = null,
+            string classificationText = null,
+            string unlockRequirementText = null)
         {
             if (mission == null)
             {
@@ -58,22 +60,25 @@ namespace _Project.Scripts.Systems.UISystem
             SetSprite(backgroundImage, GetBackgroundSprite(state));
             SetSprite(statusIconImage, GetStatusIconSprite(state));
             ApplyLayout(state);
-            SetText(phaseText, state == MissionRowState.Active ? $"{missionNumber:00} / {mission.Phase}" : string.Empty);
+            string safeClassificationText = string.IsNullOrWhiteSpace(classificationText)
+                ? $"{missionNumber:00} / {mission.Phase}"
+                : classificationText;
+            SetText(phaseText, safeClassificationText);
             SetText(titleText, GetTitle(mission, state));
             SetText(progressText, state == MissionRowState.Active
                 ? $"{FormatValue(safeProgress)}/{FormatValue(safeTarget)}"
                 : string.Empty);
             SetText(rewardText, ShouldShowReward(state) ? $"+{mission.RewardCoins}" : string.Empty);
-            SetText(stateText, string.Empty);
+            SetText(stateText, GetStateDetailText(state, unlockRequirementText));
             SetText(claimButtonText, "CLAIM");
 
             SetGraphicVisible(statusIconImage, state == MissionRowState.CompletedUnclaimed
                 || state == MissionRowState.CompletedClaimed
                 || state == MissionRowState.Locked);
-            SetTextVisible(phaseText, state == MissionRowState.Active);
+            SetTextVisible(phaseText, true);
             SetTextVisible(progressText, state == MissionRowState.Active);
             SetTextVisible(rewardText, ShouldShowReward(state));
-            SetTextVisible(stateText, false);
+            SetTextVisible(stateText, ShouldShowStateDetail(state, unlockRequirementText));
             SetGraphicVisible(rewardCoinImage, ShouldShowReward(state));
             SetGraphicVisible(progressBackgroundImage, state == MissionRowState.Active);
             ConfigureClaimButton(mission, state, onClaimRequested);
@@ -146,6 +151,25 @@ namespace _Project.Scripts.Systems.UISystem
             };
         }
 
+        private static string GetStateDetailText(MissionRowState state, string unlockRequirementText)
+        {
+            if (string.IsNullOrWhiteSpace(unlockRequirementText))
+            {
+                return string.Empty;
+            }
+
+            return state switch
+            {
+                MissionRowState.Locked => unlockRequirementText,
+                _ => string.Empty
+            };
+        }
+
+        private static bool ShouldShowStateDetail(MissionRowState state, string unlockRequirementText)
+        {
+            return state == MissionRowState.Locked && !string.IsNullOrWhiteSpace(unlockRequirementText);
+        }
+
         private void ConfigureClaimButton(
             MissionDefinition mission,
             MissionRowState state,
@@ -196,6 +220,7 @@ namespace _Project.Scripts.Systems.UISystem
             RectTransform progressTextRect = progressText != null ? progressText.rectTransform : null;
             RectTransform coinRect = rewardCoinImage != null ? rewardCoinImage.rectTransform : null;
             RectTransform rewardRect = rewardText != null ? rewardText.rectTransform : null;
+            RectTransform stateRect = stateText != null ? stateText.rectTransform : null;
             RectTransform claimRect = claimButton != null ? claimButton.transform as RectTransform : null;
 
             switch (state)
@@ -204,6 +229,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetRect(statusRect, new Vector2(70f, 0f), new Vector2(64f, 64f));
                     SetStretchTop(phaseRect, 44f, 250f, 32f, 36f);
                     SetStretchTop(titleRect, 44f, 250f, 76f, 44f);
+                    SetStretchTop(stateRect, 44f, 250f, 120f, 30f);
                     SetStretchBottom(progressRect, 44f, 44f, 34f, 34f);
                     SetStretchBottom(progressTextRect, 44f, 44f, 33f, 36f);
                     SetRect(coinRect, new Vector2(-206f, 44f), new Vector2(44f, 44f), rightAnchored: true);
@@ -211,6 +237,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetRect(claimRect, new Vector2(-124f, -42f), new Vector2(214f, 72f), rightAnchored: true);
                     SetFontSize(phaseText, 30f);
                     SetFontSize(titleText, 36f);
+                    SetFontSize(stateText, 23f);
                     SetFontSize(progressText, 27f);
                     SetFontSize(rewardText, 34f);
                     SetFontSize(claimButtonText, 31f);
@@ -219,6 +246,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetRect(statusRect, new Vector2(78f, -2f), new Vector2(80f, 80f));
                     SetStretchTop(phaseRect, 160f, 292f, 44f, 34f);
                     SetStretchTop(titleRect, 160f, 292f, 82f, 58f);
+                    SetStretchTop(stateRect, 160f, 292f, 138f, 30f);
                     SetStretchBottom(progressRect, 160f, 292f, 32f, 28f);
                     SetStretchBottom(progressTextRect, 160f, 292f, 28f, 34f);
                     SetRect(coinRect, new Vector2(-210f, 48f), new Vector2(46f, 46f), rightAnchored: true);
@@ -226,6 +254,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetRect(claimRect, new Vector2(-124f, -42f), new Vector2(214f, 72f), rightAnchored: true);
                     SetFontSize(phaseText, 28f);
                     SetFontSize(titleText, 34f);
+                    SetFontSize(stateText, 22f);
                     SetFontSize(progressText, 24f);
                     SetFontSize(rewardText, 34f);
                     SetFontSize(claimButtonText, 31f);
@@ -234,8 +263,9 @@ namespace _Project.Scripts.Systems.UISystem
                 case MissionRowState.Locked:
                 default:
                     SetRect(statusRect, new Vector2(72f, 0f), new Vector2(72f, 72f));
-                    SetStretchTop(phaseRect, 146f, 46f, 40f, 32f);
-                    SetStretchTop(titleRect, 146f, 46f, 61f, 54f);
+                    SetStretchTop(phaseRect, 146f, 46f, 32f, 30f);
+                    SetStretchTop(titleRect, 146f, 46f, 62f, 48f);
+                    SetStretchTop(stateRect, 146f, 46f, 112f, 30f);
                     SetStretchBottom(progressRect, 146f, 46f, 26f, 26f);
                     SetStretchBottom(progressTextRect, 146f, 46f, 24f, 30f);
                     SetRect(coinRect, new Vector2(-210f, 0f), new Vector2(42f, 42f), rightAnchored: true);
@@ -243,6 +273,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetRect(claimRect, new Vector2(-124f, -34f), new Vector2(214f, 68f), rightAnchored: true);
                     SetFontSize(phaseText, 26f);
                     SetFontSize(titleText, 34f);
+                    SetFontSize(stateText, 22f);
                     SetFontSize(progressText, 23f);
                     SetFontSize(rewardText, 32f);
                     SetFontSize(claimButtonText, 30f);

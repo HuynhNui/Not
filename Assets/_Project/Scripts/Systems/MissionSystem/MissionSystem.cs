@@ -123,6 +123,40 @@ namespace _Project.Scripts.Systems.MissionSystem
             return true;
         }
 
+        public bool IsMissionUnlocked(string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            MissionDefinition mission = _catalog != null
+                ? _catalog.GetMissionById(safeMissionId)
+                : null;
+            return mission != null && IsMissionUnlocked(mission);
+        }
+
+        public MissionProgressResult EvaluateMission(string missionId)
+        {
+            MissionDefinition mission = _catalog != null
+                ? _catalog.GetMissionById(NormalizeMissionId(missionId))
+                : null;
+            MissionProgressSnapshot snapshot = _saveService != null
+                ? BuildSnapshot(default, hasRunSnapshot: false)
+                : default;
+            return EvaluateMission(mission, snapshot);
+        }
+
+        public MissionProgressResult EvaluateMission(MissionDefinition mission, MissionProgressSnapshot snapshot)
+        {
+            if (mission == null)
+            {
+                return new MissionProgressResult(0f, 0f);
+            }
+
+            MissionProgressSaveEntry entry = FindMissionProgressEntry(_saveService?.Data, mission.Id);
+            float storedProgressOrBaseline = entry != null
+                ? GetStoredProgressOrBaseline(mission, entry)
+                : GetLegacyStoredProgressOrBaseline(mission);
+            return MissionProgressEvaluator.Evaluate(mission, snapshot, storedProgressOrBaseline);
+        }
+
         public void NotifyGateSelected(GateConfig gateConfig, bool isTutorialGate)
         {
             if (_saveService == null || _progressionSuppressed || isTutorialGate || gateConfig == null)
@@ -183,10 +217,7 @@ namespace _Project.Scripts.Systems.MissionSystem
 
         public MissionProgressResult EvaluateActiveMission(MissionProgressSnapshot snapshot)
         {
-            return MissionProgressEvaluator.Evaluate(
-                ActiveMission,
-                snapshot,
-                _activeMissionStoredProgressOrBaseline);
+            return EvaluateMission(ActiveMission, snapshot);
         }
 
         public bool IsMissionCompleted(string missionId)
@@ -273,17 +304,19 @@ namespace _Project.Scripts.Systems.MissionSystem
             completedMission = activeMission;
             _completedMissionIds.Add(activeMission.Id);
 
-            int nextIndex = _catalog.IndexOf(activeMission.Id) + 1;
-            unlockedMission = _catalog.GetMissionAt(nextIndex);
-            if (unlockedMission == null)
+            unlockedMission = FindNextUnlockAfterCompletion(activeMission);
+            MissionDefinition nextFocusMission = unlockedMission ?? FindFirstUnlockedIncompleteMission();
+            if (nextFocusMission != null)
+            {
+                SetActiveMission(nextFocusMission, snapshot, unread: true);
+            }
+            else
             {
                 _activeMissionId = null;
                 _activeMissionStoredProgressOrBaseline = 0f;
                 MissionNotificationUnread = true;
-                return true;
             }
 
-            SetActiveMission(unlockedMission, snapshot, unread: true);
             return true;
         }
 
@@ -296,28 +329,39 @@ namespace _Project.Scripts.Systems.MissionSystem
         {
             SaveData data = _saveService.Data;
             SyncMissionListsFromSave();
+            EnsureUnlockedMissionProgressEntries(data, snapshot);
 
             MissionDefinition activeMission = _catalog.GetMissionById(data.activeMissionId);
-            if (activeMission == null)
+            if (activeMission == null
+                || IsMissionCompleted(activeMission.Id)
+                || !IsMissionUnlocked(activeMission))
             {
-                MissionDefinition firstMission = _catalog.GetMissionAt(0);
-                if (firstMission == null)
+                MissionDefinition focusMission = FindFirstUnlockedIncompleteMission();
+                if (focusMission == null)
                 {
+                    data.activeMissionId = string.Empty;
+                    data.activeMissionBaseline = 0f;
+                    data.activeMissionProgress = 0f;
+                    _activeMissionId = null;
+                    _activeMissionStoredProgressOrBaseline = 0f;
+                    MissionNotificationUnread = data.missionNotificationUnread;
                     return;
                 }
 
-                data.activeMissionId = firstMission.Id;
-                data.activeMissionBaseline = MissionProgressEvaluator.CaptureBaseline(firstMission, snapshot);
-                data.activeMissionProgress = 0f;
+                MissionProgressSaveEntry focusEntry = EnsureMissionProgressEntry(data, focusMission, snapshot);
+                data.activeMissionId = focusMission.Id;
+                data.activeMissionBaseline = focusEntry.baseline;
+                data.activeMissionProgress = focusEntry.progress;
                 data.missionNotificationUnread = true;
                 _saveService.CommitMissionState();
-                activeMission = firstMission;
+                activeMission = focusMission;
             }
 
             _activeMissionId = activeMission.Id;
-            _activeMissionStoredProgressOrBaseline = activeMission.ProgressMode == MissionProgressMode.BestSingleRun
-                ? data.activeMissionProgress
-                : data.activeMissionBaseline;
+            MissionProgressSaveEntry activeEntry = EnsureMissionProgressEntry(data, activeMission, snapshot);
+            _activeMissionStoredProgressOrBaseline = GetStoredProgressOrBaseline(activeMission, activeEntry);
+            data.activeMissionProgress = activeEntry.progress;
+            data.activeMissionBaseline = activeEntry.baseline;
             MissionNotificationUnread = data.missionNotificationUnread;
         }
 
@@ -329,66 +373,64 @@ namespace _Project.Scripts.Systems.MissionSystem
             }
 
             SyncFromSave(snapshot);
-
-            MissionDefinition activeMission = ActiveMission;
-            if (activeMission == null)
-            {
-                return;
-            }
-
-            MissionProgressResult result = EvaluateActiveMission(snapshot);
             SaveData data = _saveService.Data;
-            data.activeMissionProgress = result.ProgressValue;
-            data.activeMissionBaseline = activeMission.ProgressMode == MissionProgressMode.DeltaSinceUnlock
-                ? _activeMissionStoredProgressOrBaseline
-                : 0f;
-
-            if (!result.IsComplete)
+            List<MissionDefinition> completedThisPass = new List<MissionDefinition>();
+            List<MissionDefinition> activeMissions = GetUnlockedIncompleteMissions();
+            for (int index = 0; index < activeMissions.Count; index++)
             {
-                if (activeMission.ProgressMode == MissionProgressMode.BestSingleRun)
+                MissionDefinition mission = activeMissions[index];
+                MissionProgressSaveEntry entry = EnsureMissionProgressEntry(data, mission, snapshot);
+                MissionProgressResult result = MissionProgressEvaluator.Evaluate(
+                    mission,
+                    snapshot,
+                    GetStoredProgressOrBaseline(mission, entry));
+
+                entry.progress = result.ProgressValue;
+                if (mission.ProgressMode == MissionProgressMode.DeltaSinceUnlock)
                 {
-                    _activeMissionStoredProgressOrBaseline = result.ProgressValue;
+                    entry.baseline = GetStoredProgressOrBaseline(mission, entry);
                 }
 
+                if (result.IsComplete)
+                {
+                    completedThisPass.Add(mission);
+                }
+            }
+
+            if (completedThisPass.Count <= 0)
+            {
+                SyncActiveMissionFieldsFromFocus(data, snapshot);
                 _saveService.CommitMissionState();
                 return;
             }
 
-            CompleteActiveMissionInSave(activeMission, snapshot);
+            for (int index = 0; index < completedThisPass.Count; index++)
+            {
+                CompleteMissionInSave(completedThisPass[index], snapshot);
+            }
+
+            EnsureUnlockedMissionProgressEntries(data, snapshot);
+            SyncActiveMissionFieldsFromFocus(data, snapshot);
+            _saveService.CommitMissionState();
         }
 
-        private void CompleteActiveMissionInSave(
+        private void CompleteMissionInSave(
             MissionDefinition completedMission,
             MissionProgressSnapshot snapshot)
         {
             SaveData data = _saveService.Data;
             EnsureListContains(data.completedMissionIds, completedMission.Id);
             _completedMissionIds.Add(completedMission.Id);
+            RemoveMissionProgressEntry(data, completedMission.Id);
 
-            int nextIndex = _catalog.IndexOf(completedMission.Id) + 1;
-            MissionDefinition unlockedMission = _catalog.GetMissionAt(nextIndex);
+            MissionDefinition unlockedMission = FindNextUnlockAfterCompletion(completedMission);
             if (unlockedMission != null)
             {
-                data.activeMissionId = unlockedMission.Id;
-                data.activeMissionBaseline = MissionProgressEvaluator.CaptureBaseline(unlockedMission, snapshot);
-                data.activeMissionProgress = 0f;
-                data.missionNotificationUnread = true;
-                _activeMissionId = unlockedMission.Id;
-                _activeMissionStoredProgressOrBaseline = data.activeMissionBaseline;
-                MissionNotificationUnread = true;
-            }
-            else
-            {
-                data.activeMissionId = string.Empty;
-                data.activeMissionBaseline = 0f;
-                data.activeMissionProgress = 0f;
-                data.missionNotificationUnread = true;
-                _activeMissionId = null;
-                _activeMissionStoredProgressOrBaseline = 0f;
-                MissionNotificationUnread = true;
+                EnsureMissionProgressEntry(data, unlockedMission, snapshot);
             }
 
-            _saveService.CommitMissionState();
+            data.missionNotificationUnread = true;
+            MissionNotificationUnread = true;
             MissionCompleted?.Invoke(completedMission, unlockedMission);
         }
 
@@ -416,6 +458,342 @@ namespace _Project.Scripts.Systems.MissionSystem
                 projectileCountLevel: data.GetUpgradeLevel(PlayerMetaUpgradeType.ProjectileCount),
                 squadSizeLevel: squadSizeLevel,
                 squadSizeValue: squadSizeValue);
+        }
+
+        private List<MissionDefinition> GetUnlockedIncompleteMissions()
+        {
+            List<MissionDefinition> missions = new List<MissionDefinition>();
+            if (_catalog == null)
+            {
+                return missions;
+            }
+
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                MissionDefinition mission = _catalog.GetMissionAt(index);
+                if (mission != null
+                    && !IsMissionCompleted(mission.Id)
+                    && IsMissionUnlocked(mission))
+                {
+                    missions.Add(mission);
+                }
+            }
+
+            return missions;
+        }
+
+        private MissionDefinition FindFirstUnlockedIncompleteMission()
+        {
+            if (_catalog == null)
+            {
+                return null;
+            }
+
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                MissionDefinition mission = _catalog.GetMissionAt(index);
+                if (mission != null
+                    && !IsMissionCompleted(mission.Id)
+                    && IsMissionUnlocked(mission))
+                {
+                    return mission;
+                }
+            }
+
+            return null;
+        }
+
+        private bool IsMissionUnlocked(MissionDefinition mission)
+        {
+            if (mission == null || _catalog == null)
+            {
+                return false;
+            }
+
+            int missionIndex = _catalog.IndexOf(mission.Id);
+            if (missionIndex < 0)
+            {
+                return false;
+            }
+
+            if (IsBootMission(mission))
+            {
+                if (missionIndex == 0)
+                {
+                    return true;
+                }
+
+                MissionDefinition previousMission = _catalog.GetMissionAt(missionIndex - 1);
+                return previousMission != null && IsMissionCompleted(previousMission.Id);
+            }
+
+            if (!AreBootMissionsCompleted())
+            {
+                return false;
+            }
+
+            MissionDefinition previousSameCategory = FindPreviousSameCategoryMission(missionIndex);
+            return previousSameCategory == null || IsMissionCompleted(previousSameCategory.Id);
+        }
+
+        private bool AreBootMissionsCompleted()
+        {
+            if (_catalog == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                MissionDefinition mission = _catalog.GetMissionAt(index);
+                if (mission == null || !IsBootMission(mission))
+                {
+                    continue;
+                }
+
+                if (!IsMissionCompleted(mission.Id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private MissionDefinition FindNextUnlockAfterCompletion(MissionDefinition completedMission)
+        {
+            if (completedMission == null || _catalog == null)
+            {
+                return null;
+            }
+
+            int completedIndex = _catalog.IndexOf(completedMission.Id);
+            if (completedIndex < 0)
+            {
+                return null;
+            }
+
+            if (IsBootMission(completedMission))
+            {
+                MissionDefinition nextMission = _catalog.GetMissionAt(completedIndex + 1);
+                if (nextMission != null && IsBootMission(nextMission))
+                {
+                    return nextMission;
+                }
+
+                return FindFirstUnlockedIncompleteMission();
+            }
+
+            string categoryKey = GetMissionCategoryKey(completedMission);
+            for (int index = completedIndex + 1; index < _catalog.Count; index++)
+            {
+                MissionDefinition mission = _catalog.GetMissionAt(index);
+                if (mission == null || IsBootMission(mission))
+                {
+                    continue;
+                }
+
+                if (GetMissionCategoryKey(mission) == categoryKey)
+                {
+                    return mission;
+                }
+            }
+
+            return null;
+        }
+
+        private MissionDefinition FindPreviousSameCategoryMission(int missionIndex)
+        {
+            MissionDefinition mission = _catalog.GetMissionAt(missionIndex);
+            string categoryKey = GetMissionCategoryKey(mission);
+            for (int index = missionIndex - 1; index >= 0; index--)
+            {
+                MissionDefinition candidate = _catalog.GetMissionAt(index);
+                if (candidate == null || IsBootMission(candidate))
+                {
+                    continue;
+                }
+
+                if (GetMissionCategoryKey(candidate) == categoryKey)
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsBootMission(MissionDefinition mission)
+        {
+            return mission != null && mission.Phase == "BOOT";
+        }
+
+        private static string GetMissionCategoryKey(MissionDefinition mission)
+        {
+            if (mission == null)
+            {
+                return string.Empty;
+            }
+
+            return mission.ObjectiveType switch
+            {
+                MissionObjectiveType.SingleRunSurvivalTime => "SURVIVAL",
+                MissionObjectiveType.SingleRunEnemyKills => "COMBAT_RUN",
+                MissionObjectiveType.TotalEnemyKills => "COMBAT_TOTAL",
+                MissionObjectiveType.TotalRunsCompleted => "LOOP",
+                MissionObjectiveType.GatesSelected => "GATE",
+                MissionObjectiveType.MajorGatesSelected => "MAJOR_GATE",
+                MissionObjectiveType.AnyCoreUpgradePurchased => "UPGRADE",
+                MissionObjectiveType.UpgradeLevel => "UPGRADE",
+                MissionObjectiveType.CoreUpgradesAtLevel => "UPGRADE",
+                MissionObjectiveType.MaxedCoreUpgrades => "UPGRADE",
+                MissionObjectiveType.SquadSize => "SQUAD",
+                MissionObjectiveType.FinalChoiceResolved => "STORY",
+                MissionObjectiveType.GameplayTutorialCompleted => "TUTORIAL",
+                _ => mission.ObjectiveType.ToString()
+            };
+        }
+
+        private void EnsureUnlockedMissionProgressEntries(SaveData data, MissionProgressSnapshot snapshot)
+        {
+            if (data == null || _catalog == null)
+            {
+                return;
+            }
+
+            data.missionProgressEntries ??= new List<MissionProgressSaveEntry>();
+            for (int index = data.missionProgressEntries.Count - 1; index >= 0; index--)
+            {
+                MissionProgressSaveEntry entry = data.missionProgressEntries[index];
+                MissionDefinition mission = entry != null ? _catalog.GetMissionById(entry.missionId) : null;
+                if (mission == null || IsMissionCompleted(mission.Id) || !IsMissionUnlocked(mission))
+                {
+                    data.missionProgressEntries.RemoveAt(index);
+                }
+            }
+
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                MissionDefinition mission = _catalog.GetMissionAt(index);
+                if (mission != null
+                    && !IsMissionCompleted(mission.Id)
+                    && IsMissionUnlocked(mission))
+                {
+                    EnsureMissionProgressEntry(data, mission, snapshot);
+                }
+            }
+        }
+
+        private MissionProgressSaveEntry EnsureMissionProgressEntry(
+            SaveData data,
+            MissionDefinition mission,
+            MissionProgressSnapshot snapshot)
+        {
+            data.missionProgressEntries ??= new List<MissionProgressSaveEntry>();
+            MissionProgressSaveEntry entry = FindMissionProgressEntry(data, mission.Id);
+            if (entry != null)
+            {
+                return entry;
+            }
+
+            float legacyProgress = _activeMissionId == mission.Id
+                || data.activeMissionId == mission.Id
+                    ? data.activeMissionProgress
+                    : 0f;
+            float baseline = _activeMissionId == mission.Id
+                || data.activeMissionId == mission.Id
+                    ? data.activeMissionBaseline
+                    : MissionProgressEvaluator.CaptureBaseline(mission, snapshot);
+            entry = new MissionProgressSaveEntry(mission.Id, Mathf.Max(0f, legacyProgress), Mathf.Max(0f, baseline));
+            data.missionProgressEntries.Add(entry);
+            return entry;
+        }
+
+        private static MissionProgressSaveEntry FindMissionProgressEntry(SaveData data, string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            if (data == null || data.missionProgressEntries == null || string.IsNullOrEmpty(safeMissionId))
+            {
+                return null;
+            }
+
+            for (int index = 0; index < data.missionProgressEntries.Count; index++)
+            {
+                MissionProgressSaveEntry entry = data.missionProgressEntries[index];
+                if (entry != null && entry.missionId == safeMissionId)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        private static void RemoveMissionProgressEntry(SaveData data, string missionId)
+        {
+            string safeMissionId = NormalizeMissionId(missionId);
+            if (data == null || data.missionProgressEntries == null || string.IsNullOrEmpty(safeMissionId))
+            {
+                return;
+            }
+
+            for (int index = data.missionProgressEntries.Count - 1; index >= 0; index--)
+            {
+                MissionProgressSaveEntry entry = data.missionProgressEntries[index];
+                if (entry == null || entry.missionId == safeMissionId)
+                {
+                    data.missionProgressEntries.RemoveAt(index);
+                }
+            }
+        }
+
+        private void SyncActiveMissionFieldsFromFocus(SaveData data, MissionProgressSnapshot snapshot)
+        {
+            MissionDefinition focusMission = FindFirstUnlockedIncompleteMission();
+            if (focusMission == null)
+            {
+                data.activeMissionId = string.Empty;
+                data.activeMissionProgress = 0f;
+                data.activeMissionBaseline = 0f;
+                _activeMissionId = null;
+                _activeMissionStoredProgressOrBaseline = 0f;
+                MissionNotificationUnread = data.missionNotificationUnread;
+                return;
+            }
+
+            MissionProgressSaveEntry entry = EnsureMissionProgressEntry(data, focusMission, snapshot);
+            data.activeMissionId = focusMission.Id;
+            data.activeMissionProgress = entry.progress;
+            data.activeMissionBaseline = entry.baseline;
+            _activeMissionId = focusMission.Id;
+            _activeMissionStoredProgressOrBaseline = GetStoredProgressOrBaseline(focusMission, entry);
+            MissionNotificationUnread = data.missionNotificationUnread;
+        }
+
+        private static float GetStoredProgressOrBaseline(
+            MissionDefinition mission,
+            MissionProgressSaveEntry entry)
+        {
+            if (mission == null || entry == null)
+            {
+                return 0f;
+            }
+
+            return mission.ProgressMode == MissionProgressMode.BestSingleRun
+                ? entry.progress
+                : entry.baseline;
+        }
+
+        private float GetLegacyStoredProgressOrBaseline(MissionDefinition mission)
+        {
+            if (mission == null || mission.Id != _activeMissionId)
+            {
+                return 0f;
+            }
+
+            return mission.ProgressMode == MissionProgressMode.BestSingleRun
+                ? _activeMissionStoredProgressOrBaseline
+                : _activeMissionStoredProgressOrBaseline;
         }
 
         private static void EnsureListContains(List<string> values, string value)

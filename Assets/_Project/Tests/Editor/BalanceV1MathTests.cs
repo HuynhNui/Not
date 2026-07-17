@@ -919,7 +919,7 @@ namespace _Project.Tests.Editor
                 PlayerMetaLevelData fullMeta = config.GetLevelData(5);
 
                 Assert.That(config.Levels.Count, Is.EqualTo(6));
-                Assert.That(fullMeta.Damage, Is.EqualTo(3.0f).Within(0.0001f));
+                Assert.That(fullMeta.Damage, Is.EqualTo(5.0f).Within(0.0001f));
                 Assert.That(fullMeta.FireRate, Is.EqualTo(6.4f).Within(0.0001f));
                 Assert.That(fullMeta.MaxHp, Is.EqualTo(20f).Within(0.0001f));
                 Assert.That(fullMeta.ProjectileCount, Is.EqualTo(3));
@@ -937,7 +937,7 @@ namespace _Project.Tests.Editor
         {
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.Damage, 5),
-                Is.EqualTo(3.0f).Within(0.0001f));
+                Is.EqualTo(5.0f).Within(0.0001f));
             Assert.That(
                 PlayerMetaUpgradeService.GetValueForLevel(PlayerMetaUpgradeType.FireRate, 5),
                 Is.EqualTo(6.4f).Within(0.0001f));
@@ -1016,7 +1016,7 @@ namespace _Project.Tests.Editor
             Assert.That(PlayerProgressionMilestones.ReferenceCheckpoints.Count, Is.EqualTo(9));
 
             Assert.That(PlayerProgressionMilestones.TryGetCheckpoint(10, out PlayerProgressionCheckpoint run10), Is.True);
-            Assert.That(run10.DamageValue, Is.EqualTo(1.4f).Within(0.0001f));
+            Assert.That(run10.DamageValue, Is.EqualTo(3.5f).Within(0.0001f));
             Assert.That(run10.FireRateValue, Is.EqualTo(4.4f).Within(0.0001f));
             Assert.That(run10.MaxHpValue, Is.EqualTo(11.5f).Within(0.0001f));
             Assert.That(run10.ProjectileCountValue, Is.EqualTo(2));
@@ -1025,7 +1025,7 @@ namespace _Project.Tests.Editor
             Assert.That(run10.TargetSpent, Is.EqualTo(38000));
 
             Assert.That(PlayerProgressionMilestones.TryGetCheckpoint(45, out PlayerProgressionCheckpoint run45), Is.True);
-            Assert.That(run45.DamageValue, Is.EqualTo(2.6f).Within(0.0001f));
+            Assert.That(run45.DamageValue, Is.EqualTo(4.75f).Within(0.0001f));
             Assert.That(run45.FireRateValue, Is.EqualTo(6.4f).Within(0.0001f));
             Assert.That(run45.MaxHpValue, Is.EqualTo(20f).Within(0.0001f));
             Assert.That(run45.ProjectileCountValue, Is.EqualTo(3));
