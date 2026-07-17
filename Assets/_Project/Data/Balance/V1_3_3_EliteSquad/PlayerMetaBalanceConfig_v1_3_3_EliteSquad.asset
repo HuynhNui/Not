@@ -15,7 +15,7 @@ MonoBehaviour:
   configVersion: balance-v1.3.3-elite-squad
   levels:
   - level: 0
-    damage: 3
+    damage: 3.25
     fireRate: 4
     maxHp: 10
     projectileCount: 1

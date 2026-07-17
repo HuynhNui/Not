@@ -253,4 +253,4 @@ MonoBehaviour:
   repeatedContactDamageCooldown: 0.5
   healthBarPrefab: {fileID: 4963090574104541620, guid: d0c48a50c21b41c7a3bd442f014c851e, type: 3}
   healthBarAnchor: {fileID: 0}
-  healthBarOffset: {x: 0, y: 0.45, z: 0}
+  healthBarOffset: {x: 0, y: 0.95, z: 0}

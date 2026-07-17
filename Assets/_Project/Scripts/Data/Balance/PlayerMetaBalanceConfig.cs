@@ -13,7 +13,7 @@ namespace _Project.Scripts.Data.Balance
         public const int DefaultMaxLevel = 5;
         private static readonly PlayerMetaLevelData[] DefaultLevels =
         {
-            new PlayerMetaLevelData(0, 3f, 4f, 10f, 1, 1, 0),
+            new PlayerMetaLevelData(0, 3.25f, 4f, 10f, 1, 1, 0),
             new PlayerMetaLevelData(1, 3.5f, 4.4f, 11.5f, 2, 2, 100),
             new PlayerMetaLevelData(2, 4.0f, 4.8f, 13f, 3, 3, 250),
             new PlayerMetaLevelData(3, 4.5f, 5.2f, 15f, 3, 4, 550),

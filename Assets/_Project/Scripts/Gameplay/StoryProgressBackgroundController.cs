@@ -1,4 +1,4 @@
-using _Project.Cutscenes;
+using _Project.Scripts.Gameplay.Dialogue;
 using _Project.Scripts.Systems.SaveSystem;
 using UnityEngine;
 
@@ -47,37 +47,15 @@ namespace _Project.Scripts.Gameplay
 
         private Sprite ResolveSpriteForSave(SaveData saveData)
         {
-            if (saveData == null)
+            switch (StoryPsychologyPhaseResolver.Resolve(saveData))
             {
-                return bg1;
+                case PsychologyPhase.Awakening:
+                    return bg3 != null ? bg3 : bg1;
+                case PsychologyPhase.Doubt:
+                    return bg2 != null ? bg2 : bg1;
+                default:
+                    return bg1;
             }
-
-            if (HasReachedBg3(saveData))
-            {
-                return bg3 != null ? bg3 : bg1;
-            }
-
-            if (HasReachedBg2(saveData))
-            {
-                return bg2 != null ? bg2 : bg1;
-            }
-
-            return bg1;
-        }
-
-        private static bool HasReachedBg2(SaveData saveData)
-        {
-            return saveData.HasSeenCutscene(StoryCutsceneIds.GateMemoryLeak)
-                || saveData.HasSeenCutscene(StoryCutsceneIds.HumanCommand);
-        }
-
-        private static bool HasReachedBg3(SaveData saveData)
-        {
-            return saveData.HasSeenCutscene(StoryCutsceneIds.SystemFatigue)
-                || saveData.HasSeenCutscene(StoryCutsceneIds.FinalChoicePreChoice)
-                || saveData.HasSeenCutscene(StoryCutsceneIds.FinalChoiceContinueProtocol)
-                || saveData.HasSeenCutscene(StoryCutsceneIds.FinalChoiceShutDownCore)
-                || saveData.HasSeenCutscene(StoryCutsceneIds.FinalChoice);
         }
 
         private void ResolveReferences()

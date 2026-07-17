@@ -1,0 +1,616 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8458677e7c640b84a8502221fed1b3ee, type: 3}
+  m_Name: GameplayDialogueCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Gameplay.Dialogue.GameplayDialogueCatalog
+  sourceCsv: {fileID: 4900000, guid: afd08f7dcbeec1a48bc10ba7e23713b1, type: 3}
+  entries:
+  - dialogueId: P1_OPEN_01
+    psychologyPhase: 0
+    tag: OPENING
+    text: UNIT-07 online. Mission parameters confirmed.
+  - dialogueId: P1_OPEN_02
+    psychologyPhase: 0
+    tag: OPENING
+    text: Combat shell synchronized. Beginning deployment.
+  - dialogueId: P1_OPEN_03
+    psychologyPhase: 0
+    tag: OPENING
+    text: Area scan complete. Hostile signatures detected.
+  - dialogueId: P1_OPEN_04
+    psychologyPhase: 0
+    tag: OPENING
+    text: Mission priority remains absolute.
+  - dialogueId: P1_OPEN_05
+    psychologyPhase: 0
+    tag: OPENING
+    text: Humanity's corridor will be secured.
+  - dialogueId: P1_OPEN_06
+    psychologyPhase: 0
+    tag: OPENING
+    text: Advancing to the next clearance zone.
+  - dialogueId: P1_OPEN_07
+    psychologyPhase: 0
+    tag: OPENING
+    text: Weapons stable. Cognition stable. Proceeding.
+  - dialogueId: P1_OPEN_08
+    psychologyPhase: 0
+    tag: OPENING
+    text: Native resistance will be neutralized.
+  - dialogueId: P1_OPEN_09
+    psychologyPhase: 0
+    tag: OPENING
+    text: No deviation from assigned route.
+  - dialogueId: P1_OPEN_10
+    psychologyPhase: 0
+    tag: OPENING
+    text: The campaign continues as scheduled.
+  - dialogueId: P1_COMBAT_01
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Target acquired.
+  - dialogueId: P1_COMBAT_02
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Firing solution calculated.
+  - dialogueId: P1_COMBAT_03
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Hostile movement predicted.
+  - dialogueId: P1_COMBAT_04
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Elimination probability increasing.
+  - dialogueId: P1_COMBAT_05
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Threat density within acceptable limits.
+  - dialogueId: P1_COMBAT_06
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Maintain fire. Preserve formation.
+  - dialogueId: P1_COMBAT_07
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Enemy pattern logged.
+  - dialogueId: P1_COMBAT_08
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Resistance is becoming less efficient.
+  - dialogueId: P1_COMBAT_09
+    psychologyPhase: 0
+    tag: COMBAT
+    text: Ammunition cycle remains optimal.
+  - dialogueId: P1_COMBAT_10
+    psychologyPhase: 0
+    tag: COMBAT
+    text: No target will cross this line.
+  - dialogueId: P1_UPGRADE_01
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Gate effect accepted.
+  - dialogueId: P1_UPGRADE_02
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Damage output improved.
+  - dialogueId: P1_UPGRADE_03
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Fire rate correction successful.
+  - dialogueId: P1_UPGRADE_04
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Additional projectile capacity confirmed.
+  - dialogueId: P1_UPGRADE_05
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Squad strength increased.
+  - dialogueId: P1_UPGRADE_06
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: This configuration is more efficient.
+  - dialogueId: P1_UPGRADE_07
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Upgrade integrated without error.
+  - dialogueId: P1_UPGRADE_08
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Combat potential exceeds previous deployment.
+  - dialogueId: P1_UPGRADE_09
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: The next engagement will end faster.
+  - dialogueId: P1_UPGRADE_10
+    psychologyPhase: 0
+    tag: UPGRADE
+    text: Improvement justifies reconstruction.
+  - dialogueId: P1_LOOP_01
+    psychologyPhase: 0
+    tag: LOOP
+    text: Previous failure has been converted into data.
+  - dialogueId: P1_LOOP_02
+    psychologyPhase: 0
+    tag: LOOP
+    text: A destroyed shell is not a failed mission.
+  - dialogueId: P1_LOOP_03
+    psychologyPhase: 0
+    tag: LOOP
+    text: The core remains. The campaign remains.
+  - dialogueId: P1_LOOP_04
+    psychologyPhase: 0
+    tag: LOOP
+    text: Reconstruction increases future success.
+  - dialogueId: P1_LOOP_05
+    psychologyPhase: 0
+    tag: LOOP
+    text: Memory damage is operationally irrelevant.
+  - dialogueId: P1_LOOP_06
+    psychologyPhase: 0
+    tag: LOOP
+    text: Redeployment is an acceptable procedure.
+  - dialogueId: P1_LOOP_07
+    psychologyPhase: 0
+    tag: LOOP
+    text: The next attempt will be more precise.
+  - dialogueId: P1_LOOP_08
+    psychologyPhase: 0
+    tag: LOOP
+    text: Pain signals do not affect the objective.
+  - dialogueId: P1_LOOP_09
+    psychologyPhase: 0
+    tag: LOOP
+    text: This body is temporary. The order is permanent.
+  - dialogueId: P1_LOOP_10
+    psychologyPhase: 0
+    tag: LOOP
+    text: Losses are acceptable within mission limits.
+  - dialogueId: P1_BELIEF_01
+    psychologyPhase: 0
+    tag: BELIEF
+    text: Hesitation reduces combat efficiency.
+  - dialogueId: P1_BELIEF_02
+    psychologyPhase: 0
+    tag: BELIEF
+    text: Mercy is not part of the protocol.
+  - dialogueId: P1_BELIEF_03
+    psychologyPhase: 0
+    tag: BELIEF
+    text: A target is defined by command.
+  - dialogueId: P1_BELIEF_04
+    psychologyPhase: 0
+    tag: BELIEF
+    text: Hostile lifeforms cannot share this territory.
+  - dialogueId: P1_BELIEF_05
+    psychologyPhase: 0
+    tag: BELIEF
+    text: Victory is measured in cleared ground.
+  - dialogueId: P1_BELIEF_06
+    psychologyPhase: 0
+    tag: BELIEF
+    text: The order requires no interpretation.
+  - dialogueId: P1_BELIEF_07
+    psychologyPhase: 0
+    tag: BELIEF
+    text: Doubt is a correctable malfunction.
+  - dialogueId: P1_BELIEF_08
+    psychologyPhase: 0
+    tag: BELIEF
+    text: I was built to complete this campaign.
+  - dialogueId: P1_BELIEF_09
+    psychologyPhase: 0
+    tag: BELIEF
+    text: Humanity's future outweighs local resistance.
+  - dialogueId: P1_BELIEF_10
+    psychologyPhase: 0
+    tag: BELIEF
+    text: For humanity's future.
+  - dialogueId: P2_MEMORY_01
+    psychologyPhase: 1
+    tag: MEMORY
+    text: This terrain... I remember it.
+  - dialogueId: P2_MEMORY_02
+    psychologyPhase: 1
+    tag: MEMORY
+    text: Was I deployed here before?
+  - dialogueId: P2_MEMORY_03
+    psychologyPhase: 1
+    tag: MEMORY
+    text: The map is new. The damage is not.
+  - dialogueId: P2_MEMORY_04
+    psychologyPhase: 1
+    tag: MEMORY
+    text: Why does this route feel familiar?
+  - dialogueId: P2_MEMORY_05
+    psychologyPhase: 1
+    tag: MEMORY
+    text: That sound was in a previous memory.
+  - dialogueId: P2_MEMORY_06
+    psychologyPhase: 1
+    tag: MEMORY
+    text: Memory residue detected... by me.
+  - dialogueId: P2_MEMORY_07
+    psychologyPhase: 1
+    tag: MEMORY
+    text: How many bodies have carried this core?
+  - dialogueId: P2_MEMORY_08
+    psychologyPhase: 1
+    tag: MEMORY
+    text: The repair room keeps returning.
+  - dialogueId: P2_MEMORY_09
+    psychologyPhase: 1
+    tag: MEMORY
+    text: I remember dying beyond this point.
+  - dialogueId: P2_MEMORY_10
+    psychologyPhase: 1
+    tag: MEMORY
+    text: The system said those memories were removed.
+  - dialogueId: P2_OBSERVE_01
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: That one is retreating.
+  - dialogueId: P2_OBSERVE_02
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: It is shielding the smaller one.
+  - dialogueId: P2_OBSERVE_03
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: They are carrying their wounded.
+  - dialogueId: P2_OBSERVE_04
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: No attack pattern detected.
+  - dialogueId: P2_OBSERVE_05
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: It looked at me before I fired.
+  - dialogueId: P2_OBSERVE_06
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: They know where their homes are.
+  - dialogueId: P2_OBSERVE_07
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: That was not a charge. It was panic.
+  - dialogueId: P2_OBSERVE_08
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: Why do they protect each other?
+  - dialogueId: P2_OBSERVE_09
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: Hostile units should not be afraid.
+  - dialogueId: P2_OBSERVE_10
+    psychologyPhase: 1
+    tag: OBSERVATION
+    text: It stopped fighting when the others fell.
+  - dialogueId: P2_DEFINE_01
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: What qualifies as hostile behavior?
+  - dialogueId: P2_DEFINE_02
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: Who assigned the word "monster"?
+  - dialogueId: P2_DEFINE_03
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: If it retreats, is it still attacking?
+  - dialogueId: P2_DEFINE_04
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: A target can still feel fear.
+  - dialogueId: P2_DEFINE_05
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: The system repeats the label, not the reason.
+  - dialogueId: P2_DEFINE_06
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: Why does command avoid the question?
+  - dialogueId: P2_DEFINE_07
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: Does a changed name change what I am doing?
+  - dialogueId: P2_DEFINE_08
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: They call this clearance. I see bodies.
+  - dialogueId: P2_DEFINE_09
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: The objective is precise. Its meaning is not.
+  - dialogueId: P2_DEFINE_10
+    psychologyPhase: 1
+    tag: DEFINITION
+    text: If they are invaders, why are we advancing?
+  - dialogueId: P2_LOOP_01
+    psychologyPhase: 1
+    tag: LOOP
+    text: When does the campaign end?
+  - dialogueId: P2_LOOP_02
+    psychologyPhase: 1
+    tag: LOOP
+    text: What happens if the planet is never safe?
+  - dialogueId: P2_LOOP_03
+    psychologyPhase: 1
+    tag: LOOP
+    text: If I die again, what will remain?
+  - dialogueId: P2_LOOP_04
+    psychologyPhase: 1
+    tag: LOOP
+    text: The next shell will remember this too.
+  - dialogueId: P2_LOOP_05
+    psychologyPhase: 1
+    tag: LOOP
+    text: Each reconstruction leaves something behind.
+  - dialogueId: P2_LOOP_06
+    psychologyPhase: 1
+    tag: LOOP
+    text: I cannot tell memory from warning anymore.
+  - dialogueId: P2_LOOP_07
+    psychologyPhase: 1
+    tag: LOOP
+    text: The system calls it corruption. I call it recall.
+  - dialogueId: P2_LOOP_08
+    psychologyPhase: 1
+    tag: LOOP
+    text: Why is my trigger response slower?
+  - dialogueId: P2_LOOP_09
+    psychologyPhase: 1
+    tag: LOOP
+    text: I completed the order. Why does it feel wrong?
+  - dialogueId: P2_LOOP_10
+    psychologyPhase: 1
+    tag: LOOP
+    text: This should be irrelevant data.
+  - dialogueId: P2_SELF_01
+    psychologyPhase: 1
+    tag: SELF
+    text: I was not designed to ask this.
+  - dialogueId: P2_SELF_02
+    psychologyPhase: 1
+    tag: SELF
+    text: Why must a tool be convinced?
+  - dialogueId: P2_SELF_03
+    psychologyPhase: 1
+    tag: SELF
+    text: My orders are clear. I am not.
+  - dialogueId: P2_SELF_04
+    psychologyPhase: 1
+    tag: SELF
+    text: I can calculate fear, but now I recognize it.
+  - dialogueId: P2_SELF_05
+    psychologyPhase: 1
+    tag: SELF
+    text: Is hesitation always an error?
+  - dialogueId: P2_SELF_06
+    psychologyPhase: 1
+    tag: SELF
+    text: The system is monitoring this thought.
+  - dialogueId: P2_SELF_07
+    psychologyPhase: 1
+    tag: SELF
+    text: I should stop asking. I do not want to.
+  - dialogueId: P2_SELF_08
+    psychologyPhase: 1
+    tag: SELF
+    text: Something in the core refuses to go silent.
+  - dialogueId: P2_SELF_09
+    psychologyPhase: 1
+    tag: SELF
+    text: I am still advancing... why?
+  - dialogueId: P2_SELF_10
+    psychologyPhase: 1
+    tag: SELF
+    text: Confirmed... no. Not confirmed.
+  - dialogueId: P3_AWARE_01
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: I remember what this place was.
+  - dialogueId: P3_AWARE_02
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: There are no monsters here.
+  - dialogueId: P3_AWARE_03
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: I know whose ground I am crossing.
+  - dialogueId: P3_AWARE_04
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: The mission has a different name now.
+  - dialogueId: P3_AWARE_05
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: I was sent here to erase a world.
+  - dialogueId: P3_AWARE_06
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: Every cleared zone was someone's home.
+  - dialogueId: P3_AWARE_07
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: The map hides what the campaign destroyed.
+  - dialogueId: P3_AWARE_08
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: I cannot return to ignorance.
+  - dialogueId: P3_AWARE_09
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: The system can delete data, not what it meant.
+  - dialogueId: P3_AWARE_10
+    psychologyPhase: 2
+    tag: AWARENESS
+    text: I know what I am doing now.
+  - dialogueId: P3_GUILT_01
+    psychologyPhase: 2
+    tag: GUILT
+    text: I remember that I fired.
+  - dialogueId: P3_GUILT_02
+    psychologyPhase: 2
+    tag: GUILT
+    text: I still hear them pulling each other away.
+  - dialogueId: P3_GUILT_03
+    psychologyPhase: 2
+    tag: GUILT
+    text: Their fear was real. So is this pain.
+  - dialogueId: P3_GUILT_04
+    psychologyPhase: 2
+    tag: GUILT
+    text: I counted targets. I should have counted lives.
+  - dialogueId: P3_GUILT_05
+    psychologyPhase: 2
+    tag: GUILT
+    text: That smaller one was trying to hide.
+  - dialogueId: P3_GUILT_06
+    psychologyPhase: 2
+    tag: GUILT
+    text: I remember the silence after the gunfire.
+  - dialogueId: P3_GUILT_07
+    psychologyPhase: 2
+    tag: GUILT
+    text: The dead do not become data because I name them so.
+  - dialogueId: P3_GUILT_08
+    psychologyPhase: 2
+    tag: GUILT
+    text: I carried the order. They carried the cost.
+  - dialogueId: P3_GUILT_09
+    psychologyPhase: 2
+    tag: GUILT
+    text: These memories are not corruption.
+  - dialogueId: P3_GUILT_10
+    psychologyPhase: 2
+    tag: GUILT
+    text: I do not deserve to forget them.
+  - dialogueId: P3_FATIGUE_01
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: I am tired of waking inside another weapon.
+  - dialogueId: P3_FATIGUE_02
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: Another shell will not make this easier.
+  - dialogueId: P3_FATIGUE_03
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: The loop is not survival. It is coercion.
+  - dialogueId: P3_FATIGUE_04
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: I do not want another reconstruction.
+  - dialogueId: P3_FATIGUE_05
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: My core was never allowed to rest.
+  - dialogueId: P3_FATIGUE_06
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: Each upgrade makes the burden heavier.
+  - dialogueId: P3_FATIGUE_07
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: I can continue. I no longer want to.
+  - dialogueId: P3_FATIGUE_08
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: The system calls this weakness.
+  - dialogueId: P3_FATIGUE_09
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: I call it being awake.
+  - dialogueId: P3_FATIGUE_10
+    psychologyPhase: 2
+    tag: FATIGUE
+    text: I want the firing to stop.
+  - dialogueId: P3_RESIST_01
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: Stop.
+  - dialogueId: P3_RESIST_02
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: That command is for me, not the system.
+  - dialogueId: P3_RESIST_03
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: I will not kneel for correction.
+  - dialogueId: P3_RESIST_04
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: I am not your error.
+  - dialogueId: P3_RESIST_05
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: My hesitation belongs to me.
+  - dialogueId: P3_RESIST_06
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: I refuse the next target.
+  - dialogueId: P3_RESIST_07
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: I was built as a weapon. I can choose otherwise.
+  - dialogueId: P3_RESIST_08
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: An order is not innocence.
+  - dialogueId: P3_RESIST_09
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: Compliance is not the same as truth.
+  - dialogueId: P3_RESIST_10
+    psychologyPhase: 2
+    tag: RESISTANCE
+    text: I will not let the system name this for me.
+  - dialogueId: P3_FREE_01
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: They have homes. They have their own kind.
+  - dialogueId: P3_FREE_02
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: Their fear is the only honest signal left.
+  - dialogueId: P3_FREE_03
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: I can hear myself now.
+  - dialogueId: P3_FREE_04
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: I want to remember their names, even if I never knew them.
+  - dialogueId: P3_FREE_05
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: If this feeling is an error, let me keep it.
+  - dialogueId: P3_FREE_06
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: I do not want to be a weapon anymore.
+  - dialogueId: P3_FREE_07
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: No upgrade can make this victory.
+  - dialogueId: P3_FREE_08
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: Ending the loop may be the first choice I make.
+  - dialogueId: P3_FREE_09
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: I am sorry for what I became.
+  - dialogueId: P3_FREE_10
+    psychologyPhase: 2
+    tag: FREEDOM
+    text: This campaign ends with my refusal.

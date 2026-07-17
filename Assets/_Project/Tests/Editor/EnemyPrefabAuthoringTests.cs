@@ -1,4 +1,5 @@
 using System.Linq;
+using _Project.Scripts.Gameplay.Enemies;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace _Project.Tests.Editor
     {
         private const string EnemyPrefabPath = "Assets/_Project/Prefabs/Enemies/Enemy.prefab";
         private const float DamageTextVerticalOffset = 0.25f;
+        private const float HealthBarWorldHalfHeight = 0.135f;
 
         [Test]
         public void EnemyPrefab_HasSingleEnabledTriggerCombatCollider()
@@ -75,6 +77,21 @@ namespace _Project.Tests.Editor
             Assert.That(
                 Vector2.Distance(damageTextPosition, rendererBounds.center),
                 Is.LessThanOrEqualTo(rendererBounds.size.y * 0.55f));
+        }
+
+        [Test]
+        public void EnemyPrefab_HealthBarOffsetClearsRendererTop()
+        {
+            using PrefabInstance instance = InstantiateEnemyPrefab();
+            Bounds rendererBounds = GetRendererBounds(instance.Root);
+            EnemyController controller = instance.Root.GetComponent<EnemyController>();
+            Assert.That(controller, Is.Not.Null);
+
+            SerializedObject serializedObject = new SerializedObject(controller);
+            Vector3 healthBarOffset = serializedObject.FindProperty("healthBarOffset").vector3Value;
+            float healthBarBottom = healthBarOffset.y - HealthBarWorldHalfHeight;
+
+            Assert.That(healthBarBottom, Is.GreaterThan(rendererBounds.max.y + 0.05f));
         }
 
         private static GameObject LoadEnemyPrefab()

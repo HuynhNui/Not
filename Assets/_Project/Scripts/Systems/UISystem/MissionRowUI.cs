@@ -234,7 +234,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetStretchBottom(progressTextRect, 44f, 44f, 33f, 36f);
                     SetRect(coinRect, new Vector2(-206f, 44f), new Vector2(44f, 44f), rightAnchored: true);
                     SetRect(rewardRect, new Vector2(-58f, 44f), new Vector2(172f, 48f), rightAnchored: true);
-                    SetRect(claimRect, new Vector2(-124f, -42f), new Vector2(214f, 72f), rightAnchored: true);
+                    SetRect(claimRect, new Vector2(-42f, -42f), new Vector2(214f, 72f), rightAnchored: true);
                     SetFontSize(phaseText, 30f);
                     SetFontSize(titleText, 36f);
                     SetFontSize(stateText, 23f);
@@ -251,7 +251,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetStretchBottom(progressTextRect, 160f, 292f, 28f, 34f);
                     SetRect(coinRect, new Vector2(-210f, 48f), new Vector2(46f, 46f), rightAnchored: true);
                     SetRect(rewardRect, new Vector2(-58f, 48f), new Vector2(172f, 50f), rightAnchored: true);
-                    SetRect(claimRect, new Vector2(-124f, -42f), new Vector2(214f, 72f), rightAnchored: true);
+                    SetRect(claimRect, new Vector2(-42f, -42f), new Vector2(214f, 72f), rightAnchored: true);
                     SetFontSize(phaseText, 28f);
                     SetFontSize(titleText, 34f);
                     SetFontSize(stateText, 22f);
@@ -270,7 +270,7 @@ namespace _Project.Scripts.Systems.UISystem
                     SetStretchBottom(progressTextRect, 146f, 46f, 24f, 30f);
                     SetRect(coinRect, new Vector2(-210f, 0f), new Vector2(42f, 42f), rightAnchored: true);
                     SetRect(rewardRect, new Vector2(-58f, 0f), new Vector2(172f, 48f), rightAnchored: true);
-                    SetRect(claimRect, new Vector2(-124f, -34f), new Vector2(214f, 68f), rightAnchored: true);
+                    SetRect(claimRect, new Vector2(-42f, -34f), new Vector2(214f, 68f), rightAnchored: true);
                     SetFontSize(phaseText, 26f);
                     SetFontSize(titleText, 34f);
                     SetFontSize(stateText, 22f);

@@ -334,7 +334,7 @@ namespace _Project.Editor
             RectTransform claimRect = claimButton.transform as RectTransform;
             Anchor(claimRect, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             claimRect.sizeDelta = new Vector2(214f, 72f);
-            claimRect.anchoredPosition = new Vector2(-124f, -42f);
+            claimRect.anchoredPosition = new Vector2(-42f, -42f);
             Image claimImage = claimButton.GetComponent<Image>();
             claimImage.type = Image.Type.Sliced;
             SpriteState spriteState = claimButton.spriteState;

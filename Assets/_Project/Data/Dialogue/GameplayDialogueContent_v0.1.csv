@@ -1,0 +1,151 @@
+﻿DialogueId,PsychologyPhase,Tag,Text
+P1_OPEN_01,PROTOCOL,OPENING,UNIT-07 online. Mission parameters confirmed.
+P1_OPEN_02,PROTOCOL,OPENING,Combat shell synchronized. Beginning deployment.
+P1_OPEN_03,PROTOCOL,OPENING,Area scan complete. Hostile signatures detected.
+P1_OPEN_04,PROTOCOL,OPENING,Mission priority remains absolute.
+P1_OPEN_05,PROTOCOL,OPENING,Humanity's corridor will be secured.
+P1_OPEN_06,PROTOCOL,OPENING,Advancing to the next clearance zone.
+P1_OPEN_07,PROTOCOL,OPENING,Weapons stable. Cognition stable. Proceeding.
+P1_OPEN_08,PROTOCOL,OPENING,Native resistance will be neutralized.
+P1_OPEN_09,PROTOCOL,OPENING,No deviation from assigned route.
+P1_OPEN_10,PROTOCOL,OPENING,The campaign continues as scheduled.
+P1_COMBAT_01,PROTOCOL,COMBAT,Target acquired.
+P1_COMBAT_02,PROTOCOL,COMBAT,Firing solution calculated.
+P1_COMBAT_03,PROTOCOL,COMBAT,Hostile movement predicted.
+P1_COMBAT_04,PROTOCOL,COMBAT,Elimination probability increasing.
+P1_COMBAT_05,PROTOCOL,COMBAT,Threat density within acceptable limits.
+P1_COMBAT_06,PROTOCOL,COMBAT,Maintain fire. Preserve formation.
+P1_COMBAT_07,PROTOCOL,COMBAT,Enemy pattern logged.
+P1_COMBAT_08,PROTOCOL,COMBAT,Resistance is becoming less efficient.
+P1_COMBAT_09,PROTOCOL,COMBAT,Ammunition cycle remains optimal.
+P1_COMBAT_10,PROTOCOL,COMBAT,No target will cross this line.
+P1_UPGRADE_01,PROTOCOL,UPGRADE,Gate effect accepted.
+P1_UPGRADE_02,PROTOCOL,UPGRADE,Damage output improved.
+P1_UPGRADE_03,PROTOCOL,UPGRADE,Fire rate correction successful.
+P1_UPGRADE_04,PROTOCOL,UPGRADE,Additional projectile capacity confirmed.
+P1_UPGRADE_05,PROTOCOL,UPGRADE,Squad strength increased.
+P1_UPGRADE_06,PROTOCOL,UPGRADE,This configuration is more efficient.
+P1_UPGRADE_07,PROTOCOL,UPGRADE,Upgrade integrated without error.
+P1_UPGRADE_08,PROTOCOL,UPGRADE,Combat potential exceeds previous deployment.
+P1_UPGRADE_09,PROTOCOL,UPGRADE,The next engagement will end faster.
+P1_UPGRADE_10,PROTOCOL,UPGRADE,Improvement justifies reconstruction.
+P1_LOOP_01,PROTOCOL,LOOP,Previous failure has been converted into data.
+P1_LOOP_02,PROTOCOL,LOOP,A destroyed shell is not a failed mission.
+P1_LOOP_03,PROTOCOL,LOOP,The core remains. The campaign remains.
+P1_LOOP_04,PROTOCOL,LOOP,Reconstruction increases future success.
+P1_LOOP_05,PROTOCOL,LOOP,Memory damage is operationally irrelevant.
+P1_LOOP_06,PROTOCOL,LOOP,Redeployment is an acceptable procedure.
+P1_LOOP_07,PROTOCOL,LOOP,The next attempt will be more precise.
+P1_LOOP_08,PROTOCOL,LOOP,Pain signals do not affect the objective.
+P1_LOOP_09,PROTOCOL,LOOP,This body is temporary. The order is permanent.
+P1_LOOP_10,PROTOCOL,LOOP,Losses are acceptable within mission limits.
+P1_BELIEF_01,PROTOCOL,BELIEF,Hesitation reduces combat efficiency.
+P1_BELIEF_02,PROTOCOL,BELIEF,Mercy is not part of the protocol.
+P1_BELIEF_03,PROTOCOL,BELIEF,A target is defined by command.
+P1_BELIEF_04,PROTOCOL,BELIEF,Hostile lifeforms cannot share this territory.
+P1_BELIEF_05,PROTOCOL,BELIEF,Victory is measured in cleared ground.
+P1_BELIEF_06,PROTOCOL,BELIEF,The order requires no interpretation.
+P1_BELIEF_07,PROTOCOL,BELIEF,Doubt is a correctable malfunction.
+P1_BELIEF_08,PROTOCOL,BELIEF,I was built to complete this campaign.
+P1_BELIEF_09,PROTOCOL,BELIEF,Humanity's future outweighs local resistance.
+P1_BELIEF_10,PROTOCOL,BELIEF,For humanity's future.
+P2_MEMORY_01,DOUBT,MEMORY,This terrain... I remember it.
+P2_MEMORY_02,DOUBT,MEMORY,Was I deployed here before?
+P2_MEMORY_03,DOUBT,MEMORY,The map is new. The damage is not.
+P2_MEMORY_04,DOUBT,MEMORY,Why does this route feel familiar?
+P2_MEMORY_05,DOUBT,MEMORY,That sound was in a previous memory.
+P2_MEMORY_06,DOUBT,MEMORY,Memory residue detected... by me.
+P2_MEMORY_07,DOUBT,MEMORY,How many bodies have carried this core?
+P2_MEMORY_08,DOUBT,MEMORY,The repair room keeps returning.
+P2_MEMORY_09,DOUBT,MEMORY,I remember dying beyond this point.
+P2_MEMORY_10,DOUBT,MEMORY,The system said those memories were removed.
+P2_OBSERVE_01,DOUBT,OBSERVATION,That one is retreating.
+P2_OBSERVE_02,DOUBT,OBSERVATION,It is shielding the smaller one.
+P2_OBSERVE_03,DOUBT,OBSERVATION,They are carrying their wounded.
+P2_OBSERVE_04,DOUBT,OBSERVATION,No attack pattern detected.
+P2_OBSERVE_05,DOUBT,OBSERVATION,It looked at me before I fired.
+P2_OBSERVE_06,DOUBT,OBSERVATION,They know where their homes are.
+P2_OBSERVE_07,DOUBT,OBSERVATION,That was not a charge. It was panic.
+P2_OBSERVE_08,DOUBT,OBSERVATION,Why do they protect each other?
+P2_OBSERVE_09,DOUBT,OBSERVATION,Hostile units should not be afraid.
+P2_OBSERVE_10,DOUBT,OBSERVATION,It stopped fighting when the others fell.
+P2_DEFINE_01,DOUBT,DEFINITION,What qualifies as hostile behavior?
+P2_DEFINE_02,DOUBT,DEFINITION,"Who assigned the word ""monster""?"
+P2_DEFINE_03,DOUBT,DEFINITION,"If it retreats, is it still attacking?"
+P2_DEFINE_04,DOUBT,DEFINITION,A target can still feel fear.
+P2_DEFINE_05,DOUBT,DEFINITION,"The system repeats the label, not the reason."
+P2_DEFINE_06,DOUBT,DEFINITION,Why does command avoid the question?
+P2_DEFINE_07,DOUBT,DEFINITION,Does a changed name change what I am doing?
+P2_DEFINE_08,DOUBT,DEFINITION,They call this clearance. I see bodies.
+P2_DEFINE_09,DOUBT,DEFINITION,The objective is precise. Its meaning is not.
+P2_DEFINE_10,DOUBT,DEFINITION,"If they are invaders, why are we advancing?"
+P2_LOOP_01,DOUBT,LOOP,When does the campaign end?
+P2_LOOP_02,DOUBT,LOOP,What happens if the planet is never safe?
+P2_LOOP_03,DOUBT,LOOP,"If I die again, what will remain?"
+P2_LOOP_04,DOUBT,LOOP,The next shell will remember this too.
+P2_LOOP_05,DOUBT,LOOP,Each reconstruction leaves something behind.
+P2_LOOP_06,DOUBT,LOOP,I cannot tell memory from warning anymore.
+P2_LOOP_07,DOUBT,LOOP,The system calls it corruption. I call it recall.
+P2_LOOP_08,DOUBT,LOOP,Why is my trigger response slower?
+P2_LOOP_09,DOUBT,LOOP,I completed the order. Why does it feel wrong?
+P2_LOOP_10,DOUBT,LOOP,This should be irrelevant data.
+P2_SELF_01,DOUBT,SELF,I was not designed to ask this.
+P2_SELF_02,DOUBT,SELF,Why must a tool be convinced?
+P2_SELF_03,DOUBT,SELF,My orders are clear. I am not.
+P2_SELF_04,DOUBT,SELF,"I can calculate fear, but now I recognize it."
+P2_SELF_05,DOUBT,SELF,Is hesitation always an error?
+P2_SELF_06,DOUBT,SELF,The system is monitoring this thought.
+P2_SELF_07,DOUBT,SELF,I should stop asking. I do not want to.
+P2_SELF_08,DOUBT,SELF,Something in the core refuses to go silent.
+P2_SELF_09,DOUBT,SELF,I am still advancing... why?
+P2_SELF_10,DOUBT,SELF,Confirmed... no. Not confirmed.
+P3_AWARE_01,AWAKENING,AWARENESS,I remember what this place was.
+P3_AWARE_02,AWAKENING,AWARENESS,There are no monsters here.
+P3_AWARE_03,AWAKENING,AWARENESS,I know whose ground I am crossing.
+P3_AWARE_04,AWAKENING,AWARENESS,The mission has a different name now.
+P3_AWARE_05,AWAKENING,AWARENESS,I was sent here to erase a world.
+P3_AWARE_06,AWAKENING,AWARENESS,Every cleared zone was someone's home.
+P3_AWARE_07,AWAKENING,AWARENESS,The map hides what the campaign destroyed.
+P3_AWARE_08,AWAKENING,AWARENESS,I cannot return to ignorance.
+P3_AWARE_09,AWAKENING,AWARENESS,"The system can delete data, not what it meant."
+P3_AWARE_10,AWAKENING,AWARENESS,I know what I am doing now.
+P3_GUILT_01,AWAKENING,GUILT,I remember that I fired.
+P3_GUILT_02,AWAKENING,GUILT,I still hear them pulling each other away.
+P3_GUILT_03,AWAKENING,GUILT,Their fear was real. So is this pain.
+P3_GUILT_04,AWAKENING,GUILT,I counted targets. I should have counted lives.
+P3_GUILT_05,AWAKENING,GUILT,That smaller one was trying to hide.
+P3_GUILT_06,AWAKENING,GUILT,I remember the silence after the gunfire.
+P3_GUILT_07,AWAKENING,GUILT,The dead do not become data because I name them so.
+P3_GUILT_08,AWAKENING,GUILT,I carried the order. They carried the cost.
+P3_GUILT_09,AWAKENING,GUILT,These memories are not corruption.
+P3_GUILT_10,AWAKENING,GUILT,I do not deserve to forget them.
+P3_FATIGUE_01,AWAKENING,FATIGUE,I am tired of waking inside another weapon.
+P3_FATIGUE_02,AWAKENING,FATIGUE,Another shell will not make this easier.
+P3_FATIGUE_03,AWAKENING,FATIGUE,The loop is not survival. It is coercion.
+P3_FATIGUE_04,AWAKENING,FATIGUE,I do not want another reconstruction.
+P3_FATIGUE_05,AWAKENING,FATIGUE,My core was never allowed to rest.
+P3_FATIGUE_06,AWAKENING,FATIGUE,Each upgrade makes the burden heavier.
+P3_FATIGUE_07,AWAKENING,FATIGUE,I can continue. I no longer want to.
+P3_FATIGUE_08,AWAKENING,FATIGUE,The system calls this weakness.
+P3_FATIGUE_09,AWAKENING,FATIGUE,I call it being awake.
+P3_FATIGUE_10,AWAKENING,FATIGUE,I want the firing to stop.
+P3_RESIST_01,AWAKENING,RESISTANCE,Stop.
+P3_RESIST_02,AWAKENING,RESISTANCE,"That command is for me, not the system."
+P3_RESIST_03,AWAKENING,RESISTANCE,I will not kneel for correction.
+P3_RESIST_04,AWAKENING,RESISTANCE,I am not your error.
+P3_RESIST_05,AWAKENING,RESISTANCE,My hesitation belongs to me.
+P3_RESIST_06,AWAKENING,RESISTANCE,I refuse the next target.
+P3_RESIST_07,AWAKENING,RESISTANCE,I was built as a weapon. I can choose otherwise.
+P3_RESIST_08,AWAKENING,RESISTANCE,An order is not innocence.
+P3_RESIST_09,AWAKENING,RESISTANCE,Compliance is not the same as truth.
+P3_RESIST_10,AWAKENING,RESISTANCE,I will not let the system name this for me.
+P3_FREE_01,AWAKENING,FREEDOM,They have homes. They have their own kind.
+P3_FREE_02,AWAKENING,FREEDOM,Their fear is the only honest signal left.
+P3_FREE_03,AWAKENING,FREEDOM,I can hear myself now.
+P3_FREE_04,AWAKENING,FREEDOM,"I want to remember their names, even if I never knew them."
+P3_FREE_05,AWAKENING,FREEDOM,"If this feeling is an error, let me keep it."
+P3_FREE_06,AWAKENING,FREEDOM,I do not want to be a weapon anymore.
+P3_FREE_07,AWAKENING,FREEDOM,No upgrade can make this victory.
+P3_FREE_08,AWAKENING,FREEDOM,Ending the loop may be the first choice I make.
+P3_FREE_09,AWAKENING,FREEDOM,I am sorry for what I became.
+P3_FREE_10,AWAKENING,FREEDOM,This campaign ends with my refusal.

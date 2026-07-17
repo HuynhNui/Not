@@ -3,6 +3,7 @@ using _Project.Cutscenes;
 using _Project.Scripts.Core.StateMachine;
 using _Project.Scripts.Data.Balance;
 using _Project.Scripts.Data.ScriptableObjects.GateConfigs;
+using _Project.Scripts.Gameplay.Dialogue;
 using _Project.Scripts.Gameplay.Player;
 using _Project.Scripts.Systems.CombatSystem;
 using _Project.Scripts.Systems.EnemySpawnerSystem;
@@ -43,6 +44,7 @@ namespace _Project.Scripts.Core.GameLoop
         [SerializeField] private StoryCutsceneRuntimeController storyCutsceneRuntime;
         [SerializeField] private TutorialManager tutorialManager;
         [SerializeField] private MissionCatalog missionCatalog;
+        [SerializeField] private GameplayDialogueController gameplayDialogueController;
 
         private bool _isGameOver;
         private bool _isRunActive;
@@ -72,6 +74,23 @@ namespace _Project.Scripts.Core.GameLoop
             {
                 runStatsTracker = gameObject.AddComponent<RunStatsTracker>();
             }
+
+            if (gameStateMachine == null)
+            {
+                gameStateMachine = FindAnyObjectByType<GameStateMachine>(FindObjectsInactive.Include);
+            }
+
+            if (gameStateMachine == null)
+            {
+                gameStateMachine = GetComponent<GameStateMachine>();
+            }
+
+            if (gameStateMachine == null)
+            {
+                gameStateMachine = gameObject.AddComponent<GameStateMachine>();
+            }
+
+            gameStateMachine.Init();
 
             if (playerController == null)
             {
@@ -158,6 +177,23 @@ namespace _Project.Scripts.Core.GameLoop
                 enemySpawnerSystem,
                 gateSystem,
                 runStatsTracker);
+
+            if (gameplayDialogueController == null)
+            {
+                gameplayDialogueController = GetComponentInChildren<GameplayDialogueController>(true);
+            }
+
+            if (gameplayDialogueController == null)
+            {
+                gameplayDialogueController = gameObject.AddComponent<GameplayDialogueController>();
+            }
+
+            gameplayDialogueController.Init(
+                gameStateMachine,
+                uiSystem,
+                tutorialManager,
+                playerController);
+            gameplayDialogueController.EndRun();
 
             if (playerController != null)
             {
@@ -283,6 +319,7 @@ namespace _Project.Scripts.Core.GameLoop
 
             _missionSystem?.Dispose();
             _missionSystem = null;
+            gameplayDialogueController?.EndRun();
         }
 
         private void RequestStartRun()
@@ -299,6 +336,7 @@ namespace _Project.Scripts.Core.GameLoop
 
         public void PrepareRunForTutorial()
         {
+            gameplayDialogueController?.EndRun();
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = true;
@@ -353,6 +391,7 @@ namespace _Project.Scripts.Core.GameLoop
             gateSystem?.SetSpawningEnabled(true);
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
+            gameplayDialogueController?.BeginNormalRun();
         }
 
         private void StartRun()
@@ -394,6 +433,7 @@ namespace _Project.Scripts.Core.GameLoop
             telemetryService?.BeginRun();
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
+            gameplayDialogueController?.BeginNormalRun();
         }
 
         private void PauseRun()
@@ -408,6 +448,7 @@ namespace _Project.Scripts.Core.GameLoop
             gateSystem?.SetSpawningEnabled(false);
             gameStateMachine?.SetState(GameState.Paused);
             uiSystem?.ShowPause();
+            gameplayDialogueController?.Suspend();
         }
 
         private void ResumeRun()
@@ -423,10 +464,12 @@ namespace _Project.Scripts.Core.GameLoop
             gateSystem?.SetSpawningEnabled(true);
             gameStateMachine?.SetState(GameState.Playing);
             uiSystem?.ShowGameplayHud();
+            gameplayDialogueController?.Resume();
         }
 
         private void ReturnHome()
         {
+            gameplayDialogueController?.EndRun();
             _startRunAfterReload = false;
             _showUpdateOnboardingAfterReload = false;
             ReloadCurrentScene();
@@ -434,6 +477,7 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void RestartCurrentScene()
         {
+            gameplayDialogueController?.EndRun();
             _startRunAfterReload = true;
             _showUpdateOnboardingAfterReload = false;
             ReloadCurrentScene();
@@ -462,6 +506,7 @@ namespace _Project.Scripts.Core.GameLoop
 
             _isGameOver = true;
             _isRunActive = false;
+            gameplayDialogueController?.EndRun();
 
             playerController?.SetControlsEnabled(false);
             enemySpawnerSystem?.SetSpawningEnabled(false);
