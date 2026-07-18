@@ -85,6 +85,8 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private Button pauseRestartButton;
         [SerializeField] private Button pauseSettingsButton;
         [SerializeField] private Button pauseHomeButton;
+        [SerializeField] private Toggle pauseMusicToggle;
+        [SerializeField] private Toggle pauseSfxToggle;
 
         [Header("Game Over")]
         [SerializeField] private GameOverPanelUI gameOverPanelUI;
@@ -133,6 +135,10 @@ namespace _Project.Scripts.Systems.UISystem
             playButton != null ? playButton.transform as RectTransform : null;
         public RectTransform MainMenuUpgradeButtonTarget =>
             mainMenuUpgradeButton != null ? mainMenuUpgradeButton.transform as RectTransform : null;
+        public Sprite SharedYellowButtonSprite =>
+            resetDataButton != null && resetDataButton.targetGraphic is Image image
+                ? image.sprite
+                : null;
 
         public void Init(RunStatsTracker runStatsTracker = null)
         {
@@ -142,6 +148,7 @@ namespace _Project.Scripts.Systems.UISystem
             }
 
             ResolveGameOverReferences();
+            ResolvePauseSettingsReferences();
             ValidateRequiredReferences();
             EnsureSettingsPrefsInitialized();
             WireButtons();
@@ -212,6 +219,8 @@ namespace _Project.Scripts.Systems.UISystem
         {
             Time.timeScale = 0f;
             SetPrimaryPanel(UIScreen.Pause);
+            ResolvePauseSettingsReferences();
+            RefreshSettingsControls();
         }
 
         public void ShowSettingsFromMainMenu()
@@ -327,6 +336,23 @@ namespace _Project.Scripts.Systems.UISystem
             WireSettingToggle(sfxToggle, SfxEnabledPrefsKey, true, nameof(sfxToggle));
             WireSettingToggle(vibrationToggle, VibrationPrefsKey, true, nameof(vibrationToggle));
             WireSettingToggle(damageTextToggle, DamageTextPrefsKey, true, nameof(damageTextToggle));
+            WireSettingToggle(pauseMusicToggle, MusicEnabledPrefsKey, true, nameof(pauseMusicToggle));
+            WireSettingToggle(pauseSfxToggle, SfxEnabledPrefsKey, true, nameof(pauseSfxToggle));
+        }
+
+        private void ResolvePauseSettingsReferences()
+        {
+            if (pausePanel == null)
+            {
+                return;
+            }
+
+            pauseMusicToggle ??= pausePanel.transform
+                .Find("PanelContainer/PauseFrame/ContentRoot/AudioSection/MusicRow/Toggle")
+                ?.GetComponent<Toggle>();
+            pauseSfxToggle ??= pausePanel.transform
+                .Find("PanelContainer/PauseFrame/ContentRoot/AudioSection/SfxRow/Toggle")
+                ?.GetComponent<Toggle>();
         }
 
         private void WireUpgradeRows()
@@ -396,9 +422,8 @@ namespace _Project.Scripts.Systems.UISystem
             toggle.onValueChanged.AddListener(value =>
             {
                 SetBoolSetting(prefsKey, value);
-                SetToggleSprite(toggle, value);
                 PlayerPrefs.Save();
-                RequestUiCue(AudioCueId.UiFocus);
+                RefreshSettingsControls();
                 if (prefsKey == MusicEnabledPrefsKey)
                 {
                     MusicSettingChanged?.Invoke(value);
@@ -407,6 +432,8 @@ namespace _Project.Scripts.Systems.UISystem
                 {
                     SfxSettingChanged?.Invoke(value);
                 }
+
+                RequestUiCue(AudioCueId.UiFocus);
             });
         }
 
@@ -509,6 +536,8 @@ namespace _Project.Scripts.Systems.UISystem
             RefreshSettingToggle(sfxToggle, SfxEnabledPrefsKey, true);
             RefreshSettingToggle(vibrationToggle, VibrationPrefsKey, true);
             RefreshSettingToggle(damageTextToggle, DamageTextPrefsKey, true);
+            RefreshSettingToggle(pauseMusicToggle, MusicEnabledPrefsKey, true);
+            RefreshSettingToggle(pauseSfxToggle, SfxEnabledPrefsKey, true);
         }
 
         private void RefreshSettingToggle(Toggle toggle, string prefsKey, bool defaultValue)
@@ -576,6 +605,12 @@ namespace _Project.Scripts.Systems.UISystem
         private void SetToggleSprite(Toggle toggle, bool value)
         {
             if (toggle == null)
+            {
+                return;
+            }
+
+            // Pause toggles use the normal Toggle graphic as their ON overlay.
+            if (toggle.graphic != null)
             {
                 return;
             }
@@ -808,6 +843,8 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(bestCoinsText, nameof(bestCoinsText), "MainMenuPanel/StatsBar/BESTCOINSCell/BestCoinsValueText");
             WarnIfMissing(loopValueText, nameof(loopValueText), "MainMenuPanel/PlayerProfile/LoopValueText");
             WarnIfMissing(pauseButton, nameof(pauseButton), "GameplayHUDPanel/HudContentRoot/HudTopBar/PauseButton");
+            WarnIfMissing(pauseMusicToggle, nameof(pauseMusicToggle), "PausePanel/PanelContainer/PauseFrame/ContentRoot/AudioSection/MusicRow/Toggle");
+            WarnIfMissing(pauseSfxToggle, nameof(pauseSfxToggle), "PausePanel/PanelContainer/PauseFrame/ContentRoot/AudioSection/SfxRow/Toggle");
             WarnIfMissing(timeSurvivalText, nameof(timeSurvivalText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/TimeMetric/ValueText");
             WarnIfMissing(moneyText, nameof(moneyText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/CoinsMetric/ValueText");
             WarnIfMissing(enemyDefeatedCountText, nameof(enemyDefeatedCountText), "GameplayHUDPanel/HudContentRoot/HudTopBar/MetricsPanel/KillsMetric/ValueText");

@@ -19,6 +19,7 @@ namespace _Project.Editor
         private const string FontPath = "Assets/Front/Upheaval_TMP.asset";
         private const string BackgroundPath = "Assets/_Project/Art/Sprites/background/BG-Temp.png";
         private const string ArtRoot = "Assets/_Project/Art/UI/MissionSystem/V2/";
+        private const string SharedButtonPath = "Assets/_Project/Art/UI/SettingPanel/reset_button_bg.png";
         private const string PanelSpritePath = ArtRoot + "mission_panel_v2.png";
         private const string ObjectiveCardPath = ArtRoot + "mission_objective_card_v2.png";
         private const string RowClaimablePath = ArtRoot + "mission_row_claimable_v2.png";
@@ -32,9 +33,9 @@ namespace _Project.Editor
         private const string CoinIconPath = ArtRoot + "icon_coin_v2.png";
         private const string BackIconPath = ArtRoot + "icon_back_v2.png";
         private const string ArrowIconPath = ArtRoot + "icon_arrow_v2.png";
-        private const string ClaimButtonNormalPath = ArtRoot + "claim_button_normal_v2.png";
-        private const string ClaimButtonPressedPath = ArtRoot + "claim_button_pressed_v2.png";
-        private const string ClaimButtonDisabledPath = ArtRoot + "claim_button_disabled_v2.png";
+        private const string ClaimButtonNormalPath = SharedButtonPath;
+        private const string ClaimButtonPressedPath = SharedButtonPath;
+        private const string ClaimButtonDisabledPath = SharedButtonPath;
         private const string MissionButtonIdlePath = ArtRoot + "mission_button_idle_v2.png";
         private const string MissionButtonAlertPath = ArtRoot + "mission_button_alert_v2.png";
         private const string MissionButtonRewardPath = ArtRoot + "mission_button_reward_v2.png";
@@ -524,9 +525,7 @@ namespace _Project.Editor
             ConfigureSprite(RowPhaseLockedPath, new Vector4(16f, 16f, 16f, 16f));
             ConfigureSprite(ProgressBgPath, new Vector4(4f, 4f, 4f, 4f));
             ConfigureSprite(ProgressFillPath, new Vector4(4f, 4f, 4f, 4f));
-            ConfigureSprite(ClaimButtonNormalPath, new Vector4(12f, 12f, 12f, 12f));
-            ConfigureSprite(ClaimButtonPressedPath, new Vector4(12f, 12f, 12f, 12f));
-            ConfigureSprite(ClaimButtonDisabledPath, new Vector4(12f, 12f, 12f, 12f));
+            ConfigureSprite(ClaimButtonNormalPath, new Vector4(46f, 28f, 46f, 28f));
             ConfigureSprite(MissionButtonIdlePath, new Vector4(12f, 12f, 12f, 12f));
             ConfigureSprite(MissionButtonAlertPath, new Vector4(12f, 12f, 12f, 12f));
             ConfigureSprite(MissionButtonRewardPath, new Vector4(12f, 12f, 12f, 12f));

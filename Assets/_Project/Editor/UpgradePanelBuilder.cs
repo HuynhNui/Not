@@ -27,7 +27,7 @@ namespace _Project.Editor
         private const string ProjectileIconPath = "Assets/_Project/Art/UI/Generated/BulletIcon_clean.png";
         private const string SquadIconPath = "Assets/_Project/Art/UI/Generated/SquadIcon_clean.png";
         private const string RowBackgroundPath = "Assets/_Project/Art/UI/Generated/RowBG_clean.png";
-        private const string UpgradeButtonPath = "Assets/_Project/Art/UI/Generated/UpgradeButton_clean.png";
+        private const string UpgradeButtonPath = "Assets/_Project/Art/UI/SettingPanel/reset_button_bg.png";
 
         private static readonly Color Navy = new Color(0.035f, 0.12f, 0.28f, 0.98f);
         private static readonly Color DarkNavy = new Color(0.018f, 0.055f, 0.13f, 0.98f);
@@ -718,7 +718,7 @@ namespace _Project.Editor
                 new Vector2(1f, 0.5f),
                 new Vector2(1f, 0.5f),
                 new Vector2(1f, 0.5f),
-                new Vector2(-26f, -72f),
+                new Vector2(-42f, -56f),
                 new Vector2(310f, 106f),
                 Color.white);
             TextMeshProUGUI buttonText = CreateText(
@@ -758,7 +758,7 @@ namespace _Project.Editor
             ConfigureSprite(ProjectileIconPath, Vector4.zero);
             ConfigureSprite(SquadIconPath, Vector4.zero);
             ConfigureSprite(RowBackgroundPath, new Vector4(90f, 64f, 90f, 64f));
-            ConfigureSprite(UpgradeButtonPath, new Vector4(110f, 80f, 110f, 80f));
+            ConfigureSprite(UpgradeButtonPath, new Vector4(46f, 28f, 46f, 28f));
         }
 
         private static void ConfigureSprite(string path, Vector4 border)

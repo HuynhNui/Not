@@ -12,6 +12,7 @@ namespace _Project.Editor
     public static class TutorialSceneSetup
     {
         private const string TutorialAssetRoot = "Assets/_Project/Art/UI/Tutorial";
+        private const string SharedButtonPath = "Assets/_Project/Art/UI/SettingPanel/reset_button_bg.png";
         private const string MainScenePath = "Assets/_Project/Scenes/Main.unity";
 
         [MenuItem("Tools/True Gate/Tutorial/Setup Tutorial UI")]
@@ -116,13 +117,22 @@ namespace _Project.Editor
             upgradeCallout.sizeDelta = new Vector2(240f, 128f);
             upgradeCallout.gameObject.SetActive(false);
 
-            Button skipButton = CreateButton(overlayRect, "SkipButton", LoadSprite("skip_button.png"));
+            Button skipButton = CreateButton(overlayRect, "SkipButton", AssetDatabase.LoadAssetAtPath<Sprite>(SharedButtonPath));
+            skipButton.GetComponent<Image>().type = Image.Type.Sliced;
             RectTransform skipRect = skipButton.transform as RectTransform;
-            skipRect.anchorMin = new Vector2(1f, 1f);
-            skipRect.anchorMax = new Vector2(1f, 1f);
-            skipRect.pivot = new Vector2(1f, 1f);
-            skipRect.anchoredPosition = new Vector2(-24f, -24f);
+            skipRect.anchorMin = new Vector2(1f, 0f);
+            skipRect.anchorMax = new Vector2(1f, 0f);
+            skipRect.pivot = new Vector2(1f, 0f);
+            skipRect.anchoredPosition = new Vector2(-24f, 24f);
             skipRect.sizeDelta = new Vector2(132f, 58f);
+            TextMeshProUGUI skipText = CreateText(skipRect, "Label", 24, FontStyles.Bold);
+            skipText.rectTransform.anchorMin = Vector2.zero;
+            skipText.rectTransform.anchorMax = Vector2.one;
+            skipText.rectTransform.offsetMin = Vector2.zero;
+            skipText.rectTransform.offsetMax = Vector2.zero;
+            skipText.alignment = TextAlignmentOptions.Center;
+            skipText.color = new Color(0.035f, 0.15f, 0.34f, 1f);
+            skipText.text = "SKIP";
             skipButton.gameObject.SetActive(false);
 
             AssignOverlayReferences(

@@ -50,16 +50,15 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void ProjectileCount_IncreasesCoverageButReducesPerBulletDamage()
+        public void ProjectileCount_DoesNotReducePerBulletDamage()
         {
             float baseBulletDamage = BalanceV1Math.DamagePerMainBullet(1f, 5);
             float upgradedBulletDamage = BalanceV1Math.DamagePerMainBullet(1f, 16);
             float upgradedVolleyDamage = upgradedBulletDamage * 16f;
 
             Assert.That(baseBulletDamage, Is.EqualTo(1f).Within(0.0001f));
-            Assert.That(upgradedBulletDamage, Is.LessThan(baseBulletDamage));
-            Assert.That(upgradedVolleyDamage, Is.GreaterThan(5f));
-            Assert.That(upgradedVolleyDamage, Is.LessThan(16f));
+            Assert.That(upgradedBulletDamage, Is.EqualTo(baseBulletDamage).Within(0.0001f));
+            Assert.That(upgradedVolleyDamage, Is.EqualTo(16f).Within(0.0001f));
         }
 
         [Test]
@@ -91,12 +90,12 @@ namespace _Project.Tests.Editor
             float fullMeta = BalanceV1Math.EffectiveDps(3f, 6.4f, 3, 4, combat);
             float ratio = fullMeta / baseline;
 
-            Assert.That(baseline, Is.EqualTo(15.06f).Within(0.01f));
-            Assert.That(fullMeta, Is.EqualTo(344.6f).Within(0.2f));
-            Assert.That(ratio, Is.InRange(22.5f, 23.5f));
+            Assert.That(baseline, Is.EqualTo(4f).Within(0.01f));
+            Assert.That(fullMeta, Is.EqualTo(229.94f).Within(0.2f));
+            Assert.That(ratio, Is.InRange(57f, 58f));
             Assert.That(
                 BalanceV1Math.DamagePerMainBullet(3f, 3, combat),
-                Is.EqualTo(4.496f).Within(0.001f));
+                Is.EqualTo(3f).Within(0.001f));
         }
 
         [Test]
@@ -1037,7 +1036,7 @@ namespace _Project.Tests.Editor
         }
 
         [Test]
-        public void BulletSpawner_ExposesEffectiveFireRateAndNormalizedDamage()
+        public void BulletSpawner_ExposesEffectiveFireRateAndDirectDamage()
         {
             var gameObject = new GameObject("BulletSpawnerTest");
             BulletSpawner spawner = gameObject.AddComponent<BulletSpawner>();
@@ -1048,7 +1047,7 @@ namespace _Project.Tests.Editor
                 spawner.SetProjectileCount(16);
 
                 Assert.That(spawner.EffectiveFireRate, Is.EqualTo(12f).Within(0.0001f));
-                Assert.That(spawner.DamagePerProjectile, Is.LessThan(1f));
+                Assert.That(spawner.DamagePerProjectile, Is.EqualTo(1f).Within(0.0001f));
 
                 float mainDamage = spawner.DamagePerProjectile;
                 spawner.SetShooterDamageScale(0.25f);

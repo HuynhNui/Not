@@ -124,12 +124,7 @@ namespace _Project.Scripts.Systems.Balance
             int baseProjectileCount = DefaultBaseProjectileCount,
             float coverageCoefficient = DefaultProjectileCoverageCoefficient)
         {
-            int safeCount = Mathf.Max(1, projectileCount);
-            float safeDamage = Mathf.Max(0f, damage);
-            float volleyDamage = safeDamage
-                * Mathf.Max(1, baseProjectileCount)
-                * ProjectileFactor(safeCount, baseProjectileCount, coverageCoefficient);
-            return volleyDamage / safeCount;
+            return Mathf.Max(0f, damage);
         }
 
         public static float DamagePerMainBullet(
@@ -159,11 +154,7 @@ namespace _Project.Scripts.Systems.Balance
         {
             return Mathf.Max(0f, damage)
                 * EffectiveFireRate(rawFireRate, fireSoftCapStart, fireSoftCapMax)
-                * Mathf.Max(1, baseProjectileCount)
-                * ProjectileFactor(
-                    projectileCount,
-                    baseProjectileCount,
-                    projectileCoverageCoefficient)
+                * Mathf.Max(1, projectileCount)
                 * SquadFactor(squadCount, squadCoverageCoefficient);
         }
 
@@ -181,8 +172,7 @@ namespace _Project.Scripts.Systems.Balance
 
             return Mathf.Max(0f, damage)
                 * EffectiveFireRate(rawFireRate, config)
-                * Mathf.Max(1, config.BaseProjectileCount)
-                * ProjectileFactor(projectileCount, config)
+                * Mathf.Max(1, projectileCount)
                 * SquadFactor(squadCount, config);
         }
 

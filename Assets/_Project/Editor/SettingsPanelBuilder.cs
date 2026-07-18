@@ -25,8 +25,8 @@ namespace _Project.Editor
         private const string ToggleOffPath = ArtRoot + "toggle_off.png";
         private const string ResetButtonPath = ArtRoot + "reset_button_bg.png";
         private const string GearIconPath = ArtRoot + "icon_gear.png";
-        private const string MusicIconPath = ArtRoot + "icon_music.png";
-        private const string SfxIconPath = ArtRoot + "icon_sfx.png";
+        private const string MusicIconPath = "Assets/_Project/Art/UI/PausePanel/MusicIcon.aseprite";
+        private const string SfxIconPath = "Assets/_Project/Art/UI/PausePanel/SpeakerIcon.aseprite";
         private const string VibrationIconPath = ArtRoot + "icon_vibration.png";
         private const string DamageTextIconPath = ArtRoot + "icon_damage_text.png";
         private const string ResetIconPath = ArtRoot + "icon_reset.png";
@@ -148,8 +148,6 @@ namespace _Project.Editor
             ConfigureSprite(ToggleOnPath, Vector4.zero, 512);
             ConfigureSprite(ToggleOffPath, Vector4.zero, 512);
             ConfigureSprite(GearIconPath, Vector4.zero, 512);
-            ConfigureSprite(MusicIconPath, Vector4.zero, 512);
-            ConfigureSprite(SfxIconPath, Vector4.zero, 512);
             ConfigureSprite(VibrationIconPath, Vector4.zero, 512);
             ConfigureSprite(DamageTextIconPath, Vector4.zero, 512);
             ConfigureSprite(ResetIconPath, Vector4.zero, 512);
@@ -727,7 +725,8 @@ namespace _Project.Editor
         {
             if (string.IsNullOrEmpty(spriteName))
             {
-                return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                return AssetDatabase.LoadAssetAtPath<Sprite>(path)
+                    ?? AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().FirstOrDefault();
             }
 
             return AssetDatabase.LoadAllAssetsAtPath(path)

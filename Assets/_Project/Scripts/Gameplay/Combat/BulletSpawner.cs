@@ -47,10 +47,7 @@ namespace _Project.Scripts.Gameplay.Combat
         public float FireRate => fireRate;
         public float EffectiveFireRate => BalanceV1Math.EffectiveFireRate(fireRate, combatScalingConfig);
         public float Damage => damage;
-        public float DamagePerProjectile => BalanceV1Math.DamagePerMainBullet(
-            damage,
-            projectileCount,
-            combatScalingConfig) * _shooterDamageScale;
+        public float DamagePerProjectile => Mathf.Max(0f, damage) * _shooterDamageScale;
         public float BulletSpeed => bulletSpeed;
         public int ProjectileCount => projectileCount;
         public float VisualTierDamage => visualTierDamage;

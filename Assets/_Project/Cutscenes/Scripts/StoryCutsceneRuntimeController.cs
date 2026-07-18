@@ -2,6 +2,7 @@ using System;
 using _Project.Scripts.Systems.MissionSystem;
 using _Project.Scripts.Systems.RunStatsSystem;
 using _Project.Scripts.Systems.SaveSystem;
+using _Project.Scripts.Systems.UISystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -310,11 +311,12 @@ namespace _Project.Cutscenes
             dialogueText.color = new Color(0.9f, 0.97f, 1f, 1f);
             SetAnchors(dialogueText.rectTransform, 0.05f, 0.27f, 0.95f, 0.7f);
 
-            GameObject nextButtonObject = CreateButton("NextButton", dialoguePanel.transform, "NEXT", 22f);
+            Sprite buttonSprite = ResolveSharedButtonSprite();
+            GameObject nextButtonObject = CreateButton("NextButton", dialoguePanel.transform, "NEXT", 22f, buttonSprite);
             SetAnchors(nextButtonObject.GetComponent<RectTransform>(), 0.55f, 0.06f, 0.75f, 0.24f);
             Button nextButton = nextButtonObject.GetComponent<Button>();
 
-            GameObject closeButtonObject = CreateButton("CloseButton", dialoguePanel.transform, "SKIP", 22f);
+            GameObject closeButtonObject = CreateButton("CloseButton", dialoguePanel.transform, "SKIP", 22f, buttonSprite);
             SetAnchors(closeButtonObject.GetComponent<RectTransform>(), 0.78f, 0.06f, 0.95f, 0.24f);
             Button closeButton = closeButtonObject.GetComponent<Button>();
 
@@ -325,7 +327,8 @@ namespace _Project.Cutscenes
                 "ContinueProtocolButton",
                 finalChoicePanel.transform,
                 "CONTINUE PROTOCOL",
-                18f);
+                18f,
+                buttonSprite);
             SetAnchors(continueButtonObject.GetComponent<RectTransform>(), 0f, 0.52f, 1f, 1f);
             Button continueButton = continueButtonObject.GetComponent<Button>();
 
@@ -333,7 +336,8 @@ namespace _Project.Cutscenes
                 "ShutDownCoreButton",
                 finalChoicePanel.transform,
                 "SHUT DOWN CORE",
-                18f);
+                18f,
+                buttonSprite);
             SetAnchors(shutDownButtonObject.GetComponent<RectTransform>(), 0f, 0f, 1f, 0.48f);
             Button shutDownButton = shutDownButtonObject.GetComponent<Button>();
 
@@ -437,11 +441,24 @@ namespace _Project.Cutscenes
             return rect;
         }
 
-        private static GameObject CreateButton(string objectName, Transform parent, string label, float fontSize)
+        private static Sprite ResolveSharedButtonSprite()
+        {
+            UISystem uiSystem = FindAnyObjectByType<UISystem>(FindObjectsInactive.Include);
+            return uiSystem != null ? uiSystem.SharedYellowButtonSprite : null;
+        }
+
+        private static GameObject CreateButton(
+            string objectName,
+            Transform parent,
+            string label,
+            float fontSize,
+            Sprite sprite)
         {
             GameObject buttonObject = CreateRect(objectName, parent);
             Image image = buttonObject.AddComponent<Image>();
-            image.color = new Color(0.95f, 0.76f, 0.1f, 1f);
+            image.sprite = sprite;
+            image.type = sprite != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.color = sprite != null ? Color.white : new Color(0.95f, 0.76f, 0.1f, 1f);
 
             Button button = buttonObject.AddComponent<Button>();
             button.targetGraphic = image;

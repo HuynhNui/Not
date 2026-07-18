@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using RuntimeUISystem = _Project.Scripts.Systems.UISystem.UISystem;
 
 namespace _Project.Scripts.Systems.TutorialSystem
 {
@@ -31,6 +32,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
         private void Awake()
         {
             ResolveReferences();
+            StyleSkipButton();
             WireButtons();
             HideOverlay();
         }
@@ -256,6 +258,55 @@ namespace _Project.Scripts.Systems.TutorialSystem
                     swipeLeftRightSprite = swipeImage.sprite;
                 }
             }
+        }
+
+        private void StyleSkipButton()
+        {
+            if (skipButton == null)
+            {
+                return;
+            }
+
+            RectTransform rect = skipButton.transform as RectTransform;
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(1f, 0f);
+                rect.anchorMax = new Vector2(1f, 0f);
+                rect.pivot = new Vector2(1f, 0f);
+                rect.anchoredPosition = new Vector2(-24f, 24f);
+                rect.sizeDelta = new Vector2(132f, 58f);
+            }
+
+            Image image = skipButton.targetGraphic as Image ?? skipButton.GetComponent<Image>();
+            RuntimeUISystem uiSystem = FindAnyObjectByType<RuntimeUISystem>(FindObjectsInactive.Include);
+            if (image != null && uiSystem != null && uiSystem.SharedYellowButtonSprite != null)
+            {
+                image.sprite = uiSystem.SharedYellowButtonSprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+                image.color = Color.white;
+            }
+
+            TextMeshProUGUI label = skipButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label == null)
+            {
+                GameObject labelObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+                labelObject.transform.SetParent(skipButton.transform, false);
+                label = labelObject.GetComponent<TextMeshProUGUI>();
+            }
+
+            RectTransform labelRect = label.rectTransform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            label.text = "SKIP";
+            label.font = speakerText != null ? speakerText.font : bodyText != null ? bodyText.font : null;
+            label.fontSize = 24f;
+            label.fontStyle = FontStyles.Bold;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = new Color(0.035f, 0.15f, 0.34f, 1f);
+            label.raycastTarget = false;
         }
 
         private void EnsureSwipeIconSprite()
