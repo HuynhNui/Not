@@ -12,6 +12,18 @@ namespace _Project.Tests.Editor
     public sealed class UpdateOnboardingTests
     {
         [Test]
+        public void UpdateOnboardingDefinition_IsIncludedInSharedTutorialSource()
+        {
+            StoryCutsceneDefinition definition = TutorialCutsceneDefinitions.UpdateOnboarding;
+
+            Assert.That(definition.CutsceneId, Is.EqualTo("TUTORIAL_UPDATE_ONBOARDING"));
+            Assert.That(definition.Lines.Count, Is.EqualTo(4));
+            Assert.That(definition.Lines[0].Text, Is.EqualTo("Combat shell destroyed."));
+            Assert.That(definition.Lines[3].Text, Is.EqualTo("Open UPDATE."));
+            Assert.That(TutorialCutsceneDefinitions.GetAll(), Does.Contain(definition));
+        }
+
+        [Test]
         public void UpdateOnboardingSaveAliases_UseUpgradeTutorialCompatibilityFlag()
         {
             string directoryPath = CreateTempDirectoryPath("true-gate-update-onboarding-save");

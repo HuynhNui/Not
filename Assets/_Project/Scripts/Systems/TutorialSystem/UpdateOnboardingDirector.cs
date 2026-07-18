@@ -8,8 +8,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
 {
     public sealed class UpdateOnboardingDirector : MonoBehaviour
     {
-        private const string UpdateOnboardingCutsceneId = "TUTORIAL_UPDATE_ONBOARDING";
-
         [SerializeField] private float spotlightOpacity = 0.62f;
         [SerializeField] private Vector2 spotlightPadding = new Vector2(14f, 10f);
 
@@ -77,7 +75,7 @@ namespace _Project.Scripts.Systems.TutorialSystem
             bool cutsceneDone = false;
             bool started = _cutsceneRuntime != null
                 && _cutsceneRuntime.TryPlayTransientCutscene(
-                    CreateUpdateOnboardingCutscene(),
+                    TutorialCutsceneDefinitions.UpdateOnboarding,
                     () => cutsceneDone = true,
                     StoryCutscenePresentationMode.DialogueOnlyOverlay);
 
@@ -119,19 +117,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
             }
 
             _manager?.CompleteUpdateOnboarding();
-        }
-
-        private static StoryCutsceneDefinition CreateUpdateOnboardingCutscene()
-        {
-            return new StoryCutsceneDefinition(
-                UpdateOnboardingCutsceneId,
-                new[]
-                {
-                    new StoryDialogueLine("SYSTEM", "cold", "Combat shell destroyed."),
-                    new StoryDialogueLine("SYSTEM", "cold", "Core recovered."),
-                    new StoryDialogueLine("SYSTEM", "cold", "Combat data can reinforce the next shell."),
-                    new StoryDialogueLine("SYSTEM", "cold", "Open UPDATE.")
-                });
         }
     }
 }

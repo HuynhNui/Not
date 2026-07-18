@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace _Project.Cutscenes
@@ -263,6 +264,27 @@ namespace _Project.Cutscenes
                     new StoryDialogueLine("SYSTEM", "silent", "Core offline."),
                 }),
         };
+
+        private static readonly StoryCutsceneDefinition[] OrderedDefinitions =
+        {
+            Definitions[StoryCutsceneIds.BootSequence],
+            Definitions[StoryCutsceneIds.FirstDeathRecovery],
+            Definitions[StoryCutsceneIds.EnemyDoesNotCharge],
+            Definitions[StoryCutsceneIds.GateMemoryLeak],
+            Definitions[StoryCutsceneIds.HumanCommand],
+            Definitions[StoryCutsceneIds.SystemFatigue],
+            Definitions[StoryCutsceneIds.FinalChoicePreChoice],
+            Definitions[StoryCutsceneIds.FinalChoiceContinueProtocol],
+            Definitions[StoryCutsceneIds.FinalChoiceShutDownCore]
+        };
+
+        private static readonly IReadOnlyList<StoryCutsceneDefinition> OrderedDefinitionsView =
+            Array.AsReadOnly(OrderedDefinitions);
+
+        public static IReadOnlyList<StoryCutsceneDefinition> GetAll()
+        {
+            return OrderedDefinitionsView;
+        }
 
         public static bool TryGet(string cutsceneId, out StoryCutsceneDefinition definition)
         {
