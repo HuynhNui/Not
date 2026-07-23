@@ -21,6 +21,7 @@ namespace _Project.Cutscenes
         private string _activeCutsceneId;
         private StoryCutsceneDefinition _activeDefinition;
         private int _activeLineIndex;
+        private StoryEasyCutsceneVoiceAdapter _easyCutsceneAdapter;
 
         public event Action<string> OnCutsceneStarted;
         public event Action<string> OnCutsceneFinished;
@@ -53,6 +54,7 @@ namespace _Project.Cutscenes
 
         private void OnDestroy()
         {
+            _easyCutsceneAdapter?.StopObserving();
             UnwireButtons();
         }
 
@@ -67,6 +69,7 @@ namespace _Project.Cutscenes
             _activeCutsceneId = definition.CutsceneId;
             _activeDefinition = definition;
             _activeLineIndex = 0;
+            _easyCutsceneAdapter?.StopObserving();
 
             view?.ShowCutscene();
             RaiseStarted(_activeCutsceneId);
@@ -91,6 +94,7 @@ namespace _Project.Cutscenes
             _activeCutsceneId = definition.CutsceneId;
             _activeDefinition = definition;
             _activeLineIndex = 0;
+            _easyCutsceneAdapter?.StopObserving();
 
             view?.SetPresentationMode(presentationMode);
             view?.ShowCutscene();
@@ -145,7 +149,8 @@ namespace _Project.Cutscenes
                 return false;
             }
 
-            if (easyCutsceneManager.getCutscenesObject(cutsceneId) == null)
+            HisaGames.Cutscene.EcCutscene easyCutscene = easyCutsceneManager.getCutscenesObject(cutsceneId);
+            if (easyCutscene == null)
             {
                 if (warnWhenUsingFallback)
                 {
@@ -155,8 +160,37 @@ namespace _Project.Cutscenes
                 return false;
             }
 
+            easyCutsceneManager.autoplayTime = -1f;
             easyCutsceneManager.InitCutscenes(cutsceneId);
+            _easyCutsceneAdapter ??= GetComponent<StoryEasyCutsceneVoiceAdapter>();
+            _easyCutsceneAdapter ??= gameObject.AddComponent<StoryEasyCutsceneVoiceAdapter>();
+            _easyCutsceneAdapter.Begin(this, easyCutsceneManager, easyCutscene);
             return true;
+        }
+
+        internal void NotifyEasyDialogueAdvanceRequested()
+        {
+            OnDialogueAdvanceRequested?.Invoke();
+        }
+
+        internal void NotifyEasyDialogueLineShown(int lineIndex)
+        {
+            if (_activeDefinition == null
+                || lineIndex < 0
+                || lineIndex >= _activeDefinition.Lines.Count)
+            {
+                Debug.LogWarning(
+                    $"Easy Cutscene line {lineIndex} is outside STORY definition '{_activeCutsceneId}'.");
+                return;
+            }
+
+            _activeLineIndex = lineIndex;
+            RaiseDialogueLineShown(_activeDefinition.Lines[lineIndex]);
+        }
+
+        internal void NotifyEasyCutsceneFinished()
+        {
+            FinishActiveCutscene();
         }
 
         private void AdvanceLine()
@@ -196,6 +230,11 @@ namespace _Project.Cutscenes
 
             view.ShowCutscene();
             view.SetDialogueLine(line);
+            RaiseDialogueLineShown(line);
+        }
+
+        private void RaiseDialogueLineShown(StoryDialogueLine line)
+        {
             OnDialogueLineShown?.Invoke(
                 _activeCutsceneId,
                 _activeLineIndex,
@@ -267,6 +306,7 @@ namespace _Project.Cutscenes
 
         private void FinishActiveCutscene()
         {
+            _easyCutsceneAdapter?.StopObserving();
             view?.ReturnToMenu();
             view?.SetPresentationMode(StoryCutscenePresentationMode.FullScreen);
 

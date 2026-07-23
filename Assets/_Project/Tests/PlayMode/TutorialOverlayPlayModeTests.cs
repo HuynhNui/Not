@@ -12,7 +12,7 @@ namespace _Project.Tests.PlayMode
         [UnityTest]
         public IEnumerator Overlay_ShowHide_DoesNotThrow()
         {
-            Component overlay = CreateOverlay(out GameObject root, out _, out _);
+            Component overlay = CreateOverlay(out GameObject root, out _);
 
             Assert.DoesNotThrow(() => Invoke(overlay, "ShowOverlay", true, true));
             Assert.DoesNotThrow(() => Invoke(overlay, "HideOverlay"));
@@ -22,38 +22,13 @@ namespace _Project.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator HighlightMissingTarget_DoesNotThrow()
-        {
-            Component overlay = CreateOverlay(out GameObject root, out _, out _);
-
-            Assert.DoesNotThrow(() => Invoke(overlay, "HighlightRect", null, Vector2.zero));
-
-            Object.Destroy(root);
-            yield return null;
-        }
-
-        [UnityTest]
         public IEnumerator SkipButton_InvokesEvent()
         {
-            Component overlay = CreateOverlay(out GameObject root, out Button skipButton, out _);
+            Component overlay = CreateOverlay(out GameObject root, out Button skipButton);
             bool invoked = false;
             AddEventHandler(overlay, "SkipClicked", () => invoked = true);
 
             skipButton.onClick.Invoke();
-
-            Assert.That(invoked, Is.True);
-            Object.Destroy(root);
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator NextButton_InvokesEvent()
-        {
-            Component overlay = CreateOverlay(out GameObject root, out _, out Button nextButton);
-            bool invoked = false;
-            AddEventHandler(overlay, "NextClicked", () => invoked = true);
-
-            nextButton.onClick.Invoke();
 
             Assert.That(invoked, Is.True);
             Object.Destroy(root);
@@ -66,7 +41,7 @@ namespace _Project.Tests.PlayMode
             var parent = new GameObject("TutorialOverlayParent", typeof(RectTransform));
             var sibling = new GameObject("GameplayHudSibling", typeof(RectTransform));
             sibling.transform.SetParent(parent.transform, false);
-            Component overlay = CreateOverlay(out GameObject root, out _, out _);
+            Component overlay = CreateOverlay(out GameObject root, out _);
             root.transform.SetParent(parent.transform, false);
             sibling.transform.SetAsLastSibling();
 
@@ -80,7 +55,7 @@ namespace _Project.Tests.PlayMode
         [UnityTest]
         public IEnumerator ShowSwipeIcon_EnablesSpriteAndPreservesAspect()
         {
-            Component overlay = CreateOverlay(out GameObject root, out _, out _);
+            Component overlay = CreateOverlay(out GameObject root, out _);
             RectTransform swipe = (RectTransform)GetField(overlay, "swipeLeftRightIcon");
             Image swipeImage = swipe.GetComponent<Image>();
             Sprite sprite = CreateTestSprite();
@@ -102,8 +77,7 @@ namespace _Project.Tests.PlayMode
 
         private static Component CreateOverlay(
             out GameObject root,
-            out Button skipButton,
-            out Button nextButton)
+            out Button skipButton)
         {
             root = new GameObject("TutorialOverlayTestRoot", typeof(RectTransform), typeof(CanvasGroup));
             root.SetActive(false);
@@ -111,21 +85,12 @@ namespace _Project.Tests.PlayMode
                 "_Project.Scripts.Systems.TutorialSystem.TutorialOverlayUI"));
 
             Image dim = CreateImage(root.transform, "DimBackground");
-            RectTransform highlight = CreateImage(root.transform, "FocusHighlightFrame").rectTransform;
             RectTransform swipe = CreateImage(root.transform, "SwipeLeftRightIcon").rectTransform;
-            RectTransform dialog = CreateImage(root.transform, "TutorialDialogPanel").rectTransform;
-            RectTransform callout = CreateImage(root.transform, "UpgradeCallout").rectTransform;
             skipButton = CreateButton(root.transform, "SkipButton");
-            nextButton = CreateButton(dialog, "NextButton");
 
             SetField(overlay, "canvasGroup", root.GetComponent<CanvasGroup>());
             SetField(overlay, "dimBackground", dim);
-            SetField(overlay, "focusHighlightFrame", highlight);
-            SetField(overlay, "focusHighlightImage", highlight.GetComponent<Image>());
             SetField(overlay, "swipeLeftRightIcon", swipe);
-            SetField(overlay, "tutorialDialogPanel", dialog);
-            SetField(overlay, "nextButton", nextButton);
-            SetField(overlay, "upgradeCallout", callout);
             SetField(overlay, "skipButton", skipButton);
 
             root.SetActive(true);

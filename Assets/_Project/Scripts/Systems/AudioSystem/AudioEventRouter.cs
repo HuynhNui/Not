@@ -410,18 +410,6 @@ namespace _Project.Scripts.Systems.AudioSystem
 
         private void HandleDialogueLineShown(string cutsceneId, int lineIndex, int lineCount, StoryDialogueLine line)
         {
-            if (line != null)
-            {
-                if (line.Speaker == "SYSTEM")
-                {
-                    audioSystem?.PlayDialogue(AudioCueId.DialogueTypeSystem);
-                }
-                else if (line.Speaker == "UNIT-07")
-                {
-                    audioSystem?.PlayDialogue(AudioCueId.DialogueTypeUnit07);
-                }
-            }
-
             if (cutsceneId == StoryCutsceneIds.FinalChoiceShutDownCore && lineIndex == lineCount - 1)
             {
                 audioSystem?.PlaySfx(AudioCueId.CoreShutdown);

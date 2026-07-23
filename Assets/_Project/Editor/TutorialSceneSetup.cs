@@ -45,16 +45,6 @@ namespace _Project.Editor
                 stretch: true,
                 raycastTarget: true);
 
-            RectTransform focusHighlight = CreateImage(
-                overlayRect,
-                "FocusHighlightFrame",
-                LoadSprite("focus_highlight_frame.png"),
-                Color.white,
-                stretch: false,
-                raycastTarget: false).rectTransform;
-            focusHighlight.sizeDelta = new Vector2(220f, 140f);
-            focusHighlight.gameObject.SetActive(false);
-
             RectTransform swipeIcon = CreateImage(
                 overlayRect,
                 "SwipeLeftRightIcon",
@@ -67,55 +57,6 @@ namespace _Project.Editor
             swipeIcon.anchoredPosition = Vector2.zero;
             swipeIcon.sizeDelta = new Vector2(150f, 92f);
             swipeIcon.gameObject.SetActive(false);
-
-            RectTransform dialogPanel = CreateImage(
-                overlayRect,
-                "TutorialDialogPanel",
-                LoadSprite("tutorial_dialog_panel.png"),
-                Color.white,
-                stretch: false,
-                raycastTarget: false).rectTransform;
-            dialogPanel.anchorMin = new Vector2(0.5f, 0f);
-            dialogPanel.anchorMax = new Vector2(0.5f, 0f);
-            dialogPanel.pivot = new Vector2(0.5f, 0f);
-            dialogPanel.anchoredPosition = new Vector2(0f, 34f);
-            dialogPanel.sizeDelta = new Vector2(620f, 190f);
-
-            TextMeshProUGUI speakerText = CreateText(dialogPanel, "SpeakerText", 22, FontStyles.Bold);
-            speakerText.rectTransform.anchorMin = new Vector2(0f, 1f);
-            speakerText.rectTransform.anchorMax = new Vector2(1f, 1f);
-            speakerText.rectTransform.pivot = new Vector2(0.5f, 1f);
-            speakerText.rectTransform.offsetMin = new Vector2(34f, -58f);
-            speakerText.rectTransform.offsetMax = new Vector2(-34f, -22f);
-            speakerText.text = "SYSTEM";
-
-            TextMeshProUGUI bodyText = CreateText(dialogPanel, "BodyText", 24, FontStyles.Normal);
-            bodyText.rectTransform.anchorMin = new Vector2(0f, 0f);
-            bodyText.rectTransform.anchorMax = new Vector2(1f, 1f);
-            bodyText.rectTransform.offsetMin = new Vector2(34f, 42f);
-            bodyText.rectTransform.offsetMax = new Vector2(-128f, -64f);
-            bodyText.text = "Movement calibration required.";
-
-            Button nextButton = CreateButton(dialogPanel, "NextButton", LoadSprite("next_button.png"));
-            RectTransform nextRect = nextButton.transform as RectTransform;
-            nextRect.anchorMin = new Vector2(1f, 0f);
-            nextRect.anchorMax = new Vector2(1f, 0f);
-            nextRect.pivot = new Vector2(1f, 0f);
-            nextRect.anchoredPosition = new Vector2(-28f, 24f);
-            nextRect.sizeDelta = new Vector2(92f, 52f);
-            nextButton.gameObject.SetActive(false);
-
-            RectTransform upgradeCallout = CreateImage(
-                overlayRect,
-                "UpgradeCallout",
-                LoadSprite("upgrade_callout.png"),
-                Color.white,
-                stretch: false,
-                raycastTarget: false).rectTransform;
-            upgradeCallout.anchorMin = new Vector2(0.5f, 0.5f);
-            upgradeCallout.anchorMax = new Vector2(0.5f, 0.5f);
-            upgradeCallout.sizeDelta = new Vector2(240f, 128f);
-            upgradeCallout.gameObject.SetActive(false);
 
             Button skipButton = CreateButton(overlayRect, "SkipButton", AssetDatabase.LoadAssetAtPath<Sprite>(SharedButtonPath));
             skipButton.GetComponent<Image>().type = Image.Type.Sliced;
@@ -139,14 +80,7 @@ namespace _Project.Editor
                 overlay,
                 canvasGroup,
                 dimBackground,
-                focusHighlight,
-                focusHighlight.GetComponent<Image>(),
                 swipeIcon,
-                dialogPanel,
-                speakerText,
-                bodyText,
-                nextButton,
-                upgradeCallout,
                 skipButton);
 
             GameManager gameManager = Object.FindAnyObjectByType<GameManager>(FindObjectsInactive.Include);
@@ -351,27 +285,13 @@ namespace _Project.Editor
             TutorialOverlayUI overlay,
             CanvasGroup canvasGroup,
             Image dimBackground,
-            RectTransform focusHighlight,
-            Image focusHighlightImage,
             RectTransform swipeIcon,
-            RectTransform dialogPanel,
-            TextMeshProUGUI speakerText,
-            TextMeshProUGUI bodyText,
-            Button nextButton,
-            RectTransform upgradeCallout,
             Button skipButton)
         {
             SerializedObject serialized = new SerializedObject(overlay);
             SetReference(serialized, "canvasGroup", canvasGroup);
             SetReference(serialized, "dimBackground", dimBackground);
-            SetReference(serialized, "focusHighlightFrame", focusHighlight);
-            SetReference(serialized, "focusHighlightImage", focusHighlightImage);
             SetReference(serialized, "swipeLeftRightIcon", swipeIcon);
-            SetReference(serialized, "tutorialDialogPanel", dialogPanel);
-            SetReference(serialized, "speakerText", speakerText);
-            SetReference(serialized, "bodyText", bodyText);
-            SetReference(serialized, "nextButton", nextButton);
-            SetReference(serialized, "upgradeCallout", upgradeCallout);
             SetReference(serialized, "skipButton", skipButton);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }

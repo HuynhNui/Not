@@ -1,0 +1,1463 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36328e71d4576d04789443d517fa34cb, type: 3}
+  m_Name: VoiceLineCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Systems.AudioSystem.VoiceLineCatalog
+  entries:
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_000
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 0
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d5301a5043a601a4aab6b94aaa5f567e, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_001
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: a71de5dc6a3279d4aa37d96843d876f1, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_002
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 9da00ad3e3e9145489cbfaba90d20f2e, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_003
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 3
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 14aa19b29ec5d2745b115cc1ac299008, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_004
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 4
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 8fed4f33ca5e70345a3cfe9f129fb914, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_005
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 5
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: cb87bdbc92132a64692b9f6cd30beef4, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_006
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 6
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 622bee36bb752484e8fe3e768ba20982, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_007
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 7
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 9c4c1f9cbce1f2c408a82bc42c635d02, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_008
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 8
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 449f33c7c4efa7742900a66091415391, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_009
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 9
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 93ee9429d1a80be4c87f6d50d8186543, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_010
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 10
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 69b0dd1c799847f4a90f73f19dd3d171, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_011
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 11
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d02bcf6a517f8c84b995b251972e0dbe, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_012
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 12
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 1181e1211f86c844e83b85dc9a5e3a36, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_013
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 13
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 7753efd57767c6b44a7b2089213a86d4, type: 3}
+  - voiceId: VO_CS_CS_01_BOOTSEQUENCE_014
+    sourceType: STORY
+    sourceId: CS_01_BootSequence
+    lineIndex: 14
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 481901551799da44d8622a563d12b0fd, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_000
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 0
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d20e307bf67959940b7881cc9db0253f, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_001
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: a08e98ef5cfbefd418701bc4e809ee18, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_002
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 4e68a0a552e183c44acd14cb554eb95a, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_003
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 3
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: 0dd2dfd4a7c864c48b235ea0c7b03d87, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_004
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 4
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: a3a2270cf2b5b514ab0d211242ac5a05, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_005
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 5
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d636365023726be4fa2dd65367bc8259, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_006
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 6
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 128a7fe504f86f64f9be349efbce2eef, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_007
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 7
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 27fd3eb5f6e2f914abd2cbab4063a732, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_008
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 8
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 0fc1f71794c92fe4b952828b96cd856b, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_009
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 9
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 96d1e6dd1eb592b47ad607a5f03ba8c5, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_010
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 10
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: bdd1a3d265227204a936c992b7ae1cb6, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_011
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 11
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: ccaaf8b2e704afe4a8188c921d6aa528, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_012
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 12
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 4388fa15147e9b34bb42abdfaa89b6ee, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_013
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 13
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: c8ea343ba6cd65149a2eeba4f34df1be, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_014
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 14
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: ac0d1a07465b0154791288bc45ee82ea, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_015
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 15
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 12aab1b8473c6e74da8cc062715aa990, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_016
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 16
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 4c25e2c12393c9e4ca93a9e1452cfc76, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_017
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 17
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 786a625dd20032c41b39580f8fcbd19f, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_018
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 18
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 2e61356d9992ef6429f460184b6b9193, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_019
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 19
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: c92ce32ec1624d24599cda32980fda90, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_020
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 20
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 6f419be6431726a40b2c80439186aacf, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_021
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 21
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: 75812e2a94be4814c8b8f12a293bc030, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_022
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 22
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 4347389e643bbd74399143a7f3140410, type: 3}
+  - voiceId: VO_CS_CS_02_FIRSTDEATHRECOVERY_023
+    sourceType: STORY
+    sourceId: CS_02_FirstDeathRecovery
+    lineIndex: 23
+    speaker: UNIT-07
+    emotion: proud
+    clip: {fileID: 8300000, guid: bdd6ee0cf889c8046ae3e20a1104bfa0, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_000
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 0
+    speaker: SYSTEM
+    emotion: alert
+    clip: {fileID: 8300000, guid: fc3574589a021fa4da49d04c5d3055e2, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_001
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: alert
+    clip: {fileID: 8300000, guid: 948c263e645ce9844ad9fc0d0e1e8856, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_002
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 2
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: fdeb0e754764cfc4aa34b507ce552a2f, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_003
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 3
+    speaker: SYSTEM
+    emotion: alert
+    clip: {fileID: 8300000, guid: a736768bfecbf5243a5f493d12239145, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_004
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 4
+    speaker: UNIT-07
+    emotion: alert
+    clip: {fileID: 8300000, guid: 29f311b727ddc96418dedb3578b87cb2, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_005
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 5
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 1ab8953cf53867b4b91e58743921feb9, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_006
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 6
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: 3c3e349c2f1ba614bb88487206b1c9d1, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_007
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 7
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: fd2cf18c91ede44468a2a50feff79285, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_008
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 8
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: 6c13a4f679a158b4cb3437c024e3ecf7, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_009
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 9
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 13027f51236728a40b0daa295b248fe7, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_010
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 10
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 52f86ff2045ff264992156906f4a9295, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_011
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 11
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 0045ff0d9d12cf94bbd488f88d1b2f4c, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_012
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 12
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 34b1bcc5c64fe1f46a3c95788863c6a7, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_013
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 13
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 3efe729756a0b9040a74524f733097a3, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_014
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 14
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: c522514f46d331f47a1b51357feb6f0e, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_015
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 15
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 2d9dc4587bb79d448bbf4b2f6519ab3b, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_016
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 16
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: e329531264933d848a02769d268964f7, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_017
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 17
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 6bcaf8e9715a46145b61e45689d68e15, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_018
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 18
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 4b4fb2ac8235add42a38f2a029a417f7, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_020
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 20
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 7ef170b81e622ba40b92819fe52b846c, type: 3}
+  - voiceId: VO_CS_CS_03_ENEMYDOESNOTCHARGE_021
+    sourceType: STORY
+    sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 21
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 75356bfbdce2db64cae31886e570442f, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_000
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 0
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 94914b2c486cdbb4ab2fdd463f22063b, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_001
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: c23a133f63354b246992d8a1f65ddad9, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_002
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 7599a91f98af5834ab9f3d567b84eb29, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_003
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 3
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 23f8ea1ddf7a67c469f199e3cd1410b3, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_004
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 4
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: deb4a900438b3f246989bf208a7d49c7, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_005
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 5
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 637670fbce6770b40ad5415ef1ff28a6, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_006
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 6
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 9f5c7afa23fb8234e94d61aa0eae4e2b, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_007
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 7
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 7635a93793184db4a8b24ff7144e8bd5, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_008
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 8
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: 30e4b6b3e21492245a7d720b6bf67dc5, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_009
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 9
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: c689040659da91343be0728854c53521, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_010
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 10
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: ecfb3b27569adce4b88e41d8145fefd9, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_011
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 11
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: c7a83ac5f240e1f45a5effe9835a1126, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_012
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 12
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 9286bfcc57b3eb04fac43086081ca283, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_013
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 13
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: be6249fe2ab0d504b9a0782ef4a1926b, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_014
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 14
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 30d66d9734ccf384caa8d6dd9d4c4f83, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_015
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 15
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 7ace1998c25827848927c9dca26c7650, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_016
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 16
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 4b3459254fb996d4d94e63ca0a093bc6, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_017
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 17
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: b66528a8f08516b49a423c6dae1bd649, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_018
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 18
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 0e64d1adfc370f54f9a9c0274321b99e, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_019
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 19
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: d156a079ac5d45744a58e6a4eabda90f, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_020
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 20
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: ad6eb3462bac8aa46ac9cea857d767fe, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_021
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 21
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 67a190b1684e315499cc8cf6942cbd2b, type: 3}
+  - voiceId: VO_CS_CS_04_GATEMEMORYLEAK_022
+    sourceType: STORY
+    sourceId: CS_04_GateMemoryLeak
+    lineIndex: 22
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 88257a0641334184ba7908aab1fbaecf, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_000
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 0
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: 2ded9933547dd7047b6495dc556d09c9, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_001
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: e65d3536c9c1b6b4d96a5fe3be07de95, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_002
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 2
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: 7333b7391e8eeb44f8eb5cd1b24b76bc, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_003
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 3
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: cecb3bb67ba430b4987207a0510429ba, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_004
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 4
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: b4dd95f54aac96b4a86440edf02e4e16, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_005
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 5
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: 95c2763b62d32474c88c7cd77e71b395, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_006
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 6
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 60943fe3552386d40a1a8cf0d3675dbb, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_008
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 8
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: b6dd97f25b19c9f49a6b4b5d214a09df, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_009
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 9
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 044638d249ad93146ab7a6b0e18299de, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_010
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 10
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: d1f9db5a669811f40afcf9fc9c825a8c, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_011
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 11
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: ade301f8042b59245a58a82a32e76cc5, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_012
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 12
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: a7afb9ce3fdeff34885752aa3c79bdab, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_013
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 13
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 1e9ef64bd35042e4baae0b92c9eac55a, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_014
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 14
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: aa2ce40775c028d42912f6ee2d36536e, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_015
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 15
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: bc341f86ff67d1445a0b55b7c9f55535, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_016
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 16
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: d67e76da3e634a6408541d11ea45bad8, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_017
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 17
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: fde7c2521f3fdd641980361863092180, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_018
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 18
+    speaker: HUMAN COMMAND
+    emotion: warning
+    clip: {fileID: 8300000, guid: 8bebbe3dfbe29a84587ff9d82e48724c, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_019
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 19
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 2e4cc790d6ffd58488f5cf872f10460f, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_020
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 20
+    speaker: UNIT-07
+    emotion: confused
+    clip: {fileID: 8300000, guid: af35320fb3059484894eef9e9d2e28a8, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_021
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 21
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: e8da5d8d27bb9494a848f5b8e82aab64, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_022
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 22
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: e350c16844b27d042b06eb4116a401d3, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_023
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 23
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: 23f5cae3fd4fb3846939ae49f623b58b, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_024
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 24
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: c00efbab34e23fa4a9810fc3045e049c, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_025
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 25
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 9eda2f947fc5b174398c3211e270b110, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_027
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 27
+    speaker: HUMAN COMMAND
+    emotion: cold
+    clip: {fileID: 8300000, guid: 1049742814473f54ea96184d2c3a35ee, type: 3}
+  - voiceId: VO_CS_CS_05_HUMANCOMMAND_028
+    sourceType: STORY
+    sourceId: CS_05_HumanCommand
+    lineIndex: 28
+    speaker: UNIT-07
+    emotion: hesitant
+    clip: {fileID: 8300000, guid: c9821bcf06f44694f94638f0e8a83c4b, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_000
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 0
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 506627d5c83cf244a83353fb52b09bcb, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_001
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 859d92d0ad7a75a4481e4f70b3aefdb9, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_002
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 7e77a67a77fce5249a6cd6e3a462ae74, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_003
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 3
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 50b863b0d70bc664c98eefd518014b84, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_004
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 4
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 858532d2a5c5ca7458f168dead749932, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_005
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 5
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 325043c9ead9e2440873934791b2698a, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_006
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 6
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 0859d43057ea672428c73a0bba8cda61, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_007
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 7
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: e2a5ce6478b220f45928fc8eff6bbe5f, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_008
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 8
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: b7c3c831d02035945b1cc28e6d643efc, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_009
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 9
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d1e025a13d26ca5498a131de4ad1b311, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_010
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 10
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 037d8134e52cac84bab13e5d04645e67, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_011
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 11
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 38afd60f3e8f0f84b9d3a9bf35201697, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_012
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 12
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: e14dd6e93bb0d704883d1dd0b7c2a599, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_013
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 13
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: e177cbb145dbfdf49b87bb8f95591d18, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_014
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 14
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: c0aadb9f661afdb4db8648ea0df864cb, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_015
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 15
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 2e4c105a8fb49ac4f933e5603fe8f32f, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_016
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 16
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: 6c430560469a1ee48ae0dd9f777ad30e, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_017
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 17
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: aa2fdd63f0df23b4cb713307e75cce38, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_018
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 18
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: ed4d2f5451dafac459fc0fe4d601a545, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_019
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 19
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: b9e1deae018957249b55c3a6c2987965, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_020
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 20
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 6c347eae35d9b9e4c88c2a8cb2c56c7a, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_021
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 21
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 59ce14e16a89ede4a8fb58a4ec954609, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_022
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 22
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: b0818dea07aeea249a239b02cadf0d94, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_023
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 23
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: da27b87608ce53d4083364de5080c7d4, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_024
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 24
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 7a64c9e47a57f724d819df4f641db250, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_025
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 25
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: d77ef12221a403d41a04f20702b76c48, type: 3}
+  - voiceId: VO_CS_CS_06_SYSTEMFATIGUE_026
+    sourceType: STORY
+    sourceId: CS_06_SystemFatigue
+    lineIndex: 26
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 1fbd88e5ad38d5042838347fd82d1d14, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_000
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 0
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: f1b352837a6d8ff40a8725c17ff62c01, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_001
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 7d5a151300064f840a454c70d1693f95, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_002
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: f18ffe751527e3341bf87768dae1a2b6, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_003
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 3
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 4e4e2224172927c46b81ee976dfd77ee, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_004
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 4
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 6684d096148a1ae4ebccdc54ebb04994, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_005
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 5
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: cb3ea3a03ed687d4d8543be94f865b35, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_006
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 6
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 561c7261ea6a8e74e9495276025e174b, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_007
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 7
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 8758c40bea4ca2f47871b07ec66c2ab8, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_008
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 8
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 877f567eeabd39b4f8cea0aaf980daf7, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_009
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 9
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 0aa17fdba26f9da47a8126f73df6ff56, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_010
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 10
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 9b7b5d4710ec98c4b893654db374ca32, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_011
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 11
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 650028aed989f09408fceb0bf56c37d9, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_012
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 12
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 84047212b188b3d40ac18f7394a6ff34, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_013
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 13
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 7dc44ad517898c948899d2285908a652, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_014
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 14
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 3833b41201d500744b9ebedd13caec04, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_015
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 15
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d89ec98f163add44799a48964e844732, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_016
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 16
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 95343c6af7505314f9384b62e5acfd5a, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_017
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 17
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 29a8f05fa11063749959529e6fbcf88e, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_PRECHOICE_019
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 19
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 9c45efc95f48e95438c896158a7e5711, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_000
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 0
+    speaker: UNIT-07
+    emotion: silent
+    clip: {fileID: 8300000, guid: d35b1988ff1b71446b1449de57bd49a4, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_001
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 8441125643a80f347b6df01fa9a73c45, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_002
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: dd008abf6f513fb4081f10f4aa85e945, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_003
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 3
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: 88e92f18198a37144a2169e0ef28b36a, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_004
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 4
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 957ca16c97863c84ebbf1236677fa2fc, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_005
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 5
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: ab3ca46e7172f114596a0c3602c35d54, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_006
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 6
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 3f6accc3299974848b4ba114d6343d8e, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_007
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 7
+    speaker: UNIT-07
+    emotion: broken
+    clip: {fileID: 8300000, guid: fd41744225a1755409f31b38b9d354a0, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_008
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 8
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: cbb6e20b3551b294eb038b7e8887d71f, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_009
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 9
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: d69849d7c4fe12347b8045afe8df3991, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_010
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 10
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: f608087dcf01e00459f49dc0cd448a4e, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_011
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 11
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: d87ea93634109c646a40708b3206c153, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_012
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 12
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 721a7b4683ae66043bf72f3895b6655f, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_013
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 13
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 5d4d7337c89a32840b2f307f632e3479, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_014
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 14
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 9373e292bd2383d4085bf38e6ca862e4, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_015
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 15
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 922d3dfede740c34da8e1f5e22a239e9, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_016
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 16
+    speaker: SYSTEM
+    emotion: cold
+    clip: {fileID: 8300000, guid: 985bb2ce892bdbf4f9212ae44342d4fc, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_CONTINUEPROTOCOL_017
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ContinueProtocol
+    lineIndex: 17
+    speaker: UNIT-07
+    emotion: neutral
+    clip: {fileID: 8300000, guid: 99013b3e60f82194d9f4eecbf3e6efc7, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_000
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 0
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 9e8415ffbe863624580d25cc65eaea55, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_001
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 1
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 2d9b16d46d123d743bbb26ca51e0d9e5, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_002
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 2
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: d1ad10f44a7de0b44a7b8739938c35f6, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_003
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 3
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 1de56e471a901654a8cf8646dafa5519, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_004
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 4
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 356d0c6568be3ee40a669ada489be3ee, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_005
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 5
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: ddb05d187be6b3e48a5a633c38a0de16, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_006
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 6
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 707a52be7117de447b2f6591b086bc59, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_007
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 7
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 026f13b145634e944af318a1f0cb0267, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_008
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 8
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 411a2b7dcd28896429730e28621450b3, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_009
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 9
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 833452fea6799be40898c8b9b7e0209a, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_010
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 10
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: ff298ac58e34bae489f75685be534ac7, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_011
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 11
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: a3f320d44015a5b4d98a75cd36aad107, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_012
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 12
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: ab6ab28bec8bb3646bb23955cc8f692a, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_013
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 13
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: b7f5bf473ee96dd438ebb301357ad4af, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_014
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 14
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: f6f833025fa4e5449aa61ef76bab2879, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_015
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 15
+    speaker: UNIT-07
+    emotion: tired
+    clip: {fileID: 8300000, guid: 8d8ea5f9ce4d4c64db93502f4640e8fe, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_017
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 17
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 92bfcb86eb2c21b4eb3897b0cd35c30f, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_018
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 18
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 6b4d46709c02865439378ea1adcc2270, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_019
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 19
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 517df4663a6375b4cb22d0d440dbaad1, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_020
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 20
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 88f1fe01019b5e44c99d50f5f0d4bb68, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_021
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 21
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: e54a6525b0e615349aa0d42fa9f437d8, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_022
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 22
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 4a50f60c518a9b2418ebe2eb87875032, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_023
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 23
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: e5edada7437781244a29613ce6d80214, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_024
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 24
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 506fdb9d74f21754d87829377e578a9f, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_025
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 25
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 1329c59dd56aa3846baef729d99eb592, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_026
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 26
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 1293fcedd6a79b5418ada1b44d14a4d5, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_027
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 27
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 040dceca877d21449ab6ceeabfb36369, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_028
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 28
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 237666b63ad06a740b16dbb74fd7ea92, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_029
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 29
+    speaker: SYSTEM
+    emotion: warning
+    clip: {fileID: 8300000, guid: 79f9be9156d27444a924ba02c4cedfc4, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_030
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 30
+    speaker: UNIT-07
+    emotion: calm
+    clip: {fileID: 8300000, guid: 460ec2bb6a0e56048977a5e254aa03a1, type: 3}
+  - voiceId: VO_CS_CS_07_FINALCHOICE_SHUTDOWNCORE_031
+    sourceType: STORY
+    sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 31
+    speaker: SYSTEM
+    emotion: silent
+    clip: {fileID: 8300000, guid: c4f55d56eed22764ba976d5a46d0f5d3, type: 3}
+  skippedLines:
+  - sourceId: CS_03_EnemyDoesNotCharge
+    lineIndex: 19
+  - sourceId: CS_05_HumanCommand
+    lineIndex: 7
+  - sourceId: CS_05_HumanCommand
+    lineIndex: 26
+  - sourceId: CS_06_SystemFatigue
+    lineIndex: 27
+  - sourceId: CS_07_FinalChoice_PreChoice
+    lineIndex: 18
+  - sourceId: CS_07_FinalChoice_ShutDownCore
+    lineIndex: 16

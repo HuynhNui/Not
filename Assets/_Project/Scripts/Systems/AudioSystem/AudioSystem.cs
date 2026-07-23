@@ -36,6 +36,7 @@ namespace _Project.Scripts.Systems.AudioSystem
 
         public AudioCatalog Catalog => catalog;
         public AudioCueId CurrentMusicCue => _currentMusicCue;
+        public bool IsDialoguePlaying => _dialogueSource != null && _dialogueSource.isPlaying;
         public int LastRejectedCueCount { get; private set; }
         public int LastAcceptedCueCount { get; private set; }
 
@@ -195,6 +196,38 @@ namespace _Project.Scripts.Systems.AudioSystem
         public bool PlayDialogue(AudioCueId cue)
         {
             return PlaySingleSource(cue, AudioCueCategory.Dialogue, _dialogueSource, interrupt: true);
+        }
+
+        public bool PlayDialogueClip(AudioClip clip)
+        {
+            Initialize();
+            if (clip == null || _dialogueSource == null)
+            {
+                return false;
+            }
+
+            _dialogueSource.Stop();
+            _dialogueSource.clip = clip;
+            _dialogueSource.loop = false;
+            _dialogueSource.volume = 1f;
+            _dialogueSource.pitch = 1f;
+            _dialogueSource.spatialBlend = 0f;
+            _dialogueSource.playOnAwake = false;
+            _dialogueSource.ignoreListenerPause = true;
+
+            if (TryGetEntry(AudioCueId.DialogueTypeSystem, AudioCueCategory.Dialogue, out AudioCueEntry dialogueEntry))
+            {
+                _dialogueSource.outputAudioMixerGroup = dialogueEntry.MixerGroup;
+            }
+
+            _dialogueSource.Play();
+            return true;
+        }
+
+        public void StopDialogue()
+        {
+            Initialize();
+            StopSource(_dialogueSource);
         }
 
         public void ApplySavedSettings()

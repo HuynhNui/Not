@@ -76,7 +76,6 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private GameObject resetConfirmPopup;
         [SerializeField] private Button resetConfirmCancelButton;
         [SerializeField] private Button resetConfirmButton;
-        [SerializeField] private Button debugAddCoinsButton;
         [SerializeField] private Sprite settingsToggleOnSprite;
         [SerializeField] private Sprite settingsToggleOffSprite;
 
@@ -299,7 +298,6 @@ namespace _Project.Scripts.Systems.UISystem
             WireButton(resetDataButton, nameof(resetDataButton), ShowResetConfirmPopup, AudioCueId.UiPanelOpen);
             WireButton(resetConfirmCancelButton, nameof(resetConfirmCancelButton), HideResetConfirmPopup, AudioCueId.UiPanelClose);
             WireButton(resetConfirmButton, nameof(resetConfirmButton), ConfirmResetPlayerProgression, AudioCueId.UiConfirm);
-            WireOptionalButton(debugAddCoinsButton, HandleDebugAddCoins);
             WireButton(resumeButton, nameof(resumeButton), () => ResumeRequested?.Invoke(), AudioCueId.UiConfirm);
             WireButton(pauseRestartButton, nameof(pauseRestartButton), () => RestartRequested?.Invoke(), AudioCueId.UiConfirm);
             WireButton(pauseSettingsButton, nameof(pauseSettingsButton), ShowSettingsFromPause, AudioCueId.UiPanelOpen);
@@ -310,7 +308,6 @@ namespace _Project.Scripts.Systems.UISystem
 
             WireSettingsControls();
             WireUpgradeRows();
-            RefreshDebugControls();
         }
 
         private void ResolveGameOverReferences()
@@ -396,17 +393,6 @@ namespace _Project.Scripts.Systems.UISystem
             });
         }
 
-        private static void WireOptionalButton(Button button, Action action)
-        {
-            if (button == null)
-            {
-                return;
-            }
-
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => action?.Invoke());
-        }
-
         private void WireSettingToggle(Toggle toggle, string prefsKey, bool defaultValue, string fieldName)
         {
             if (toggle == null)
@@ -483,27 +469,6 @@ namespace _Project.Scripts.Systems.UISystem
             RefreshMissionLogFromCurrentSave(missionSystem, scrollToActive: true);
             HideResetConfirmPopup();
             RestartCurrentScene();
-        }
-
-        private void HandleDebugAddCoins()
-        {
-            if (!SaveService.Instance.TryAddDebugWalletCoins(10000))
-            {
-                return;
-            }
-
-            RefreshMenuStats();
-            RefreshUpgradePanel();
-        }
-
-        private void RefreshDebugControls()
-        {
-            if (debugAddCoinsButton == null)
-            {
-                return;
-            }
-
-            debugAddCoinsButton.gameObject.SetActive(Application.isEditor || Debug.isDebugBuild);
         }
 
         public void ShowMissionLog()

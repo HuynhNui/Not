@@ -168,8 +168,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
                 () => _gateSystem?.SpawnTutorialGateById("major_recruit", GetGateSpawnPosition()),
                 config);
             EnsureTutorialRecruitApplied(squadCountBeforeRecruit);
-
-            _overlay?.HideHighlight();
         }
 
         private IEnumerator RunSingleGateStep(System.Func<GateLogic> spawnGate, TutorialConfig config)
@@ -197,8 +195,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
                 _gateSystem?.ClearTutorialGates();
                 yield return null;
             }
-
-            _overlay?.HideHighlight();
         }
 
         private void TryCollectTutorialGateSet(IReadOnlyList<GateLogic> gates)
@@ -348,8 +344,6 @@ namespace _Project.Scripts.Systems.TutorialSystem
             _overlay?.ShowOverlay(dimBackgroundVisible: false, blockInput: false);
             _overlay?.SetInputBlocking(false);
             _overlay?.ShowSkipButton(true);
-            _overlay?.HideDialogue();
-            _overlay?.HideHighlight();
 
             if (showSwipeIcon)
             {

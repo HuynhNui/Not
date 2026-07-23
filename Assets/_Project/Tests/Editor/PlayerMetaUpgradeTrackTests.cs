@@ -292,30 +292,6 @@ namespace _Project.Tests.Editor
             }
         }
 
-        [Test]
-        public void DebugWalletCoins_AddsCoinsInEditor()
-        {
-            string directoryPath = CreateTempDirectoryPath("true-gate-debug-coins");
-            SaveService service = SaveService.CreateForTests(directoryPath);
-            SaveService.SetInstanceForTests(service);
-
-            try
-            {
-                service.EnsureLoaded();
-
-                Assert.That(service.TryAddDebugWalletCoins(10000), Is.True);
-                Assert.That(service.Data.walletCoins, Is.EqualTo(10000));
-            }
-            finally
-            {
-                SaveService.SetInstanceForTests(null);
-                if (Directory.Exists(directoryPath))
-                {
-                    Directory.Delete(directoryPath, recursive: true);
-                }
-            }
-        }
-
         private static string CreateTempDirectoryPath(string prefix)
         {
             return Path.Combine(Path.GetTempPath(), $"{prefix}-{Guid.NewGuid():N}");
