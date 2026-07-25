@@ -17,13 +17,14 @@ namespace _Project.Editor.Voice
             var importer = (AudioImporter)assetImporter;
             importer.forceToMono = true;
             importer.loadInBackground = true;
+            importer.ambisonic = false;
 
             AudioImporterSampleSettings settings = importer.defaultSampleSettings;
-            settings.loadType = AudioClipLoadType.DecompressOnLoad;
-            settings.compressionFormat = AudioCompressionFormat.PCM;
-            settings.quality = 1f;
-            settings.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
-            settings.preloadAudioData = true;
+            settings.loadType = AudioClipLoadType.CompressedInMemory;
+            settings.compressionFormat = AudioCompressionFormat.Vorbis;
+            settings.quality = 0.7f;
+            settings.sampleRateSetting = AudioSampleRateSetting.OptimizeSampleRate;
+            settings.preloadAudioData = false;
             importer.defaultSampleSettings = settings;
         }
     }

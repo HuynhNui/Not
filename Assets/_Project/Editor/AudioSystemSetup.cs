@@ -321,7 +321,14 @@ namespace _Project.Editor
             };
             for (int index = 0; index < musicPaths.Length; index++)
             {
-                ConfigureAudioImporter(musicPaths[index], AudioClipLoadType.Streaming, AudioCompressionFormat.Vorbis, false, true, 0.7f);
+                ConfigureAudioImporter(
+                    musicPaths[index],
+                    AudioClipLoadType.Streaming,
+                    AudioCompressionFormat.Vorbis,
+                    false,
+                    true,
+                    false,
+                    0.7f);
             }
 
             string[] shortPaths =
@@ -344,7 +351,14 @@ namespace _Project.Editor
             };
             for (int index = 0; index < shortPaths.Length; index++)
             {
-                ConfigureAudioImporter(shortPaths[index], AudioClipLoadType.DecompressOnLoad, AudioCompressionFormat.PCM, true, false, 1f);
+                ConfigureAudioImporter(
+                    shortPaths[index],
+                    AudioClipLoadType.DecompressOnLoad,
+                    AudioCompressionFormat.ADPCM,
+                    true,
+                    false,
+                    true,
+                    1f);
             }
 
             string[] oneShotPaths =
@@ -361,7 +375,14 @@ namespace _Project.Editor
             };
             for (int index = 0; index < oneShotPaths.Length; index++)
             {
-                ConfigureAudioImporter(oneShotPaths[index], AudioClipLoadType.CompressedInMemory, AudioCompressionFormat.Vorbis, true, false, 0.8f);
+                ConfigureAudioImporter(
+                    oneShotPaths[index],
+                    AudioClipLoadType.CompressedInMemory,
+                    AudioCompressionFormat.Vorbis,
+                    true,
+                    false,
+                    true,
+                    0.75f);
             }
         }
 
@@ -371,6 +392,7 @@ namespace _Project.Editor
             AudioCompressionFormat compression,
             bool preload,
             bool loadInBackground,
+            bool forceToMono,
             float quality)
         {
             AudioImporter importer = AssetImporter.GetAtPath(AudioRoot + path) as AudioImporter;
@@ -384,8 +406,11 @@ namespace _Project.Editor
             settings.compressionFormat = compression;
             settings.quality = quality;
             settings.preloadAudioData = preload;
+            settings.sampleRateSetting = AudioSampleRateSetting.OptimizeSampleRate;
             importer.defaultSampleSettings = settings;
             importer.loadInBackground = loadInBackground;
+            importer.forceToMono = forceToMono;
+            importer.ambisonic = false;
             importer.SaveAndReimport();
         }
 

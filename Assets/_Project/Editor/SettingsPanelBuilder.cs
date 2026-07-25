@@ -265,9 +265,19 @@ namespace _Project.Editor
                 false,
                 true);
 
+            RectTransform safeAreaRoot = CreateRect(
+                "SettingsSafeAreaRoot",
+                root,
+                Vector2.zero,
+                Vector2.one,
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                Vector2.zero);
+            AddSafeAreaFitter(safeAreaRoot, new Vector4(24f, 24f, 24f, 24f));
+
             RectTransform mainPanel = CreateImage(
                 "MainPanel",
-                root,
+                safeAreaRoot,
                 mainPanelSprite,
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
@@ -410,9 +420,19 @@ namespace _Project.Editor
                 false,
                 true);
 
+            RectTransform safeAreaRoot = CreateRect(
+                "ConfirmSafeAreaRoot",
+                popupRoot,
+                Vector2.zero,
+                Vector2.one,
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                Vector2.zero);
+            AddSafeAreaFitter(safeAreaRoot, new Vector4(24f, 24f, 24f, 24f));
+
             RectTransform confirmPanel = CreateImage(
                 "ConfirmPanel",
-                popupRoot,
+                safeAreaRoot,
                 panelSprite,
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
@@ -465,6 +485,15 @@ namespace _Project.Editor
             StretchToParent(confirmText.rectTransform);
             confirmText.fontSizeMin = 24f;
             confirmText.fontSizeMax = 34f;
+        }
+
+        private static void AddSafeAreaFitter(RectTransform target, Vector4 padding)
+        {
+            SafeAreaFitter fitter = target.gameObject.AddComponent<SafeAreaFitter>();
+            SerializedObject serializedFitter = new SerializedObject(fitter);
+            serializedFitter.FindProperty("target").objectReferenceValue = target;
+            serializedFitter.FindProperty("padding").vector4Value = padding;
+            serializedFitter.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static RectTransform CreateToggle(string name, Transform parent, Sprite sprite)

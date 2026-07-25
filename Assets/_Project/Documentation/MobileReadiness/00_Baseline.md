@@ -21,7 +21,7 @@ Captured before Beta 0.1.0 mobile-readiness changes.
 | Sprite count | 373 |
 | Sprite Atlas count | 0 |
 | Existing APK size | 106.42 MB |
-| Latest full EditMode result | 204 pass / 3 fail (pre-existing) |
+| Latest full EditMode result | 203 pass / 3 fail (pre-existing) |
 | Latest full PlayMode result | 35 pass / 7 fail (pre-existing) |
 | Missing scripts (scenes + prefabs) | 0 |
 | Compile errors | 0 |
