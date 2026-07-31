@@ -1,4 +1,10 @@
-# Android Build Verification
+# Android Build Verification - Beta 0.1.1
+
+Verification date: 2026-07-31
+
+Unity: 6000.4.2f1
+
+Release source commit: `29bc438a949089cec249afdc61f4b94b3d320a03`
 
 ## Build Configuration
 
@@ -7,42 +13,56 @@
 | Enabled scenes | `Assets/_Project/Scenes/Main.unity` |
 | Application ID | `com.mimicompany.truegate` |
 | Product name | `True Gate` |
-| Version | `0.1.0` |
-| Version code | `1` |
+| Version | `0.1.1` |
+| Version code | `2` |
 | Scripting backend | IL2CPP |
-| Architectures | ARM64 |
+| Architectures | ARM64 only (`arm64-v8a`) |
 | Minimum Android | API 25 (Android 7.1) |
 | Target Android | API 36 |
 | Orientation | Portrait only |
 | Texture subtarget | ETC2 |
+| Development build | No |
 
-## Artifacts
+## Artifact
 
-| Artifact | Type | Size | SHA-256 | Result |
-|---|---|---:|---|---|
-| `Builds/Android/TrueGate-Beta-0.1.0-vc1-dev.apk` | Development | 82,684,764 bytes | `67CE9F823430FDC2D8F48BCA187F17079E47B4DBE8111E87D0F78F7EFD0F246F` | Build succeeded |
-| `Builds/Android/TrueGate-Beta-0.1.0-vc1.apk` | Release candidate | 69,741,069 bytes | `F9C52D94BC56CB1A66EC485655A6EB7B77A6CE82DD0A667A41D2CA3DF14B2420` | Build succeeded |
+| Artifact | Size | SHA-256 | Result |
+|---|---:|---|---|
+| `Builds/Android/TrueGate-Beta-0.1.1-vc2.apk` | 69,737,769 bytes | `0454614E4C4856D126AC6688F2A4034ABD539E579DFC160B38AA4C238CBB7684` | Build and package inspection succeeded |
 
-Both APKs pass `apksigner verify` with APK Signature Scheme v2. The local beta APK uses the Android debug certificate; a private release keystore is still required before Play Store or public production distribution.
-
-## Device Verification
-
-Device: OPPO CPH2059, Android 11 / API 30, ARM64, 1080 x 2400, 8 GB class RAM.
-
-- Installed both APKs with `adb install -r`; save data was preserved.
-- RC launched with process alive and package version `0.1.0 (1)`.
-- Main menu, gameplay HUD, tutorial skip, pause, and settings were exercised by touch input.
-- Music and SFX toggles changed runtime state and remained OFF after force-stop, relaunch, dev-to-RC upgrade, and another settings open.
-- No fatal exception, native fatal signal, or package ANR was present in the captured logcat.
-- RC settings-screen memory snapshot: total PSS 372,576 KB; total RSS 490,640 KB.
-- Battery temperature moved from 31.5 C before the extended build/test session to 35.3 C while USB powered; no thermal shutdown or app termination occurred.
-- Android `gfxinfo` did not expose useful Unity Surface frame percentiles on this device, so no unsupported FPS claim is made.
+`aapt` reports package version `0.1.1 (2)`, minimum API 25, and target API 36. APK inspection found only `arm64-v8a` native libraries. `apksigner verify` passes with APK Signature Scheme v2. This local beta APK is signed with the Android debug certificate; a private release keystore is still required before Play Store or public production distribution.
 
 ## Automated Verification
 
 - C# compilation: 0 errors.
-- Missing references: 0 in the build scene and 0 in project assets.
-- EditMode: 210 passed, 3 known baseline failures.
-- PlayMode: 35 passed, 6 known baseline failures; the contact cooldown test passed twice consecutively after the shared collision guard fix.
+- Mission fixture: 15/15 passed.
+- EditMode: 213/213 passed, 0 failed, 0 skipped.
+- PlayMode: 41/41 passed, 0 failed, 0 skipped.
+- Total: 254/254 passed.
+- Detailed jobs and debt resolution: `Documentation/QA/2026-07-31_Beta_0.1.1_QA_Rerun.md`.
 
-The remaining failures are pre-existing balance/test-fixture issues and are listed in `10_Mobile_Readiness_Summary.md`.
+## Device And Migration Verification
+
+Device: OPPO CPH2059 (`a9fcb81`), Android 11 / API 30, ARM64, 1080 x 2400.
+
+- Installed over Beta 0.1.0 code 1 with `adb install -r`; package became Beta 0.1.1 code 2.
+- `firstInstallTime` remained `2026-07-31 20:42:07`, confirming an update rather than a clean install.
+- The original `save.json` SHA-256 remained `515544E7812F2471E3537E1AEECFD9613BA3E5FF094FFC374D24C196F5AE7798` before install, after install, and after first 0.1.1 launch.
+- The original `save.bak` SHA-256 remained `0ACCAF8DF6173CBE3E534B7C69A857DDBDB87D554D9D8F92CAB260D9D0BA45BA` across the install-over check.
+- The app launched to the preserved Loop 0 state with no fatal Java exception, native fatal signal, or ANR attributed to `com.mimicompany.truegate` in the captured logcat. Two unrelated `com.android.shell` exceptions were caused by the OPPO firmware rejecting the ADB `svc power stayon` command.
+
+## Final Choice Smoke Test
+
+A temporary migration fixture was used on the physical device and the original save was restored byte-for-byte afterward.
+
+- A save at Loop 100 loaded successfully without reset.
+- A run survived `602.616394` seconds and changed `totalRunsCompleted` from 100 to 101.
+- Final Choice appeared, proving saves above 50 runs remain eligible.
+- `CONTINUE PROTOCOL` opened and completed `CS_07_FinalChoice_ContinueProtocol`.
+- The resulting save had `finalChoiceResolved = true`, recorded both Final Choice cutscene IDs, and completed `break_final_choice`.
+- The first Terminal Protocol progress entries, `terminal_1000_kills_run` and `terminal_10000_total_kills`, were created; the Mission Log displayed the Terminal Protocol chain with later entries locked by their sequential prerequisites.
+- The original save was restored, relaunched, and reverified with the same SHA-256.
+
+## Known Issues
+
+- The candidate uses a debug signing certificate and is suitable for local beta sideloading only. Production distribution still requires the project's private release keystore.
+- The ending smoke test used a temporary Loop 100 fixture to reach the narrative gate deterministically. The fixture was removed and the user's original save was restored exactly after verification.
