@@ -952,7 +952,7 @@ namespace _Project.Scripts.Gameplay.Player
             FollowerPromoted?.Invoke(promotedFollower);
             UnsubscribeFromUnit(promotedFollower);
             followers.Remove(promotedFollower);
-            Destroy(promotedFollower.gameObject);
+            DestroySquadUnit(promotedFollower.gameObject);
             RefreshFollowerFormation(snapFollowers: true);
         }
 
@@ -989,10 +989,26 @@ namespace _Project.Scripts.Gameplay.Player
 
             if (deadFollower != null)
             {
-                Destroy(deadFollower.gameObject);
+                DestroySquadUnit(deadFollower.gameObject);
             }
 
             RefreshFollowerFormation();
+        }
+
+        private static void DestroySquadUnit(GameObject unitObject)
+        {
+            if (unitObject == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(unitObject);
+                return;
+            }
+
+            DestroyImmediate(unitObject);
         }
     }
 }

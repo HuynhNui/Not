@@ -737,7 +737,27 @@ namespace _Project.Tests.Editor
                     new StoryCutsceneProgressContext(35, 360f, 0, 1000)),
                 Is.True);
 
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoicePreChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(50, 420f, 0, 1000)),
+                Is.False,
+                "Final Choice requires System Fatigue to have been seen.");
+
             saveData.MarkCutsceneSeen(StoryCutsceneIds.SystemFatigue);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoicePreChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(49, 420f, 0, 1000)),
+                Is.False);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoicePreChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(50, 419.999f, 0, 1000)),
+                Is.False);
             Assert.That(
                 StoryCutsceneUnlockRules.IsEligible(
                     StoryCutsceneIds.FinalChoicePreChoice,
@@ -749,7 +769,23 @@ namespace _Project.Tests.Editor
                     StoryCutsceneIds.FinalChoicePreChoice,
                     saveData,
                     new StoryCutsceneProgressContext(51, 420f, 0, 1000)),
-                Is.False);
+                Is.True);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoicePreChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(100, 420f, 0, 1000)),
+                Is.True,
+                "Existing saves beyond run 50 must remain eligible without a reset.");
+
+            saveData.MarkCutsceneSeen(StoryCutsceneIds.FinalChoicePreChoice);
+            Assert.That(
+                StoryCutsceneUnlockRules.IsEligible(
+                    StoryCutsceneIds.FinalChoice,
+                    saveData,
+                    new StoryCutsceneProgressContext(100, 420f, 0, 1000)),
+                Is.False,
+                "Final Choice must not replay after its playable cutscene has been seen.");
         }
 
         [Test]
@@ -780,13 +816,16 @@ namespace _Project.Tests.Editor
                 service.EnsureLoaded();
                 int initialWalletCoins = service.Data.walletCoins;
                 int initialBestCoinsEarned = service.Data.bestCoinsEarned;
+                int initialRunsCompleted = service.Data.totalRunsCompleted;
 
                 int pendingRunCoins = EconomyConfig.CalculateDefaultFinalCoins(10.6f, 120f);
                 Assert.That(service.Data.walletCoins, Is.EqualTo(initialWalletCoins));
+                Assert.That(service.Data.totalRunsCompleted, Is.EqualTo(initialRunsCompleted));
 
                 service.RecordRunResult(120f, 10, pendingRunCoins, 15);
                 Assert.That(service.Data.walletCoins, Is.EqualTo(initialWalletCoins + 11));
                 Assert.That(service.Data.bestCoinsEarned, Is.EqualTo(Mathf.Max(initialBestCoinsEarned, 11)));
+                Assert.That(service.Data.totalRunsCompleted, Is.EqualTo(initialRunsCompleted + 1));
             }
             finally
             {

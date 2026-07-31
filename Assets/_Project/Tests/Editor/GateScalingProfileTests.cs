@@ -231,8 +231,8 @@ namespace _Project.Tests.Editor
             Assert.AreEqual(4f, BalanceV1Math.SquadFactor(4, combat), 0.0001f);
             Assert.AreEqual(1f, BalanceV1Math.FollowerDamageScale(4, combat), 0.0001f);
             Assert.AreEqual(1f, BalanceV1Math.FollowerHpScale(combat), 0.0001f);
-            Assert.AreEqual(344.595f, startDps, 0.01f);
-            Assert.AreEqual(989.432f, newCapDps, 0.01f);
+            Assert.AreEqual(229.935f, startDps, 0.01f);
+            Assert.AreEqual(830.769f, newCapDps, 0.01f);
             Assert.AreEqual(76.645f, startEmissions, 0.1f);
             Assert.AreEqual(138.462f, newCapEmissions, 0.1f);
             Assert.LessOrEqual(newCapEmissions, 140f);

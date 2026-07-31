@@ -198,9 +198,9 @@ Runtime có 7 mốc story chính, voice theo từng line và nút Skip:
 | CS_04 Gate Memory Leak | Đã xem CS_03, loop >= 10, sống >= 180s |
 | CS_05 Human Command | Đã xem CS_04, loop >= 20, sống >= 300s, total kills >= 1,000 |
 | CS_06 System Fatigue | Đã xem CS_05, loop >= 35, sống >= 360s |
-| CS_07 Final Choice | Đã xem CS_06, sống >= 420s và loop không vượt 50 |
+| CS_07 Final Choice | Đã xem CS_06, đã hoàn thành >= 50 run, sống >= 420s và chưa xem CS_07 |
 
-CS_07 phát pre-choice, sau đó chuyển sang `Continue Protocol` hoặc `Shut Down Core`. Lựa chọn được lưu và thông báo cho MissionSystem để hoàn tất `break_final_choice`.
+CS_07 phát pre-choice, sau đó chuyển sang `Continue Protocol` hoặc `Shut Down Core`. Run vừa kết thúc đã được cộng vào `totalRunsCompleted` trước khi kiểm tra điều kiện, vì vậy run thứ 50 có thể mở ending; save đã vượt mốc 50 vẫn hợp lệ và không cần reset. Lựa chọn được lưu và thông báo cho MissionSystem để hoàn tất `break_final_choice`.
 
 Gameplay dialogue riêng được lập lịch theo psychology/story phase và có thể tiếp tục không audio nếu một voice clip bị thiếu.
 

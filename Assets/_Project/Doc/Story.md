@@ -10,6 +10,8 @@ Trò chơi không đi theo lối mòn của chủ nghĩa anh hùng ca ngợi b�
 
 Mỗi mốc ranh giới (Milestone) trong game là một bước tiến trong tâm lý của con robot: Từ một cỗ máy hủy diệt vô tri, nó dần tự vấn về sự tồn tại của bản thân và mục đích của cuộc chiến mà nó đang phục vụ. Nó nhận ra mình chỉ là một công cụ tàn sát trong một cuộc chiến phi nghĩa do lòng tham của con người tạo ra.
 
+Mốc kết thúc mang tính canon chỉ xuất hiện sau khi UNIT-07 đã hoàn thành ít nhất 50 lượt Run, sống được ít nhất 420 giây trong lượt hiện tại và đã trải qua giai đoạn System Fatigue. Những lượt Run vượt quá mốc 50 vẫn tiếp tục dẫn đến lựa chọn cuối nếu lựa chọn đó chưa từng được xem.
+
 3. Thông điệp muốn truyền đạt (The Core Message)
 
 Sự phản chiến sâu sắc: Game sử dụng góc nhìn của chính phe đi xâm lược để bóc trần sự tàn khốc và vô lý của chiến tranh. Chiến tranh phi nghĩa không mang lại vinh quang, nó chỉ để lại những tổn thương sâu sắc cho cả nạn nhân lẫn công cụ gây án.

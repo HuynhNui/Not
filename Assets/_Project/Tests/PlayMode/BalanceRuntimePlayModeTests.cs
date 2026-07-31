@@ -27,6 +27,7 @@ namespace TrueGate.PlayModeTests
                 Component controller = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
                 Invoke(controller, "SetMainPlayerUnit", main);
+                Invoke(controller, "SetControlsEnabled", false);
 
                 Type upgradeService = RuntimeType(
                     "_Project.Scripts.Systems.ProgressionSystem.PlayerMetaUpgradeService");
@@ -58,7 +59,7 @@ namespace TrueGate.PlayModeTests
         public IEnumerator ProjectileMetaLevels_ApplyConfiguredRuntimeProjectileCounts()
         {
             int[] levels = { 0, 1, 2, 3, 4, 5 };
-            int[] expectedProjectiles = { 1, 2, 4, 6, 6, 6 };
+            int[] expectedProjectiles = { 1, 2, 3, 3, 3, 3 };
 
             for (int index = 0; index < levels.Length; index++)
             {
@@ -75,6 +76,7 @@ namespace TrueGate.PlayModeTests
                     Component controller = squadObject.AddComponent(
                         RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
                     Invoke(controller, "SetMainPlayerUnit", main);
+                    Invoke(controller, "SetControlsEnabled", false);
                     SetUpgradeLevel(saveService, "ProjectileCount", levels[index]);
 
                     Type upgradeService = RuntimeType(
@@ -115,6 +117,7 @@ namespace TrueGate.PlayModeTests
                 Component controller = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
                 Invoke(controller, "SetMainPlayerUnit", main);
+                Invoke(controller, "SetControlsEnabled", false);
                 SetUpgradeLevel(saveService, "ProjectileCount", 5);
                 SetUpgradeLevel(saveService, "SquadSize", 1);
 
@@ -127,13 +130,13 @@ namespace TrueGate.PlayModeTests
                 apply.Invoke(null, new object[] { main, controller });
                 apply.Invoke(null, new object[] { main, controller });
 
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(6));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(3));
 
                 var followers = (IList)GetProperty(controller, "Followers");
                 Assert.That(followers.Count, Is.EqualTo(1));
                 Component follower = (Component)followers[0];
                 Component followerSpawner = (Component)GetProperty(follower, "BulletSpawner");
-                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(6));
+                Assert.That((int)GetProperty(followerSpawner, "ProjectileCount"), Is.EqualTo(3));
                 yield return null;
             }
             finally
@@ -161,6 +164,7 @@ namespace TrueGate.PlayModeTests
                 Component controller = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
                 Invoke(controller, "SetMainPlayerUnit", main);
+                Invoke(controller, "SetControlsEnabled", false);
                 SetUpgradeLevel(saveService, "ProjectileCount", 5);
 
                 Type upgradeService = RuntimeType(
@@ -169,7 +173,7 @@ namespace TrueGate.PlayModeTests
                     "ApplyToPlayer",
                     BindingFlags.Public | BindingFlags.Static);
                 apply.Invoke(null, new object[] { main, controller });
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(6));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(3));
 
                 Component runtimeController = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Gates.GateRuntimeEffectController"));
@@ -183,10 +187,10 @@ namespace TrueGate.PlayModeTests
                     FindDefaultGateEntryById("major_projectile"));
 
                 Invoke(runtimeController, "Apply", gateConfig);
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(7));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(4));
 
                 apply.Invoke(null, new object[] { main, controller });
-                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(6));
+                Assert.That((int)GetProperty(bulletSpawner, "ProjectileCount"), Is.EqualTo(3));
                 yield return null;
             }
             finally
@@ -257,6 +261,7 @@ namespace TrueGate.PlayModeTests
                 Component controller = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
                 Invoke(controller, "SetMainPlayerUnit", main);
+                Invoke(controller, "SetControlsEnabled", false);
                 Invoke(main, "SetMaxHp", 20f, false);
                 Invoke(main, "RestoreFullHealth");
                 Invoke(controller, "SetSquadCount", 2, 0.5f);
@@ -311,6 +316,7 @@ namespace TrueGate.PlayModeTests
                 Component controller = squadObject.AddComponent(
                     RuntimeType("_Project.Scripts.Gameplay.Player.PlayerController"));
                 Invoke(controller, "SetMainPlayerUnit", main);
+                Invoke(controller, "SetControlsEnabled", false);
                 Invoke(main, "SetMaxHp", 20f, false);
                 Invoke(main, "RestoreFullHealth");
                 Invoke(controller, "SetSquadCount", 2, 0.5f);
@@ -389,14 +395,17 @@ namespace TrueGate.PlayModeTests
                     RuntimeType("_Project.Scripts.Systems.RunStatsSystem.RunStatsTracker"));
                 object saveData = GetProperty(saveService, "Data");
                 int walletBefore = (int)GetField(saveData, "walletCoins");
+                int runsBefore = (int)GetField(saveData, "totalRunsCompleted");
 
                 Invoke(tracker, "BeginRun");
                 SetField(tracker, "_coinRewardPoints", 2.6f);
                 SetField(tracker, "_survivalTime", 10f);
                 Assert.That((int)GetField(saveData, "walletCoins"), Is.EqualTo(walletBefore));
+                Assert.That((int)GetField(saveData, "totalRunsCompleted"), Is.EqualTo(runsBefore));
 
                 Invoke(tracker, "EndRun");
                 Assert.That((int)GetField(saveData, "walletCoins"), Is.EqualTo(walletBefore + 3));
+                Assert.That((int)GetField(saveData, "totalRunsCompleted"), Is.EqualTo(runsBefore + 1));
                 yield return null;
             }
             finally

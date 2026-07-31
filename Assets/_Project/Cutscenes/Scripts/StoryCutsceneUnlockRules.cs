@@ -39,7 +39,7 @@ namespace _Project.Cutscenes
             new Rule(StoryCutsceneIds.GateMemoryLeak, StoryCutsceneIds.EnemyDoesNotCharge, 10, int.MaxValue, 180f, 0, 0),
             new Rule(StoryCutsceneIds.HumanCommand, StoryCutsceneIds.GateMemoryLeak, 20, int.MaxValue, 300f, 0, 1000),
             new Rule(StoryCutsceneIds.SystemFatigue, StoryCutsceneIds.HumanCommand, 35, int.MaxValue, 360f, 0, 0),
-            new Rule(StoryCutsceneIds.FinalChoicePreChoice, StoryCutsceneIds.SystemFatigue, 0, 50, 420f, 0, 0)
+            new Rule(StoryCutsceneIds.FinalChoicePreChoice, StoryCutsceneIds.SystemFatigue, 50, int.MaxValue, 420f, 0, 0)
         };
 
         public static bool TryGetFirstEligible(
