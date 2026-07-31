@@ -1,1437 +1,292 @@
-## **Game Design Document — True Gate?**
+# Game Design Document - True Gate
 
+## 1. Kiểm soát tài liệu
 
-
-**1. Document Control**
-
-| **Mục** | **Nội dung** |
-| --- | --- |
-| Project Name | True Gate ? |
-| Genre | Survival Auto Shooter + Gate Upgrade |
-| Platform | Mobile |
-| Target Build | Production-ready |
-| Document Version | v0.1 |
-| Last Updated | TBD |
+| Mục | Giá trị |
+|---|---|
+| Project | True Gate |
+| Thể loại | Portrait survival auto-shooter + gate choice + meta progression |
+| Nền tảng hiện tại | Android mobile |
+| Build | Beta 0.1.0 (version code 1) |
+| GDD version | 1.0-current |
+| Cập nhật | 2026-07-31 |
 | Owner | Huỳnh Núi |
-| Status | In Development |
+| Trạng thái | Direct-install Android beta |
 
-**1.1 Mục tiêu của document**
+Tài liệu này mô tả **game đang tồn tại trong project**, không phải concept tương lai. Khi thông số trong GDD và ScriptableObject khác nhau, asset balance được gán trong `Main.unity` là nguồn dữ liệu chính.
 
-Game Design Document này được dùng để:
+Nguồn tham chiếu kỹ thuật:
 
-Định nghĩa rõ **tầm nhìn sản phẩm**.
+- Scene build: `Assets/_Project/Scenes/Main.unity`.
+- Balance active: `BalanceBootstrapConfig_v1_4_1_MetaProgression.asset`.
+- Mission: `MissionCatalog.cs` và `MissionCatalog_v1.asset`.
+- Story unlock: `StoryCutsceneUnlockRules.cs`.
+- Save schema: `SaveData.cs`.
+- Kết quả mobile: `Assets/_Project/Documentation/MobileReadiness/`.
 
-Chuẩn hóa **core gameplay loop**.
+## 2. Tổng quan sản phẩm
 
-Mô tả các hệ thống gameplay chính.
+### 2.1 High Concept
 
-Làm tài liệu tham chiếu cho code, balancing, UI, art, audio và QA.
+True Gate là game mobile 2D pixel-art, trong đó người chơi điều khiển UNIT-07 di chuyển ngang để sống sót trước các đợt kẻ địch. Đội hình tự động bắn lên phía trước. Cứ mỗi 15 giây, người chơi chọn một trong ba gate để thay đổi sức mạnh, khả năng sinh tồn hoặc mức áp lực của run.
 
-Hỗ trợ mở rộng game trong tương lai mà không làm vỡ kiến trúc hiện tại.
+Sau mỗi run, coin được đưa vào ví vĩnh viễn để mua năm nhóm nâng cấp. Mission và story cutscene biến các lần chết, hồi sinh và mạnh lên thành một phần của câu chuyện về một AI dần nhận ra mình đang phục vụ một cuộc xâm lược.
 
-**2. Project Overview**
+### 2.2 Design Pillars
 
-**2.1 Bối cảnh dự án**
+1. **Survival pressure:** mật độ và sức mạnh kẻ địch tăng theo thời gian.
+2. **Quyết định nhanh:** ba gate xuất hiện ngay trong run, gồm buff an toàn, utility, trade-off và major reward.
+3. **Power growth rõ ràng:** damage, fire rate, HP, projectile và squad đều có thay đổi nhìn thấy được.
+4. **Loop có ý nghĩa:** mỗi run tích lũy coin, mission, kỷ lục và story progress.
+5. **Mobile readability:** portrait, touch một ngón, Safe Area, UI pixel rõ ràng trên màn hình hẹp.
 
-Trong bối cảnh thị trường game mobile ngày càng cạnh tranh và yêu cầu cao về hiệu năng cũng như khả năng mở rộng, **True Gate ?** được xây dựng với mục tiêu không chỉ dừng lại ở một sản phẩm thử nghiệm, mà hướng tới một sản phẩm có thể phát hành thực tế.
+## 3. Narrative
 
-Trò chơi thuộc thể loại **Survival Auto Shooter**, kết hợp với cơ chế **Gate Upgrade**, nơi người chơi điều khiển nhân vật di chuyển theo phương ngang, trong khi nhân vật tự động tấn công liên tục về phía trước.
+Người chơi là **UNIT-07**, một đơn vị AI do con người đưa đến hành tinh xa lạ để diệt sinh vật bản địa, tái định cư và khai thác tài nguyên. Những sinh vật bị gọi là quái vật thực chất đang bảo vệ nơi sống của chúng.
 
-Kẻ địch được sinh ra liên tục với độ khó tăng dần theo thời gian, tạo ra áp lực gameplay ngày càng cao. Người chơi vừa phải né tránh kẻ địch, vừa tối ưu hóa sức mạnh thông qua việc lựa chọn và đi qua các cổng có hiệu ứng tăng, giảm hoặc nhân sức mạnh.
+Meta progression là một phần của fiction: khi UNIT-07 bị tiêu diệt, core bị thu hồi, tái tạo và đưa trở lại chiến trường. Các memory fragment tồn tại qua nhiều loop khiến UNIT-07 dần nhận ra bản chất của nhiệm vụ.
 
-**2.2 Mục tiêu sản phẩm**
+Story đi từ trạng thái phục tùng đến thức tỉnh, rồi kết thúc bằng hai lựa chọn:
 
-True Gate ? hướng tới việc trở thành một game mobile có thể phát hành thực tế với các mục tiêu chính:
+- **Continue Protocol:** tiếp tục chu kỳ chiến đấu.
+- **Shut Down Core:** tự ngắt core để từ chối tiếp tục làm công cụ hủy diệt.
 
-Gameplay đơn giản, dễ hiểu, dễ tiếp cận.
+Thông điệp trung tâm là phản chiến, quyền tự quyết và cái giá của việc lặp lại bạo lực.
 
-Nhịp độ chơi nhanh, phù hợp với mobile session ngắn.
+## 4. Core Gameplay
 
-Cơ chế progression rõ ràng, tạo động lực chơi lại.
+### 4.1 Run Loop
 
-Hệ thống Gate tạo ra quyết định chiến thuật tức thời.
+1. Từ Main Menu, người chơi chọn `START RUN`.
+2. Tutorial gameplay chạy nếu save chưa hoàn thành phiên bản tutorial hiện tại.
+3. Đội hình tự động bắn; người chơi kéo ngang để né và căn lane.
+4. Enemy spawn liên tục và scale theo thời gian.
+5. Mỗi 15 giây, ba gate được tạo; chọn một gate khóa hai gate còn lại.
+6. Run kết thúc khi toàn bộ squad bị hạ.
+7. Game Over hiện time, score, kill, coin và best records.
+8. Coin được lưu để mua upgrade; mission và story được đánh giá từ progress vừa ghi.
+9. Người chơi retry, mở Upgrade hoặc về Home.
 
-Kiến trúc codebase rõ ràng, dễ mở rộng.
+### 4.2 Điều khiển
 
-Hiệu năng ổn định trên thiết bị mobile.
+- Mobile: chạm và kéo để điều khiển trục X. Vị trí Y của đội hình được giữ trong safe gameplay zone.
+- Editor/desktop: giữ chuột trái và kéo ngang.
+- Chạm trên UI không điều khiển player.
+- Bắn là tự động; không có nút fire.
+- Pause khóa gameplay controls và dừng run.
 
-Có khả năng mở rộng thêm enemy, weapon, gate, upgrade và mode mới.
+### 4.3 Win/Lose
 
-**3. Game Vision**
+- **Lose condition:** main unit và tất cả follower đều chết.
+- **Run mode:** endless survival, không có đích đến cố định.
+- **Narrative completion:** giải quyết final choice.
+- **Mission completion cuối:** `terminal_250000_total_kills`.
 
-**3.1 High Concept**
+## 5. Player, Squad và Combat
 
-**True Gate ?** là một game mobile survival auto shooter, nơi người chơi điều khiển nhân vật chibi pixel né tránh làn sóng kẻ địch, tự động bắn về phía trước và liên tục lựa chọn các cổng nâng cấp để gia tăng sức mạnh nhằm sống sót càng lâu càng tốt.
+### 5.1 Player Squad
 
-**3.2 Game Pillars**
+- Squad gồm main UNIT-07 và follower.
+- Mỗi thành viên còn sống tự động bắn.
+- Follower xếp thành rear-arc formation và đồng bộ damage, fire rate, HP, projectile count từ main unit.
+- Khi main unit chết mà follower còn sống, hệ thống có thể promote follower; run chỉ kết thúc khi squad không còn unit sống.
 
-**Pillar 1 — Survival Pressure**
+### 5.2 Permanent Upgrades
 
-Người chơi luôn bị đặt dưới áp lực từ số lượng enemy tăng dần theo thời gian. Gameplay phải tạo cảm giác căng thẳng nhưng không hỗn loạn.
+Balance active: `balance-v1.4.1-meta-stat-progression`.
 
-**Pillar 2 — Fast Decision-Making**
+| Track | Giá trị Lv.0 -> Max | Max level | Chi phí từng lần mua |
+|---|---|---:|---|
+| DMG | 3.25, 3.5, 4, 4.5, 4.75, 5 | 5 | 4k, 12k, 30k, 65k, 139k |
+| FIRE | 4, 4.4, 4.8, 5.2, 5.8, 6.4 | 5 | 4k, 10k, 24k, 52k, 100k |
+| HP | 10, 11.5, 13, 15, 17.5, 20 | 5 | 3k, 8k, 20k, 40k, 69k |
+| BULLET | 1, 2, 3 | 2 | 15k, 55k |
+| PLAYER | 1, 2, 3, 4 | 3 | 12k, 48k, 140k |
 
-Gate xuất hiện trong lúc chơi buộc người chơi phải ra quyết định nhanh. Mỗi lựa chọn có thể giúp người chơi mạnh hơn hoặc khiến tình huống trở nên nguy hiểm hơn.
+`MoveSpeed` vẫn tồn tại trong enum để tương thích dữ liệu cũ, nhưng không phải upgrade track được hỗ trợ trên UI.
 
-**Pillar 3 — Power Growth**
+### 5.3 Projectile
 
-Người chơi phải cảm nhận rõ nhân vật đang mạnh lên theo thời gian thông qua damage, fire rate, projectile count, range hoặc các chỉ số khác.
+- Projectile bay theo hướng bắn, gây damage và được quản lý qua pool khi prefab/config hỗ trợ.
+- Runtime có modifier cho homing, pierce và split.
+- Projectile count từ meta có cap 3; gate major có thể tăng projectile trong run theo run cap.
 
-**Pillar 4 — Mobile Performance**
+## 6. Enemy System
 
-Game phải chạy ổn định trên mobile, đặc biệt khi có số lượng lớn enemy, projectile và effect xuất hiện đồng thời.
+Enemy role active và base stat trước khi nhận time scaling:
 
-**4. Target Audience**
+| Role | Mô tả | Unlock | HP | Speed | Damage | Score | Threat |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Basic | Melee cơ bản | 0s | 2 | 2.8 | 0.5 | 1 | 0 |
+| Chomboom | Melee nổ | 30s | 6 | 2.5 | 3 | 4 | 1.5 |
+| Vomfy | Ranged attacker | 90s | 8 | 2.7 | 1.5 | 5 | 2 |
+| Swarmer | Nhẹ, nhanh, xuất hiện theo nhóm | 120s | 1 | 5.2 | 0.5 | 1 | 0.25 |
+| Elite | Mục tiêu nguy hiểm, thưởng cao | 180s | 36 | 1.85 | 4.5 | 50 | 8 |
+| Tanker | Chậm, nhiều HP | 210s | 30 | 1.6 | 3 | 10 | 3 |
 
-**4.1 Nhóm người chơi mục tiêu**
+Run pressure nội suy giữa các mốc 0, 60, 180, 300, 420 và 720 giây. Active cap tăng từ 12 lên 60, spawn rate từ 3 lên 12 enemy/giây, HP multiplier từ 1 lên 4.5 và damage multiplier từ 0.75 lên 1.9.
 
-Người chơi mobile casual.
+Enemy contact damage có cooldown dùng chung cho trigger và overlap path để tránh gây nhiều hit trong cùng một khoảng va chạm.
 
-Người thích game sinh tồn ngắn, dễ chơi lại.
+## 7. Gate System
 
-Người thích cảm giác nhân vật mạnh dần theo thời gian.
+### 7.1 Offer Rules
 
-Người thích gameplay đơn giản nhưng có lựa chọn chiến thuật.
+- Cadence thường: 15 giây.
+- Mốc major eligibility: 60 giây.
+- Mỗi set có 3 gate trên 3 lane responsive.
+- Hệ thống đảm bảo một tỷ lệ buff tối thiểu và có pity/telemetry cho Major gate.
+- Chọn một gate sẽ hủy hoặc khóa các lựa chọn còn lại.
+- Tutorial gate không tính vào lifetime mission progress.
 
-**4.2 Session Length**
+### 7.2 Categories và Effects
 
-| **Loại session** | **Thời lượng mục tiêu** |
-| --- | --- |
-| Short session | 1–3 phút |
-| Standard session | 3–7 phút |
-| Long session | 7–12 phút |
+| Category | Gate hiện tại | Tác dụng chính |
+|---|---|---|
+| Stable | Damage, Fire Rate, Vitality | Tăng stat không có drawback |
+| Utility | Repair, Barrier, Freeze | Hồi HP, chặn hit, làm chậm enemy |
+| Risky | Glass Cannon, Bullet Storm, Reinforcement, Bounty | Buff lớn kèm incoming damage/enemy pressure/temporary trade-off |
+| Major | Projectile, Recruit, Overclock | Tăng projectile, squad hoặc damage + fire rate |
 
-**5. Core Gameplay**
+Magnitude gate scale theo phase của run trong `GateScalingProfile_v1_3_3_EliteSquad.asset`. Gate có thể thay đổi damage, fire rate, max HP, heal, barrier hit, enemy speed, projectile, squad size, incoming damage, enemy pressure và coin multiplier.
 
-**5.1 Core Game Loop**
+## 8. Economy và Records
 
-Core loop của True Gate ? xoay quanh ba yếu tố:
+- Wallet coin là tài nguyên vĩnh viễn dùng để mua meta upgrade.
+- Coin run dựa trên tổng reward point của enemy, nhân `rewardScale = 0.85`; không có coin thụ động theo thời gian.
+- Bounty gate có thể nhân coin reward trong run.
+- Mission thưởng coin sau khi người chơi bấm `CLAIM` trong Mission Log; reward được cấp idempotent một lần.
+- Score = kill score + 0.5 điểm mỗi giây sống + elite bonus.
+- Save lưu best survival time, best kills, best coins và best score.
+- Không có nút debug `+10k coin` trong build.
 
-**Survival**
+## 9. Mission System
 
-Người chơi né tránh enemy.
+Catalog hiện tại có **47 mission**:
 
-Enemy tăng dần số lượng và độ nguy hiểm.
+| Phase | Số mission | Vai trò |
+|---|---:|---|
+| BOOT | 6 | Tutorial, first run, upgrade và gate onboarding |
+| OBSERVE | 7 | Survival/combat/meta mức đầu |
+| MEMORY LEAK | 6 | Loop, gate, survival và upgrade trung cấp |
+| HUMAN COMMAND | 7 | Combat, loop, survival và squad |
+| SYSTEM FATIGUE | 6 | Major gate, combat và max upgrade |
+| BREAK THE CYCLE | 6 | Endgame trước final choice |
+| TERMINAL PROTOCOL | 9 | Post-choice kill challenge dài hạn |
 
-Nếu toàn bộ nhân vật bị tiêu diệt, vòng chơi kết thúc.
+Quy tắc runtime:
 
-**Progression**
+- BOOT mở tuần tự từng mission.
+- Sau BOOT, mission chạy theo các category chain song song: survival, run kills, total kills, loop, gate, upgrade, squad và story.
+- Progress mode gồm `AbsoluteLifetime`, `DeltaSinceUnlock` và `BestSingleRun`.
+- Mission complete được lưu ngay, đánh dấu unread và có reward để claim một lần.
+- `break_final_choice` hoàn tất khi một trong hai final branch được ghi nhận.
+- Toàn bộ `TERMINAL PROTOCOL` bị khóa trước final choice.
+- Sau final choice, terminal run-kill và total-kill chain bắt đầu lại trong chính phase Terminal; các mission sau vẫn cần mission trước cùng category.
 
-Người chơi tiêu diệt enemy để ghi điểm.
+Mission cuối của toàn catalog là `terminal_250000_total_kills`.
 
-Nhân vật mạnh dần, hoặc tăng dần số lượng thông qua Gate hoặc upgrade.
+## 10. Story và Cutscenes
 
-Độ khó tăng theo thời gian để giữ nhịp gameplay.
+Runtime có 7 mốc story chính, voice theo từng line và nút Skip:
 
-**Decision-Making**
+| Cutscene | Điều kiện mở khóa |
+|---|---|
+| CS_01 Boot Sequence | Save mới, chưa xem |
+| CS_02 First Death Recovery | Đã xem CS_01, loop >= 1 |
+| CS_03 Enemy Does Not Charge | Đã xem CS_02, loop >= 3, sống >= 30s, run kills >= 100 |
+| CS_04 Gate Memory Leak | Đã xem CS_03, loop >= 10, sống >= 180s |
+| CS_05 Human Command | Đã xem CS_04, loop >= 20, sống >= 300s, total kills >= 1,000 |
+| CS_06 System Fatigue | Đã xem CS_05, loop >= 35, sống >= 360s |
+| CS_07 Final Choice | Đã xem CS_06, sống >= 420s và loop không vượt 50 |
 
-Người chơi lựa chọn đi qua Gate phù hợp.
+CS_07 phát pre-choice, sau đó chuyển sang `Continue Protocol` hoặc `Shut Down Core`. Lựa chọn được lưu và thông báo cho MissionSystem để hoàn tất `break_final_choice`.
 
-Một số Gate có thể tăng sức mạnh.
+Gameplay dialogue riêng được lập lịch theo psychology/story phase và có thể tiếp tục không audio nếu một voice clip bị thiếu.
 
-Một số Gate có thể giảm sức mạnh hoặc tạo rủi ro.
+## 11. Tutorial và UI Flow
 
-Lựa chọn Gate ảnh hưởng trực tiếp tới khả năng sống sót.
+### 11.1 Tutorial
 
-**5.2 Moment-to-Moment Gameplay**
+- Gameplay tutorial: intro, movement, auto-fire, enemy warning, gate và complete.
+- Upgrade onboarding: recovery, mở panel, coin, upgrade row, purchase và complete.
+- Tutorial và cutscene đều có Skip; tutorial skip ở góc dưới màn hình.
 
-Trong mỗi vòng chơi, người chơi sẽ:
+### 11.2 Screens
 
-Di chuyển nhân vật theo phương ngang.
+`Main Menu`, `Gameplay HUD`, `Upgrade`, `Mission`, `Settings`, `Pause`, `Game Over` và cutscene overlay cùng tồn tại trong một build scene.
 
-Né enemy đang tiến tới.
+- HUD: survival time, coin, enemy defeated, score, health và Pause.
+- Upgrade: currency, power, squad và năm upgrade row.
+- Mission: active/unlocked/completed state, progress, notification và Claim.
+- Pause: Resume, Restart, Settings, Home, Music và SFX.
+- Settings: Music, SFX, Vibration, Damage Text và Reset Data có confirm popup.
+- Game Over: final stats, best records, Retry, Upgrade và Home.
 
-Nhân vật tự động tấn công về phía trước.
+Tất cả panel build chính dùng Safe Area; Mission panel có `MissionSafeAreaRoot` riêng.
 
-Quan sát các Gate xuất hiện.
+## 12. Audio và Visual Direction
 
-Chọn Gate phù hợp với tình huống hiện tại.
+- Visual: 2D pixel-art, portrait, nền sci-fi/alien, UI viền xanh trắng với màu category rõ ràng.
+- Audio mixer tách Music, Ambience, SFX, UI và Dialogue.
+- BGM gồm Main Menu, Gameplay Normal, Gameplay Pressure, Story và Ending.
+- Cue chính gồm shot, hit, Chomboom explosion, gate freeze, run start, squad defeated, mission complete, UI và final choice.
+- Music/SFX toggle hoạt động ở Settings và Pause, lưu bằng PlayerPrefs sau khi khởi động lại.
+- Damage Text toggle ẩn/hiện combat numbers; Vibration là setting riêng.
+- Story voice được stream/compress phù hợp mobile và không preload hàng loạt.
 
-Tiêu diệt enemy để tăng điểm.
+## 13. Technical Architecture và Save
 
-Cố gắng sống sót lâu nhất có thể.
+### 13.1 Runtime
 
-**5.3 Win/Lose Condition**
+- Unity 6000.4.2f1, URP 2D, Input System, UGUI/TMP.
+- Một scene build: `Main.unity`.
+- `GameManager` điều phối StateMachine, combat, spawner, gate, UI, mission, tutorial, story, audio và telemetry.
+- Game states: Bootstrap, MainMenu, Playing, Cutscene, Paused, GameOver.
+- Data balance dùng ScriptableObject; pool được dùng cho enemy/projectile/effect có hỗ trợ.
 
-**Lose Condition**
+### 13.2 Save
 
-Người chơi thua khi:
+- Save schema hiện tại: 11.
+- Local save lưu records, wallet, lifetime stats, upgrades, tutorial, mission, seen cutscenes và final choice.
+- Mission reward và upgrade purchase được bảo vệ khỏi cấp/trừ tiền lặp.
+- Có abstraction cloud save và conflict resolution, nhưng provider runtime hiện tại là no-op; không được mô tả như cloud save đang hoạt động.
+- Audio/settings toggle lưu bằng PlayerPrefs, tách khỏi progression save.
+- Reset Data cần xác nhận trước khi xóa progress.
 
-HP của nhân vật về 0.
+## 14. Mobile Build Target
 
-Nhân vật bị enemy chạm hoặc nhận đủ damage.
+| Setting | Giá trị hiện tại |
+|---|---|
+| Application ID | `com.mimicompany.truegate` |
+| Orientation | Portrait only |
+| Scripting backend | IL2CPP |
+| Architecture | ARM64 |
+| Minimum Android | API 25 |
+| Target Android | API 36 theo RC manifest |
+| Texture format | ETC2 |
+| Release status | Direct-install beta ready |
 
-Điều kiện kết thúc khác: TBD.
+RC đã được smoke-test trên OPPO CPH2059, Android 11, 1080 x 2400 mà không có crash/ANR trong flow đã kiểm tra. APK beta hiện tại dùng debug certificate; cần private release keystore trước khi phát hành công khai hoặc lên Play Store.
 
-**Win Condition**
+## 15. QA và Current Scope
 
-Hiện tại game được thiết kế theo dạng endless survival.
+QA bắt buộc trước mỗi RC:
 
-Không có điều kiện thắng cố định trong phiên bản hiện tại.
+1. C# compile không có error.
+2. EditMode và PlayMode test được chạy và lưu report.
+3. Main scene và project asset không có missing reference.
+4. Main Menu -> Tutorial/Skip -> Gameplay -> Gate -> Pause -> Settings -> Game Over được smoke-test.
+5. Upgrade, mission claim, final choice và save persistence được kiểm tra.
+6. Android APK được verify package/version/signature và cài bằng `adb install -r` để giữ save.
 
-Mục tiêu chính là đạt điểm cao nhất có thể.
+Phạm vi chưa có trong beta hiện tại:
 
-Có thể mở rộng thêm milestone hoặc boss wave trong tương lai.
+- Không có boss fight.
+- Không có leaderboard.
+- Không có cloud provider production.
+- Không có monetization/ads flow đang hoạt động.
+- Không có iOS build đã xác minh.
+- Chưa có private Play Store signing key.
 
-TBD:
-
-Có boss cuối mỗi mốc thời gian hay không.
-
-Có level-based mode hay không.
-
-Có campaign mode hay không.
-
-**6. Player Character**
-
-**6.1 Player Role**
-
-Người chơi điều khiển một nhân vật chibi pixel có khả năng tự động tấn công về phía trước. Người chơi không cần điều khiển việc bắn, mà tập trung vào di chuyển, né tránh và lựa chọn Gate.
-
-**6.2 Player Controls**
-
-| **Input** | **Hành động** |
-| --- | --- |
-| Swipe / Drag Left | Di chuyển sang trái |
-| Swipe / Drag Right | Di chuyển sang phải |
-| Auto Fire | Nhân vật tự động tấn công |
-| Tap Skill | TBD |
-
-**6.3 Player Stats**
-
-| **Stat** | **Mô tả** | **Giá trị ban đầu** |
-| --- | --- | --- |
-| HP | Máu của nhân vật | TBD |
-| Move Speed | Tốc độ di chuyển ngang | TBD |
-| Damage | Sát thương mỗi phát bắn | TBD |
-| Fire Rate | Tốc độ bắn | TBD |
-| Projectile Count | Số lượng đạn mỗi lần bắn | TBD |
-| Attack Range | Tầm bắn | TBD |
-| Critical Chance | Tỷ lệ chí mạng | TBD |
-| Critical Damage | Sát thương chí mạng | TBD |
-
-**6.4 Player Death**
-
-Khi nhân vật chết:
-
-Gameplay dừng lại.
-
-Enemy và projectile được xử lý hoặc trả về pool.
-
-Màn hình kết quả hiển thị.
-
-Điểm số được tổng kết.
-
-Người chơi có thể chơi lại.
-
-TBD:
-
-Có revive bằng ads hay không.
-
-Có reward sau khi chết hay không.
-
-Có lưu high score local hay cloud hay không.
-
-**7. Combat System**
-
-**7.1 Combat Overview**
-
-Combat được thiết kế theo hướng **auto shooter**, trong đó nhân vật tự động bắn liên tục về phía trước. Người chơi không cần ngắm hoặc nhấn bắn, giúp gameplay phù hợp với mobile và tập trung vào né tránh, positioning và Gate choice.
-
-**7.2 Auto Attack Behavior**
-
-Nhân vật sẽ tự động tấn công khi:
-
-Game đang ở trạng thái Playing.
-
-Player còn sống.
-
-Có thể bắn theo cooldown hiện tại.
-
-Projectile pool còn object khả dụng.
-
-TBD:
-
-Có cần target enemy gần nhất hay chỉ bắn thẳng về phía trước.
-
-Có hỗ trợ multi-direction weapon hay không.
-
-Có weapon đặc biệt hay không.
-
-**7.3 Damage Calculation**
-
-Công thức damage cơ bản:
-
-FinalDamage = BaseDamage * DamageMultiplier + FlatDamageBonus
-
-Nếu có critical:
-
-CriticalDamage = FinalDamage * CriticalDamageMultiplier
-
-TBD:
-
-Có armor/resistance cho enemy hay không.
-
-Có elemental damage hay không.
-
-Có damage over time hay không.
-
-**7.4 Projectile Behavior**
-
-Projectile có thể có các thông số:
-
-| **Property** | **Mô tả** |
-| --- | --- |
-| Speed | Tốc độ bay |
-| Damage | Sát thương |
-| Lifetime | Thời gian tồn tại |
-| Pierce Count | Số enemy có thể xuyên qua |
-| Hit Effect | Hiệu ứng khi va chạm |
-| Pool Key | Key dùng cho object pooling |
-
-**8. Enemy System**
-
-**8.1 Enemy Overview**
-
-Enemy được sinh ra liên tục để tạo áp lực sinh tồn. Độ khó tăng dần theo thời gian thông qua số lượng enemy, tốc độ di chuyển, máu, sát thương hoặc pattern spawn.
-
-**8.2 Enemy Types**
-
-| **Enemy Type** | **Mô tả** | **Trạng thái** |
-| --- | --- | --- |
-| Basic Enemy | Enemy cơ bản, di chuyển thẳng về phía player | Planned |
-| Fast Enemy | Enemy tốc độ cao, máu thấp | TBD |
-| Tank Enemy | Enemy máu cao, tốc độ thấp | TBD |
-| Ranged Enemy | Enemy có khả năng tấn công từ xa | TBD |
-| Boss Enemy | Enemy đặc biệt theo mốc thời gian | TBD |
-
-**8.3 Enemy Stats**
-
-| **Stat** | **Mô tả** |
-| --- | --- |
-| HP | Máu enemy |
-| Move Speed | Tốc độ di chuyển |
-| Damage | Sát thương gây ra cho player |
-| Score Value | Điểm nhận được khi tiêu diệt |
-| Spawn Weight | Tỷ lệ xuất hiện |
-| Pool Key | Key dùng cho pooling |
-
-**8.4 Enemy Scaling**
-
-V1 chinh thuc dung time-based run progression, khong dung boss/miniboss va khong dung XP level-up screen.
-
-Enemy scaling duoc dieu khien boi `RunProgressionConfig`:
-
-EnemyHP = BaseHP * HpMultiplierCurve
-EnemySpeed = BaseSpeed * MoveSpeedMultiplierCurve
-EnemyDamage = BaseDamage * DamageMultiplierCurve
-EnemyProjectileSpeed = BaseProjectileSpeed * ProjectileSpeedMultiplierCurve
-SpawnInterval = SpawnIntervalCurve(TimeSurvived)
-MaxActiveEnemies = MaxActiveEnemiesCurve(TimeSurvived)
-
-Enemy mix duoc chon bang weight theo thoi gian:
-
-Basic melee: unlock 0s, demo weight 5.
-Chomboom exploder melee: unlock 0s, weight thap tu dau run roi tang dan.
-Ranged shooter: unlock 0s, weight thap tu dau run roi tang dan.
-
-Muc tieu la tang ap luc theo kieu survival auto-shooter: dong hon, nhanh hon, trau hon, nhung van doc duoc tren mobile.
-
-**9. Enemy Spawner System**
-
-**9.1 Spawner Goal**
-
-EnemySpawnerSystem chịu trách nhiệm sinh enemy theo thời gian, đảm bảo:
-
-Enemy xuất hiện liên tục.
-
-Độ khó tăng dần.
-
-Không làm giảm hiệu năng.
-
-Có thể cấu hình bằng data.
-
-Có thể mở rộng thêm wave, pattern hoặc boss.
-
-**9.2 Spawn Rules**
-
-Enemy có thể được spawn dựa trên:
-
-Thời gian đã chơi.
-
-Current difficulty level.
-
-Số lượng enemy hiện tại.
-
-Spawn weight của từng enemy type.
-
-Khoảng cách an toàn so với player.
-
-**9.3 Spawn Constraints**
-
-| **Constraint** | **Mô tả** |
-| --- | --- |
-| Max Active Enemies | Giới hạn enemy đang hoạt động |
-| Spawn Interval | Thời gian giữa mỗi lần spawn |
-| Spawn Position | Vị trí sinh enemy |
-| Safe Zone | Vùng không spawn quá gần player |
-| Pool Availability | Chỉ spawn nếu pool còn object |
-
-**9.4 Production Requirement**
-
-EnemySpawnerSystem không nên trực tiếp tạo object bằng Instantiate trong gameplay runtime. Thay vào đó, hệ thống phải lấy enemy từ PoolSystem để giảm GC allocation và đảm bảo hiệu năng mobile.
-
-**10. Gate System**
-
-**10.1 Gate Overview**
-
-Gate là cơ chế chiến thuật chính của game. Trong quá trình chơi, các Gate xuất hiện trên đường di chuyển, mỗi Gate chứa một hiệu ứng tác động trực tiếp tới chỉ số hoặc trạng thái của player.
-
-Người chơi phải lựa chọn Gate phù hợp trong thời gian ngắn, tạo ra yếu tố decision-making liên tục.
-
-**10.2 Gate Types**
-
-| **Gate Type** | **Hiệu ứng** | **Ví dụ** |
-| --- | --- | --- |
-| Add Gate | Cộng thêm chỉ số | +10 Damage |
-| Subtract Gate | Giảm chỉ số | -5 Fire Rate |
-| Multiply Gate | Nhân chỉ số | x2 Projectile |
-| Divide Gate | Chia chỉ số | /2 Damage |
-| Speed Gate | Hiệu ứng đặc biệt | TBD |
-|  |  |  |
-
-**10.3 Gate Target Stats**
-
-Gate có thể ảnh hưởng tới:
-
-Damage.
-
-Fire Rate.
-
-Projectile Count.
-
-Move Speed.
-
-HP.
-
-Critical Chance.
-
-Critical Damage.
-
-Weapon behavior.
-
-Score multiplier.
-
-**10.4 Gate Spawn Rules**
-
-Gate có thể spawn theo:
-
-Khoảng thời gian cố định.
-
-Sau khi người chơi đạt số điểm nhất định.
-
-Theo wave.
-
-Theo random weighted rules.
-
-TBD:
-
-Gate xuất hiện đơn lẻ hay theo cặp.
-
-Có bắt buộc chọn một trong hai Gate hay không.
-
-Gate có biến mất sau thời gian nhất định hay không.
-
-**10.5 Gate Balancing Rules**
-
-Để tránh mất cân bằng:
-
-Gate tăng mạnh nên đi kèm rủi ro hoặc hiếm hơn.
-
-Gate nhân chỉ số cần có giới hạn.
-
-Gate giảm chỉ số không nên khiến run thất bại ngay lập tức.
-
-Các chỉ số quan trọng cần có min/max clamp.
-
-Gate effect nên được định nghĩa bằng data để dễ balance.
-
-Ví dụ:
-
-DamageMultiplierMin = 0.25
-DamageMultiplierMax = 10.0
-ProjectileCountMax = 20
-FireRateMax = TBD
-
-**11. Progression System**
-
-**11.1 In-Run Progression**
-
-Progression trong một vòng chơi đến từ:
-
-Gate upgrade.
-
-Score gain.
-
-Enemy kill.
-
-Time survived.
-
-Temporary stat changes.
-
-V1 decision:
-
-Gate la nguon tang tien suc manh chinh cua player trong run.
-
-Khong co XP gem, khong co level-up screen, khong co chon skill sau khi du EXP trong V1.
-
-Enemy kill/score/coin van phuc vu score va meta progression, khong kich hoat in-run level choice.
-
-Combo system de sau V1.
-
-**11.2 Meta Progression**
-
-Meta progression là progression ngoài vòng chơi.
-
-TBD:
-
-Có tiền tệ không.
-
-Có nâng cấp permanent không.
-
-Có unlock character không.
-
-Có unlock weapon không.
-
-Có daily reward không.
-
-**11.3 Score System**
-
-Điểm số có thể được tính từ:
-
-TotalScore = EnemyKillScore + TimeSurvivalScore + BonusScore
-
-TBD:
-
-Công thức tính điểm chính thức.
-
-Có score multiplier hay không.
-
-Có leaderboard hay không.
-
-**12. Game Economy**
-
-**12.1 Economy Status**
-
-Hiện tại economy chưa được xác định đầy đủ.
-
-TBD:
-
-Soft currency.
-
-Hard currency.
-
-Upgrade cost.
-
-Reward per run.
-
-Ads reward.
-
-IAP package.
-
-**12.2 Production Note**
-
-Nếu game có monetization, economy cần được thiết kế cẩn thận để tránh phá vỡ balance cốt lõi. Không nên thêm economy phức tạp trước khi core gameplay ổn định.
-
-**13. Game Modes**
-
-**13.1 Current Mode — Endless Survival**
-
-Chế độ hiện tại là endless survival.
-
-Mục tiêu:
-
-Sống sót lâu nhất có thể.
-
-Tiêu diệt càng nhiều enemy càng tốt.
-
-Tối ưu lựa chọn Gate.
-
-Đạt điểm cao hơn ở mỗi lần chơi.
-
-**13.2 Future Modes**
-
-TBD:
-
-Stage Mode.
-
-Boss Rush.
-
-Challenge Mode.
-
-Daily Run.
-
-Event Mode.
-
-**14. User Interface**
-
-**14.1 Main Menu**
-
-Main Menu cần có các chức năng cơ bản:
-
-Play.
-
-Settings.
-
-Upgrade.
-
-Character.
-
-Shop.
-
-Leaderboard.
-
-TBD:
-
-Có Shop hay không.
-
-Có Character selection hay không.
-
-Có Daily reward hay không.
-
-**14.2 In-Game HUD**
-
-HUD trong gameplay cần hiển thị:
-
-HP.
-
-Score.
-
-Time survived.
-
-Current upgrade stats.
-
-Pause button.
-
-Optional: current weapon info.
-
-**14.3 Result Screen**
-
-Result Screen hiển thị:
-
-Total score.
-
-Time survived.
-
-Enemy killed.
-
-Best score.
-
-Reward earned.
-
-Retry button.
-
-Home button.
-
-TBD:
-
-Có revive button hay không.
-
-Có double reward bằng ads hay không.
-
-**15. Art Direction**
-
-**15.1 Visual Style**
-
-True Gate ? sử dụng phong cách:
-
-Chibi character.
-
-Pixel art.
-
-Màu sắc rõ ràng.
-
-Hiệu ứng dễ đọc trên mobile.
-
-Enemy và projectile phải phân biệt rõ.
-
-**15.2 Readability Rules**
-
-Trong gameplay survival, visual clarity rất quan trọng.
-
-Yêu cầu:
-
-Player phải luôn dễ nhận diện.
-
-Enemy không được bị lẫn với background.
-
-Projectile của player và enemy phải khác nhau rõ ràng.
-
-Gate phải có text/icon dễ hiểu.
-
-Effect không được che mất thông tin quan trọng.
-
-**15.3 Asset List**
-
-TBD:
-
-Player sprite.
-
-Enemy sprite.
-
-Projectile sprite.
-
-Gate sprite.
-
-Background.
-
-VFX.
-
-UI icon.
-
-Button.
-
-Font.
-
-**16. Audio Direction**
-
-**16.1 Audio Goals**
-
-Audio cần hỗ trợ gameplay bằng cách:
-
-Tạo cảm giác hành động nhanh.
-
-Phản hồi rõ khi bắn trúng enemy.
-
-Báo hiệu Gate, hit, death và result.
-
-Không gây mệt khi chơi nhiều lần.
-
-**16.2 Audio List**
-
-TBD:
-
-Main menu music.
-
-Gameplay music.
-
-Player shoot SFX.
-
-Enemy hit SFX.
-
-Enemy death SFX.
-
-Gate collect SFX.
-
-Player damage SFX.
-
-Game over SFX.
-
-Button click SFX.
-
-**17. Technical Design Overview**
-
-**17.1 Technical Goal**
-
-Dự án được xây dựng theo định hướng production-ready, ưu tiên:
-
-Kiến trúc rõ ràng.
-
-Tách biệt trách nhiệm giữa các hệ thống.
-
-Dễ mở rộng.
-
-Dễ debug.
-
-Dễ balance bằng data.
-
-Hiệu năng ổn định trên mobile.
-
-**17.2 Architecture Layers**
-
-Codebase được tổ chức theo các lớp chính:
-
-Core
-Gameplay
-Systems
-Data
-UI
-Infrastructure
-
-**Core**
-
-Chứa các thành phần nền tảng dùng chung:
-
-Game state.
-
-Event system.
-
-Service locator hoặc dependency injection.
-
-Common utilities.
-
-Base interfaces.
-
-**Gameplay**
-
-Chứa logic gameplay trực tiếp:
-
-Player.
-
-Enemy.
-
-Projectile.
-
-Gate.
-
-Weapon.
-
-Damage handling.
-
-**Systems**
-
-Chứa các hệ thống độc lập:
-
-CombatSystem.
-
-EnemySpawnerSystem.
-
-GateSystem.
-
-PoolSystem.
-
-ScoreSystem.
-
-GameStateSystem.
-
-**Data**
-
-Chứa dữ liệu cấu hình:
-
-Enemy data.
-
-Gate data.
-
-Weapon data.
-
-Player stat data.
-
-Difficulty curve.
-
-Balance config.
-
-**UI**
-
-Chứa các màn hình và HUD:
-
-MainMenuUI.
-
-GameplayHUD.
-
-ResultScreen.
-
-PauseMenu.
-
-SettingsUI.
-
-**Infrastructure**
-
-Chứa phần hỗ trợ kỹ thuật:
-
-Save system.
-
-Analytics.
-
-Ads.
-
-IAP.
-
-Remote config.
-
-Build config.
-
-TBD:
-
-Engine sử dụng.
-
-Unity version.
-
-Render pipeline.
-
-Target device minimum.
-
-**18. Core Systems**
-
-**18.1 CombatSystem**
-
-CombatSystem chịu trách nhiệm:
-
-Quản lý auto attack.
-
-Tạo projectile từ pool.
-
-Tính damage.
-
-Xử lý hit detection.
-
-Gửi event khi enemy bị tiêu diệt.
-
-Không nên chịu trách nhiệm:
-
-Spawn enemy.
-
-Spawn Gate.
-
-Quản lý UI.
-
-Lưu dữ liệu.
-
-**18.2 EnemySpawnerSystem**
-
-EnemySpawnerSystem chịu trách nhiệm:
-
-Spawn enemy theo thời gian.
-
-Áp dụng difficulty scaling.
-
-Chọn enemy type theo weight.
-
-Kiểm tra giới hạn enemy.
-
-Lấy enemy từ PoolSystem.
-
-Không nên chịu trách nhiệm:
-
-Tính damage.
-
-Điều khiển player.
-
-Quản lý score trực tiếp.
-
-**18.3 GateSystem**
-
-GateSystem chịu trách nhiệm:
-
-Spawn Gate.
-
-Chọn Gate effect.
-
-Apply effect lên player stats.
-
-Quản lý thời gian tồn tại của Gate.
-
-Gửi event khi player đi qua Gate.
-
-Không nên chịu trách nhiệm:
-
-Điều khiển movement của player.
-
-Tính score.
-
-Spawn enemy.
-
-**18.4 PoolSystem**
-
-PoolSystem chịu trách nhiệm:
-
-Khởi tạo object pool.
-
-Cấp phát object từ pool.
-
-Trả object về pool.
-
-Theo dõi active/inactive object.
-
-Giảm runtime allocation.
-
-Các object nên dùng pool:
-
-Enemy.
-
-Projectile.
-
-Hit effect.
-
-Damage popup.
-
-Gate.
-
-Coin/reward object nếu có.
-
-**18.5 ScoreSystem**
-
-ScoreSystem chịu trách nhiệm:
-
-Tính điểm từ enemy kill.
-
-Tính điểm theo thời gian sống.
-
-Lưu score hiện tại.
-
-Gửi event cập nhật UI.
-
-Cập nhật high score nếu cần.
-
-**19. Data-Driven Design**
-
-**19.1 Data Philosophy**
-
-Các thông số gameplay nên được đưa ra khỏi code càng nhiều càng tốt để dễ balance.
-
-Ví dụ dữ liệu nên cấu hình được:
-
-Enemy HP.
-
-Enemy speed.
-
-Enemy score value.
-
-Spawn rate.
-
-Gate effect value.
-
-Player base stats.
-
-Weapon stats.
-
-Difficulty curve.
-
-**19.2 Example Enemy Data**
-
-{
-  "enemyId": "basic_enemy",
-  "displayName": "Basic Enemy",
-  "hp": 10,
-  "moveSpeed": 2.5,
-  "damage": 1,
-  "scoreValue": 10,
-  "spawnWeight": 100,
-  "poolKey": "enemy_basic"
-}
-
-**19.3 Example Gate Data**
-
-{
-  "gateId": "damage_add_10",
-  "displayText": "+10 Damage",
-  "operation": "Add",
-  "targetStat": "Damage",
-  "value": 10,
-  "rarity": "Common"
-}
-
-**20. Performance Requirements**
-
-**20.1 Performance Target**
-
-Game cần đảm bảo hiệu năng ổn định trên mobile.
-
-| **Metric** | **Target** |
-| --- | --- |
-| FPS | 60 FPS target |
-| Minimum FPS | 30 FPS acceptable |
-| Active Enemies | 100–300 |
-| Runtime Instantiate | Không dùng trong gameplay chính |
-| GC Spike | Hạn chế tối đa |
-| Loading Time | TBD |
-| Memory Budget | TBD |
-
-**20.2 Optimization Rules**
-
-Sử dụng object pooling cho enemy, projectile và effect.
-
-Tránh Instantiate và Destroy liên tục trong gameplay.
-
-Tránh allocation trong Update loop.
-
-Tách logic update nặng ra khỏi frame nếu cần.
-
-Giới hạn số lượng effect đồng thời.
-
-Sử dụng data cache cho lookup thường xuyên.
-
-Profile thường xuyên trên thiết bị thật.
-
-**21. Save System**
-
-**21.1 Save Data**
-
-TBD:
-
-High score.
-
-Player upgrades.
-
-Unlocked characters.
-
-Unlocked weapons.
-
-Currency.
-
-Settings.
-
-Tutorial progress.
-
-**21.2 Save Requirements**
-
-Save system cần:
-
-Không làm mất dữ liệu người chơi.
-
-Có versioning cho save data.
-
-Có khả năng migrate khi update game.
-
-Có fallback nếu save bị lỗi.
-
-**22. Analytics**
-
-**22.1 Analytics Goals**
-
-Analytics dùng để hiểu hành vi người chơi và cải thiện balance.
-
-TBD:
-
-Tool analytics sử dụng.
-
-Event naming convention.
-
-Privacy requirements.
-
-**22.2 Suggested Events**
-
-| **Event** | **Mục đích** |
-| --- | --- |
-| game_start | Người chơi bắt đầu run |
-| game_end | Run kết thúc |
-| enemy_killed | Theo dõi kill count |
-| gate_selected | Theo dõi Gate được chọn |
-| player_death | Xác định nguyên nhân chết |
-| score_reached | Theo dõi điểm số |
-| session_length | Đo thời lượng chơi |
-
-**23. Monetization**
-
-**23.1 Monetization Status**
-
-TBD.
-
-Các hướng có thể cân nhắc:
-
-Rewarded ads.
-
-Cosmetic skins.
-
-Remove ads.
-
-Starter pack.
-
-Battle pass hoặc mission pass.
-
-**23.2 Production Note**
-
-Monetization không nên phá core gameplay. Các tính năng kiếm tiền cần được thiết kế sau khi gameplay chính đã đủ vui và ổn định.
-
-**24. QA Plan**
-
-**24.1 QA Goals**
-
-QA cần đảm bảo:
-
-Game không crash trong session dài.
-
-Enemy spawn ổn định.
-
-Gate effect hoạt động đúng.
-
-PoolSystem không bị leak object.
-
-Score được tính đúng.
-
-UI hiển thị chính xác.
-
-Game chạy ổn trên thiết bị mục tiêu.
-
-**24.2 Test Cases**
-
-| **Test Case** | **Expected Result** |
-| --- | --- |
-| Start game | Player vào gameplay bình thường |
-| Player auto shoots | Projectile được bắn liên tục |
-| Enemy spawn | Enemy xuất hiện đúng rule |
-| Enemy killed | Enemy biến mất và score tăng |
-| Player hit | HP giảm đúng |
-| Player death | Game over được trigger |
-| Gate collected | Stat thay đổi đúng |
-| Pool reuse | Object được tái sử dụng |
-| High enemy count | FPS vẫn ổn định |
-
-**25. Production Roadmap**
-
-**25.1 Milestone 1 — Core Prototype**
-
-Mục tiêu:
-
-Player movement.
-
-Auto shooting.
-
-Basic enemy.
-
-Enemy spawner.
-
-Basic collision.
-
-Game over.
-
-Score.
-
-**25.2 Milestone 2 — Gate Gameplay**
-
-Mục tiêu:
-
-Gate spawn.
-
-Gate effect.
-
-Player stat modification.
-
-Basic balancing.
-
-HUD update.
-
-**25.3 Milestone 3 — Production Architecture**
-
-Mục tiêu:
-
-Tách Core, Gameplay, Systems, Data.
-
-Hoàn thiện PoolSystem.
-
-Data-driven config.
-
-GameStateSystem.
-
-Save high score.
-
-**25.4 Milestone 4 — Content Expansion**
-
-Mục tiêu:
-
-Thêm enemy type.
-
-Thêm Gate type.
-
-Thêm weapon behavior.
-
-Thêm VFX/SFX.
-
-Thêm UI flow.
-
-**25.5 Milestone 5 — Mobile Optimization**
-
-Mục tiêu:
-
-Profile trên thiết bị thật.
-
-Tối ưu enemy count.
-
-Tối ưu projectile.
-
-Tối ưu effect.
-
-Giảm GC allocation.
-
-**25.6 Milestone 6 — Release Candidate**
-
-Mục tiêu:
-
-QA checklist.
-
-Bug fixing.
-
-Balance pass.
-
-Build pipeline.
-
-Store assets.
-
-Final polish.
-
-**26. Risk Management**
-
-**26.1 Technical Risks**
-
-| **Risk** | **Impact** | **Mitigation** |
-| --- | --- | --- |
-| Quá nhiều enemy gây tụt FPS | High | Object pooling, spawn cap, profiling |
-| Projectile quá nhiều | High | Pooling, limit projectile count |
-| Gate effect phá balance | Medium | Clamp stat, data-driven balance |
-| Code phụ thuộc chéo | High | Tách system rõ ràng |
-| Save data lỗi khi update | Medium | Save versioning |
-
-**26.2 Design Risks**
-
-| **Risk** | **Impact** | **Mitigation** |
-| --- | --- | --- |
-| Gameplay lặp lại nhanh chán | High | Thêm enemy, Gate, weapon variation |
-| Gate choice không có ý nghĩa | High | Thiết kế trade-off rõ |
-| Difficulty tăng quá gắt | Medium | Difficulty curve theo data |
-| Mobile control khó chịu | High | Test nhiều device, đơn giản hóa input |
-
-**27. Open Questions**
-
-Các mục cần quyết định sau:
-
-Game dùng Unity hay engine khác?
-
-Player chỉ di chuyển ngang hay có thể di chuyển tự do?
-
-Auto attack bắn thẳng hay target enemy?
-
-Gate xuất hiện theo cặp hay theo hàng nhiều lựa chọn?
-
-Có boss không?
-
-Có meta progression không?
-
-Có monetization không?
-
-Có leaderboard không?
-
-Có cloud save không?
-
-Art style pixel kích thước bao nhiêu?
-
-Target device minimum là gì?
-
-**28. Production Checklist**
-
-**Gameplay**
-
-- [ ]  
-
-Player movement hoàn chỉnh.
-
-- [ ]  
-
-Auto attack ổn định.
-
-- [ ]  
-
-Enemy spawn ổn định.
-
-- [ ]  
-
-Gate system hoạt động đúng.
-
-- [ ]  
-
-Score system hoạt động đúng.
-
-- [ ]  
-
-Game over flow hoàn chỉnh.
-
-**Technical**
-
-- [ ]  
-
-Core architecture rõ ràng.
-
-- [ ]  
-
-Systems tách biệt trách nhiệm.
-
-- [ ]  
-
-Object pooling hoàn chỉnh.
-
-- [ ]  
-
-Data-driven config.
-
-- [ ]  
-
-Không dùng Instantiate/Destroy liên tục trong gameplay.
-
-- [ ]  
-
-Profile trên mobile device thật.
-
-**Content**
-
-- [ ]  
-
-Basic enemy.
-
-- [ ]  
-
-Ít nhất 3 loại Gate.
-
-- [ ]  
-
-Basic projectile.
-
-- [ ]  
-
-Basic VFX.
-
-- [ ]  
-
-Basic SFX.
-
-- [ ]  
-
-UI gameplay đầy đủ.
-
-**Release**
-
-- [ ]  
-
-QA pass.
-
-- [ ]  
-
-Balance pass.
-
-- [ ]  
-
-Build Android.
-
-- [ ]  
-
-Build iOS nếu cần.
-
-- [ ]  
-
-Store metadata.
-
-- [ ]  
-
-Privacy policy nếu có analytics/ads.
-
-- [ ]  
-
-Final release candidate.
-
-**29. Current Production Priority**
-
-Ở giai đoạn hiện tại, ưu tiên nên là:
-
-**Chốt core gameplay loop**
-
-**Làm Player + Auto Attack thật chắc**
-
-**Làm EnemySpawnerSystem có pooling**
-
-**Làm GateSystem data-driven**
-
-**Tách architecture sớm**
-
-**Profile hiệu năng ngay từ đầu**
-
-**Chưa vội thêm monetization hoặc meta progression phức tạp**
-
-True Gate ? được định hướng là một game mobile survival auto shooter có khả năng phát hành thực tế. Điểm mạnh cốt lõi của game nằm ở sự kết hợp giữa gameplay sinh tồn, auto shooting và lựa chọn Gate theo thời gian thực.
-
-Để đạt chuẩn production, dự án cần được xây dựng với kiến trúc rõ ràng, hệ thống gameplay tách biệt, dữ liệu dễ cấu hình và hiệu năng ổn định trên mobile. Các mục chưa hoàn thiện có thể để TBD, nhưng cấu trúc document và codebase cần được thiết kế ngay từ đầu theo hướng dễ mở rộng, dễ bảo trì và dễ kiểm soát chất lượng.
+Kết quả test mới nhất được lưu trong `Assets/_Project/Documentation/QA/` thay vì ghi cùng vào GDD để tài liệu gameplay không bị lỗi thời sau mỗi lần chạy test.

@@ -10,6 +10,10 @@ namespace _Project.Scripts.Systems.MissionSystem
 {
     public sealed class MissionSystem
     {
+        private const string FinalChoiceMissionId = "break_final_choice";
+        private const string TerminalEntryMissionId = "terminal_1000_kills_run";
+        private const string TerminalProtocolPhase = "TERMINAL PROTOCOL";
+
         private readonly MissionCatalog _catalog;
         private readonly SaveService _saveService;
         private readonly HashSet<string> _completedMissionIds = new HashSet<string>();
@@ -532,6 +536,12 @@ namespace _Project.Scripts.Systems.MissionSystem
                 return false;
             }
 
+            if (IsTerminalProtocolMission(mission)
+                && !IsMissionCompleted(FinalChoiceMissionId))
+            {
+                return false;
+            }
+
             MissionDefinition previousSameCategory = FindPreviousSameCategoryMission(missionIndex);
             return previousSameCategory == null || IsMissionCompleted(previousSameCategory.Id);
         }
@@ -584,6 +594,14 @@ namespace _Project.Scripts.Systems.MissionSystem
                 return FindFirstUnlockedIncompleteMission();
             }
 
+            if (completedMission.Id == FinalChoiceMissionId)
+            {
+                MissionDefinition terminalEntry = _catalog.GetMissionById(TerminalEntryMissionId);
+                return terminalEntry != null && IsMissionUnlocked(terminalEntry)
+                    ? terminalEntry
+                    : null;
+            }
+
             string categoryKey = GetMissionCategoryKey(completedMission);
             for (int index = completedIndex + 1; index < _catalog.Count; index++)
             {
@@ -593,7 +611,8 @@ namespace _Project.Scripts.Systems.MissionSystem
                     continue;
                 }
 
-                if (GetMissionCategoryKey(mission) == categoryKey)
+                if (GetMissionCategoryKey(mission) == categoryKey
+                    && IsMissionUnlocked(mission))
                 {
                     return mission;
                 }
@@ -606,10 +625,16 @@ namespace _Project.Scripts.Systems.MissionSystem
         {
             MissionDefinition mission = _catalog.GetMissionAt(missionIndex);
             string categoryKey = GetMissionCategoryKey(mission);
+            bool restrictToSamePhase = IsTerminalProtocolMission(mission);
             for (int index = missionIndex - 1; index >= 0; index--)
             {
                 MissionDefinition candidate = _catalog.GetMissionAt(index);
                 if (candidate == null || IsBootMission(candidate))
+                {
+                    continue;
+                }
+
+                if (restrictToSamePhase && candidate.Phase != mission.Phase)
                 {
                     continue;
                 }
@@ -626,6 +651,11 @@ namespace _Project.Scripts.Systems.MissionSystem
         private static bool IsBootMission(MissionDefinition mission)
         {
             return mission != null && mission.Phase == "BOOT";
+        }
+
+        private static bool IsTerminalProtocolMission(MissionDefinition mission)
+        {
+            return mission != null && mission.Phase == TerminalProtocolPhase;
         }
 
         private static string GetMissionCategoryKey(MissionDefinition mission)

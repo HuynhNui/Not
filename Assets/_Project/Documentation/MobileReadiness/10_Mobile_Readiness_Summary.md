@@ -16,6 +16,7 @@ The RC builds, installs, launches, preserves save data, and completes the tested
 - Configured the Android player as IL2CPP ARM64, API 25 minimum, portrait-only, ETC2, version `0.1.0 (1)`.
 - Removed the startup AudioEventRouter fallback warning by wiring its PlayerController reference.
 - Fixed repeated enemy contact so trigger and overlap paths enforce the same damage cooldown.
+- Fixed final-choice progression so `TERMINAL PROTOCOL` unlocks only after the final choice and starts fresh category chains within the Terminal phase.
 - Built and verified development and release-candidate APKs, then installed both with save-preserving upgrades.
 
 ## Evidence
@@ -33,14 +34,13 @@ EditMode failures:
 
 1. `BalanceV1MathTests.GateLogic_IgnoresDeadFollower` uses `Destroy` during EditMode.
 2. `GateScalingProfileTests.EliteSquad_MathMatchesLinearSquadAndVisualBudget` expects 344.595 but runtime math returns about 229.935.
-3. `MissionRuntimePhaseETests.FinalChoiceResolved_CompletesFinalMission` expects final mission completion but receives false.
 
 PlayMode failures:
 
 1. Three tests create `BulletSpawner` fixtures without a FirePoint reference.
 2. Three projectile-meta tests expect projectile counts above the runtime cap/value (expected 4 or 6, actual 3).
 
-These failures existed before the mobile-readiness changes. The final suites match or improve the established baseline and the new safe-area, importer, atlas, voice, and device flows pass.
+The final-choice mission failure is now fixed, with all 15 `MissionRuntimePhaseETests` passing. The remaining failures predate the fix; current suites are 211/213 EditMode and 35/41 PlayMode. Full results are recorded in `Assets/_Project/Documentation/QA/2026-07-31_Test_Run.md`.
 
 ## Distribution Follow-up
 

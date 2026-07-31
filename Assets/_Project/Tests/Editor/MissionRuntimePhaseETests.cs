@@ -116,12 +116,21 @@ namespace _Project.Tests.Editor
         public void FinalChoiceResolved_CompletesFinalMission()
         {
             SetActiveMission("break_final_choice");
+            MissionDefinition unlockedMission = null;
+            _missionSystem.MissionCompleted += (_, unlocked) => unlockedMission = unlocked;
+
+            Assert.That(_missionSystem.IsMissionUnlocked("terminal_1000_kills_run"), Is.False);
+            Assert.That(_missionSystem.IsMissionUnlocked("terminal_10000_total_kills"), Is.False);
 
             _missionSystem.NotifyFinalChoiceResolved("CS_07_FinalChoice_ContinueProtocol");
 
             Assert.That(_service.Data.finalChoiceResolved, Is.True);
             Assert.That(_service.Data.completedMissionIds, Does.Contain("break_final_choice"));
             Assert.That(_missionSystem.IsMissionUnlocked("terminal_1000_kills_run"), Is.True);
+            Assert.That(_missionSystem.IsMissionUnlocked("terminal_10000_total_kills"), Is.True);
+            Assert.That(_missionSystem.IsMissionUnlocked("terminal_2500_kills_run"), Is.False);
+            Assert.That(_missionSystem.IsMissionUnlocked("terminal_25000_total_kills"), Is.False);
+            Assert.That(unlockedMission?.Id, Is.EqualTo("terminal_1000_kills_run"));
         }
 
         [Test]
@@ -328,12 +337,20 @@ namespace _Project.Tests.Editor
                 }
             }
 
+            bool isTerminalProtocol = mission.Phase == "TERMINAL PROTOCOL";
+            if (isTerminalProtocol)
+            {
+                AddCompletedForTest(_catalog.GetMissionById("break_final_choice"));
+                _service.Data.finalChoiceResolved = true;
+            }
+
             string categoryKey = GetCategoryKeyForTest(mission);
             for (int index = 0; index < missionIndex; index++)
             {
                 MissionDefinition candidate = _catalog.GetMissionAt(index);
                 if (candidate != null
                     && candidate.Phase != "BOOT"
+                    && (!isTerminalProtocol || candidate.Phase == mission.Phase)
                     && GetCategoryKeyForTest(candidate) == categoryKey)
                 {
                     AddCompletedForTest(candidate);
