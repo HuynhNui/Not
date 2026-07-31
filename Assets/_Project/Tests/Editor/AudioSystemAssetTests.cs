@@ -81,8 +81,8 @@ namespace _Project.Tests.Editor
         {
             AssertImporter("Assets/Sound/Music/bgm_gameplay_normal.ogg", AudioClipLoadType.Streaming, AudioCompressionFormat.Vorbis, false, true);
             AssertImporter("Assets/Sound/Music/amb_gameplay_planet.ogg", AudioClipLoadType.Streaming, AudioCompressionFormat.Vorbis, false, true);
-            AssertImporter("Assets/Sound/UI/ui_confirm.wav", AudioClipLoadType.DecompressOnLoad, AudioCompressionFormat.PCM, true, false);
-            AssertImporter("Assets/Sound/Combat/player_shot_01.ogg", AudioClipLoadType.DecompressOnLoad, AudioCompressionFormat.PCM, true, false);
+            AssertImporter("Assets/Sound/UI/ui_confirm.wav", AudioClipLoadType.CompressedInMemory, AudioCompressionFormat.Vorbis, true, false);
+            AssertImporter("Assets/Sound/Combat/player_shot_01.ogg", AudioClipLoadType.DecompressOnLoad, AudioCompressionFormat.ADPCM, true, false);
             AssertImporter("Assets/Sound/Combat/chomboom_explosion.ogg", AudioClipLoadType.CompressedInMemory, AudioCompressionFormat.Vorbis, true, false);
         }
 

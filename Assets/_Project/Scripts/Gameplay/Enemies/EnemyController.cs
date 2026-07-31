@@ -367,6 +367,11 @@ namespace _Project.Scripts.Gameplay.Enemies
                 return;
             }
 
+            if (!GetDestroyOnPlayerHit() && Time.time < _nextContactDamageTime)
+            {
+                return;
+            }
+
             PlayerUnit hitPlayer = other.GetComponent<PlayerUnit>();
 
             if (hitPlayer == null)

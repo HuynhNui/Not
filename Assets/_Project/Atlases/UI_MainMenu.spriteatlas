@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI_MainMenu
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 4
+      m_BuildTarget: Android
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 47
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 3860697472367493164, guid: 9cff4f14de21ba340a86cf65b4c08cb4, type: 3}
+    - {fileID: 8464533101758837677, guid: e9b0cc1def044b04c9f486a0b6059311, type: 3}
+    - {fileID: 21300000, guid: ee94b13d45e07364bb97ac4bfcdb9578, type: 3}
+    - {fileID: 21300000, guid: d463fec4f9c7b8c4c8a23a31a8f1c24f, type: 3}
+    - {fileID: -7458665334094220687, guid: 5809b3741788d0c47bcf0288496322fc, type: 3}
+    - {fileID: 8583807259697836784, guid: 93c88d75589dd6f47b1a8369c1ac689b, type: 3}
+    - {fileID: -8119737192586127354, guid: 918d6fa4bee412d4bb51ad2a6b6b2fd0, type: 3}
+    - {fileID: -6859580437338581, guid: 1ce071bfd8eaebc4caf885868da3da77, type: 3}
+    - {fileID: -3053676646294696729, guid: 59189c5cc7a37fa42879e5804735dd57, type: 3}
+    - {fileID: 5418179957358490683, guid: f17ac9379a2d1bd4c879360767f7b15b, type: 3}
+    - {fileID: -9120759475835956178, guid: 5ff075c0d844eea488c4c1ae96e733da, type: 3}
+    - {fileID: 3648584378463168710, guid: bf4bcb3f75fbdc341a6e2e53d7ae9a1f, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 5ff075c0d844eea488c4c1ae96e733da: -9120759475835956178
+    - 9cff4f14de21ba340a86cf65b4c08cb4: 3860697472367493164
+    - 5809b3741788d0c47bcf0288496322fc: -7458665334094220687
+    - 918d6fa4bee412d4bb51ad2a6b6b2fd0: -8119737192586127354
+    - d463fec4f9c7b8c4c8a23a31a8f1c24f: 21300000
+    - 93c88d75589dd6f47b1a8369c1ac689b: 8583807259697836784
+    - f17ac9379a2d1bd4c879360767f7b15b: 5418179957358490683
+    - 59189c5cc7a37fa42879e5804735dd57: -3053676646294696729
+    - e9b0cc1def044b04c9f486a0b6059311: 8464533101758837677
+    - ee94b13d45e07364bb97ac4bfcdb9578: 21300000
+    - bf4bcb3f75fbdc341a6e2e53d7ae9a1f: 3648584378463168710
+    - 1ce071bfd8eaebc4caf885868da3da77: -6859580437338581
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: -9120759475835956178, guid: 5ff075c0d844eea488c4c1ae96e733da, type: 3}
+  - {fileID: 3860697472367493164, guid: 9cff4f14de21ba340a86cf65b4c08cb4, type: 3}
+  - {fileID: -7458665334094220687, guid: 5809b3741788d0c47bcf0288496322fc, type: 3}
+  - {fileID: -8119737192586127354, guid: 918d6fa4bee412d4bb51ad2a6b6b2fd0, type: 3}
+  - {fileID: 21300000, guid: d463fec4f9c7b8c4c8a23a31a8f1c24f, type: 3}
+  - {fileID: 8583807259697836784, guid: 93c88d75589dd6f47b1a8369c1ac689b, type: 3}
+  - {fileID: 5418179957358490683, guid: f17ac9379a2d1bd4c879360767f7b15b, type: 3}
+  - {fileID: -3053676646294696729, guid: 59189c5cc7a37fa42879e5804735dd57, type: 3}
+  - {fileID: 8464533101758837677, guid: e9b0cc1def044b04c9f486a0b6059311, type: 3}
+  - {fileID: 21300000, guid: ee94b13d45e07364bb97ac4bfcdb9578, type: 3}
+  - {fileID: 3648584378463168710, guid: bf4bcb3f75fbdc341a6e2e53d7ae9a1f, type: 3}
+  - {fileID: -6859580437338581, guid: 1ce071bfd8eaebc4caf885868da3da77, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - colectionIcon
+  - BestscoreIcon
+  - RecordPanel
+  - SettingIcon
+  - HudPanel_optimized
+  - ScopeIcon
+  - Triagle
+  - StatictisIcon
+  - ClockIcon
+  - CoinIcon_optimized
+  - skull icon
+  - StartBtn
+  m_RenderDataMap: {}
+  m_Tag: UI_MainMenu
+  m_IsVariant: 0

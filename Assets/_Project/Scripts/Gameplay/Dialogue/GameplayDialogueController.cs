@@ -65,7 +65,10 @@ namespace _Project.Scripts.Gameplay.Dialogue
         private void OnDisable()
         {
             Unsubscribe();
-            presenter?.HideImmediate();
+            if (presenter != null)
+            {
+                presenter.HideImmediate();
+            }
         }
 
         private void OnDestroy()

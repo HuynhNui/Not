@@ -105,6 +105,21 @@ namespace _Project.Tests.PlayMode
         public IEnumerator TearDown()
         {
             Time.timeScale = 1f;
+
+            GameObject[] newPersistentRoots = Object.FindObjectsByType<GameObject>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None)
+                .Where(gameObject => gameObject.transform.parent == null
+                    && gameObject.scene.name == "DontDestroyOnLoad"
+                    && _existingObjectIds != null
+                    && !_existingObjectIds.Contains(gameObject.GetInstanceID()))
+                .ToArray();
+
+            foreach (GameObject gameObject in newPersistentRoots)
+            {
+                gameObject.SetActive(false);
+            }
+
             if (_loadedByTest && _mainScene.IsValid() && _mainScene.isLoaded)
             {
                 AsyncOperation unload = SceneManager.UnloadSceneAsync(_mainScene);
@@ -114,14 +129,9 @@ namespace _Project.Tests.PlayMode
                 }
             }
 
-            foreach (GameObject gameObject in Object.FindObjectsByType<GameObject>(
-                         FindObjectsInactive.Include,
-                         FindObjectsSortMode.None))
+            foreach (GameObject gameObject in newPersistentRoots)
             {
-                if (gameObject.transform.parent == null
-                    && gameObject.scene.name == "DontDestroyOnLoad"
-                    && _existingObjectIds != null
-                    && !_existingObjectIds.Contains(gameObject.GetInstanceID()))
+                if (gameObject != null)
                 {
                     Object.Destroy(gameObject);
                 }

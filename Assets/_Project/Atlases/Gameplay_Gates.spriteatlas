@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Gameplay_Gates
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 4
+      m_BuildTarget: Android
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 47
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 7481050122933421424, guid: 02c7322183a21124aa7105827c071ac6, type: 3}
+    - {fileID: -7081693205531999451, guid: 45406ac020d9acb459d2648acb6d9b84, type: 3}
+    - {fileID: 7869737316896374285, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -4227187797848984054, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -4223262568120390362, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: 220840082169912048, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: 1325130045217690283, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -8913587293687782959, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -374570315821106087, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: 5726344100236503188, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: 8465645317090053340, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: 5689031935608091516, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -4597980477835966250, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -486376660477758822, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    - {fileID: -3765403085917980190, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 45406ac020d9acb459d2648acb6d9b84: -7081693205531999451
+    - 02c7322183a21124aa7105827c071ac6: 7481050122933421424
+    - 3c55c3f1f590f56408ae3fc726defa6a: -3765403085917980190
+    - 3c55c3f1f590f56408ae3fc726defa6a: 8465645317090053340
+    - 3c55c3f1f590f56408ae3fc726defa6a: -486376660477758822
+    - 3c55c3f1f590f56408ae3fc726defa6a: -4597980477835966250
+    - 3c55c3f1f590f56408ae3fc726defa6a: 5726344100236503188
+    - 3c55c3f1f590f56408ae3fc726defa6a: 220840082169912048
+    - 3c55c3f1f590f56408ae3fc726defa6a: -8913587293687782959
+    - 3c55c3f1f590f56408ae3fc726defa6a: 5689031935608091516
+    - 3c55c3f1f590f56408ae3fc726defa6a: 1325130045217690283
+    - 3c55c3f1f590f56408ae3fc726defa6a: -374570315821106087
+    - 3c55c3f1f590f56408ae3fc726defa6a: -4223262568120390362
+    - 3c55c3f1f590f56408ae3fc726defa6a: 7869737316896374285
+    - 3c55c3f1f590f56408ae3fc726defa6a: -4227187797848984054
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: -7081693205531999451, guid: 45406ac020d9acb459d2648acb6d9b84, type: 3}
+  - {fileID: 7481050122933421424, guid: 02c7322183a21124aa7105827c071ac6, type: 3}
+  - {fileID: -3765403085917980190, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: 8465645317090053340, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: -486376660477758822, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: -4597980477835966250, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: 5726344100236503188, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: 220840082169912048, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: -8913587293687782959, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: 5689031935608091516, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: 1325130045217690283, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: -374570315821106087, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: -4223262568120390362, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: 7869737316896374285, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  - {fileID: -4227187797848984054, guid: 3c55c3f1f590f56408ae3fc726defa6a, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - gate_tint_screen_positive_green_narrow_192x160_0
+  - gate_tint_screen_negative_red_narrow_192x160_0
+  - overclock
+  - reinforcement
+  - recruit
+  - projectile
+  - bullet_storm
+  - repair
+  - freeze
+  - bounty
+  - barrier
+  - glass_cannon
+  - max_hp
+  - damage
+  - fire_rate
+  m_RenderDataMap: {}
+  m_Tag: Gameplay_Gates
+  m_IsVariant: 0

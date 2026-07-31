@@ -160,7 +160,15 @@ namespace _Project.Editor
                 BackgroundShade);
             Stretch(shade);
 
-            RectTransform card = CreateImage("PanelCard", panelRect, panelSprite, Image.Type.Sliced, Color.white);
+            RectTransform safeAreaRoot = CreateRect("MissionSafeAreaRoot", panelRect).transform as RectTransform;
+            Stretch(safeAreaRoot);
+            SafeAreaFitter safeAreaFitter = safeAreaRoot.gameObject.AddComponent<SafeAreaFitter>();
+            SerializedObject serializedFitter = new SerializedObject(safeAreaFitter);
+            serializedFitter.FindProperty("target").objectReferenceValue = safeAreaRoot;
+            serializedFitter.FindProperty("padding").vector4Value = new Vector4(24f, 24f, 24f, 24f);
+            serializedFitter.ApplyModifiedPropertiesWithoutUndo();
+
+            RectTransform card = CreateImage("PanelCard", safeAreaRoot, panelSprite, Image.Type.Sliced, Color.white);
             Anchor(card, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             card.sizeDelta = new Vector2(900f, 1740f);
             card.anchoredPosition = Vector2.zero;

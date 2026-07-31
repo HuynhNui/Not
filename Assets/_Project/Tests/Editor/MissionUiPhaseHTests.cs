@@ -19,6 +19,8 @@ namespace _Project.Tests.Editor
             "GameCanvas/UIRoot/SafeAreaRoot/MainMenuPanel/MenuSafeAreaRoot/MissionButton";
         private const string MissionLogPanelPath =
             "GameCanvas/UIRoot/SafeAreaRoot/MissionLogPanel";
+        private const string MissionPanelCardPath =
+            "MissionSafeAreaRoot/PanelCard";
         private const string MissionRowPrefabPath =
             "Assets/_Project/Prefabs/UI/MissionRow.prefab";
         private const string MissionLogPanelPrefabPath =
@@ -100,8 +102,8 @@ namespace _Project.Tests.Editor
             Assert.That(CountSceneObjectsNamed("MissionLogPanel"), Is.EqualTo(1));
             Assert.That(panel.activeSelf, Is.False);
             Assert.That(panel.GetComponent<MissionLogPanelUI>(), Is.Not.Null);
-            Assert.That(panel.transform.Find("PanelCard/Header/BackButton")?.GetComponent<Button>(), Is.Not.Null);
-            Assert.That(panel.transform.Find("PanelCard/MissionScrollView/Content/MissionRowTemplate"), Is.Not.Null);
+            Assert.That(panel.transform.Find(MissionPanelCardPath + "/Header/BackButton")?.GetComponent<Button>(), Is.Not.Null);
+            Assert.That(panel.transform.Find(MissionPanelCardPath + "/MissionScrollView/Content/MissionRowTemplate"), Is.Not.Null);
             Assert.That(panelPrefab, Is.Not.Null);
             Assert.That(rowPrefab, Is.Not.Null);
             Assert.That(rowPrefab.transform.Find("ClaimButton")?.GetComponent<Button>(), Is.Not.Null);
@@ -115,7 +117,7 @@ namespace _Project.Tests.Editor
             GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
             GameObject mainMenuPanel = FindSceneObjectByPath("GameCanvas/UIRoot/SafeAreaRoot/MainMenuPanel");
             GameObject badge = FindSceneObjectByPath(MissionButtonPath + "/MissionBadge");
-            Button backButton = missionPanel.transform.Find("PanelCard/Header/BackButton").GetComponent<Button>();
+            Button backButton = missionPanel.transform.Find(MissionPanelCardPath + "/Header/BackButton").GetComponent<Button>();
 
             _saveService.Data.missionNotificationUnread = true;
             _saveService.CommitMissionState();
@@ -172,7 +174,7 @@ namespace _Project.Tests.Editor
 
             GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
             MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
-            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+            Transform content = missionPanel.transform.Find(MissionPanelCardPath + "/MissionScrollView/Content");
 
             missionLogPanelUI.Refresh(_missionSystem, data);
 
@@ -206,7 +208,7 @@ namespace _Project.Tests.Editor
 
             GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
             MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
-            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+            Transform content = missionPanel.transform.Find(MissionPanelCardPath + "/MissionScrollView/Content");
 
             missionLogPanelUI.Refresh(_missionSystem, data);
             string beforeText = GetVisibleMissionRowText(content);
@@ -241,7 +243,7 @@ namespace _Project.Tests.Editor
 
             GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
             MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
-            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
+            Transform content = missionPanel.transform.Find(MissionPanelCardPath + "/MissionScrollView/Content");
 
             missionLogPanelUI.Refresh(_missionSystem, data);
             Button claimButton = FindVisibleClaimButton(content);
@@ -279,8 +281,8 @@ namespace _Project.Tests.Editor
 
             GameObject missionPanel = FindSceneObjectByPath(MissionLogPanelPath);
             MissionLogPanelUI missionLogPanelUI = missionPanel.GetComponent<MissionLogPanelUI>();
-            Transform content = missionPanel.transform.Find("PanelCard/MissionScrollView/Content");
-            TextMeshProUGUI summaryText = missionPanel.transform.Find("PanelCard/SummaryText")
+            Transform content = missionPanel.transform.Find(MissionPanelCardPath + "/MissionScrollView/Content");
+            TextMeshProUGUI summaryText = missionPanel.transform.Find(MissionPanelCardPath + "/SummaryText")
                 ?.GetComponent<TextMeshProUGUI>();
 
             uiSystem.ShowMissionLog();

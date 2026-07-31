@@ -112,12 +112,12 @@ namespace _Project.Tests.Editor
                 AudioImporterSampleSettings settings = importer.defaultSampleSettings;
                 Assert.That(importer.forceToMono, Is.True, path);
                 Assert.That(importer.loadInBackground, Is.True, path);
-                Assert.That(settings.preloadAudioData, Is.True, path);
-                Assert.That(settings.loadType, Is.EqualTo(AudioClipLoadType.DecompressOnLoad), path);
-                Assert.That(settings.compressionFormat, Is.EqualTo(AudioCompressionFormat.PCM), path);
+                Assert.That(settings.preloadAudioData, Is.False, path);
+                Assert.That(settings.loadType, Is.EqualTo(AudioClipLoadType.CompressedInMemory), path);
+                Assert.That(settings.compressionFormat, Is.EqualTo(AudioCompressionFormat.Vorbis), path);
                 Assert.That(
                     settings.sampleRateSetting,
-                    Is.EqualTo(AudioSampleRateSetting.PreserveSampleRate),
+                    Is.EqualTo(AudioSampleRateSetting.OptimizeSampleRate),
                     path);
             }
         }
