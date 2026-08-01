@@ -523,7 +523,6 @@ namespace _Project.Tests.Editor
 
             const string musicEnabledKey = "Settings.MusicEnabled";
             const string sfxEnabledKey = "Settings.SfxEnabled";
-            const string vibrationKey = "Settings.Vibration";
             const string damageTextKey = "Settings.DamageText";
 
             bool hadLegacyBestSurvivalTime = PlayerPrefs.HasKey(RunStatsTracker.BestSurvivalTimePrefsKey);
@@ -551,7 +550,6 @@ namespace _Project.Tests.Editor
             {
                 PlayerPrefs.SetInt(musicEnabledKey, 0);
                 PlayerPrefs.SetInt(sfxEnabledKey, 1);
-                PlayerPrefs.SetInt(vibrationKey, 0);
                 PlayerPrefs.SetInt(damageTextKey, 1);
                 PlayerPrefs.Save();
 
@@ -569,14 +567,12 @@ namespace _Project.Tests.Editor
                 Assert.That(service.Data.bestKillCount, Is.EqualTo(0));
                 Assert.That(PlayerPrefs.GetInt(musicEnabledKey), Is.EqualTo(0));
                 Assert.That(PlayerPrefs.GetInt(sfxEnabledKey), Is.EqualTo(1));
-                Assert.That(PlayerPrefs.GetInt(vibrationKey), Is.EqualTo(0));
                 Assert.That(PlayerPrefs.GetInt(damageTextKey), Is.EqualTo(1));
             }
             finally
             {
                 PlayerPrefs.DeleteKey(musicEnabledKey);
                 PlayerPrefs.DeleteKey(sfxEnabledKey);
-                PlayerPrefs.DeleteKey(vibrationKey);
                 PlayerPrefs.DeleteKey(damageTextKey);
                 RestoreFloatPrefsKey(RunStatsTracker.BestSurvivalTimePrefsKey, hadLegacyBestSurvivalTime, legacyBestSurvivalTime);
                 RestoreIntPrefsKey(RunStatsTracker.BestKillCountPrefsKey, hadLegacyBestKillCount, legacyBestKillCount);

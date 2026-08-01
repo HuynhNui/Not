@@ -27,7 +27,6 @@ namespace _Project.Editor
         private const string GearIconPath = ArtRoot + "icon_gear.png";
         private const string MusicIconPath = "Assets/_Project/Art/UI/PausePanel/MusicIcon.aseprite";
         private const string SfxIconPath = "Assets/_Project/Art/UI/PausePanel/SpeakerIcon.aseprite";
-        private const string VibrationIconPath = ArtRoot + "icon_vibration.png";
         private const string DamageTextIconPath = ArtRoot + "icon_damage_text.png";
         private const string ResetIconPath = ArtRoot + "icon_reset.png";
 
@@ -60,7 +59,6 @@ namespace _Project.Editor
             Sprite gearIconSprite = LoadSprite(GearIconPath);
             Sprite musicIconSprite = LoadSprite(MusicIconPath);
             Sprite sfxIconSprite = LoadSprite(SfxIconPath);
-            Sprite vibrationIconSprite = LoadSprite(VibrationIconPath);
             Sprite damageTextIconSprite = LoadSprite(DamageTextIconPath);
             Sprite resetIconSprite = LoadSprite(ResetIconPath);
             TMP_FontAsset fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath)
@@ -85,14 +83,12 @@ namespace _Project.Editor
                 gearIconSprite,
                 musicIconSprite,
                 sfxIconSprite,
-                vibrationIconSprite,
                 damageTextIconSprite,
                 resetIconSprite,
                 fontAsset,
                 out Button backButton,
                 out Toggle musicToggle,
                 out Toggle sfxToggle,
-                out Toggle vibrationToggle,
                 out Toggle damageTextToggle,
                 out Button resetDataButton,
                 out GameObject confirmPopup,
@@ -103,7 +99,6 @@ namespace _Project.Editor
                 backButton,
                 musicToggle,
                 sfxToggle,
-                vibrationToggle,
                 damageTextToggle,
                 resetDataButton,
                 confirmPopup,
@@ -148,7 +143,6 @@ namespace _Project.Editor
             ConfigureSprite(ToggleOnPath, Vector4.zero, 512);
             ConfigureSprite(ToggleOffPath, Vector4.zero, 512);
             ConfigureSprite(GearIconPath, Vector4.zero, 512);
-            ConfigureSprite(VibrationIconPath, Vector4.zero, 512);
             ConfigureSprite(DamageTextIconPath, Vector4.zero, 512);
             ConfigureSprite(ResetIconPath, Vector4.zero, 512);
         }
@@ -216,14 +210,12 @@ namespace _Project.Editor
             Sprite gearIconSprite,
             Sprite musicIconSprite,
             Sprite sfxIconSprite,
-            Sprite vibrationIconSprite,
             Sprite damageTextIconSprite,
             Sprite resetIconSprite,
             TMP_FontAsset fontAsset,
             out Button backButton,
             out Toggle musicToggle,
             out Toggle sfxToggle,
-            out Toggle vibrationToggle,
             out Toggle damageTextToggle,
             out Button resetDataButton,
             out GameObject confirmPopup,
@@ -324,7 +316,6 @@ namespace _Project.Editor
 
             musicToggle = BuildSettingsRow(rowsContainer, "MusicRow", musicIconSprite, "MUSIC", rowCardSprite, toggleOnSprite, fontAsset);
             sfxToggle = BuildSettingsRow(rowsContainer, "SfxRow", sfxIconSprite, "SFX", rowCardSprite, toggleOnSprite, fontAsset);
-            vibrationToggle = BuildSettingsRow(rowsContainer, "VibrationRow", vibrationIconSprite, "VIBRATION", rowCardSprite, toggleOnSprite, fontAsset);
             damageTextToggle = BuildSettingsRow(rowsContainer, "DamageTextRow", damageTextIconSprite, "DAMAGE TEXT", rowCardSprite, toggleOnSprite, fontAsset);
 
             RectTransform resetButtonRect = CreateButton("ResetButton", mainPanel, resetButtonSprite, Color.white, false);
@@ -709,7 +700,6 @@ namespace _Project.Editor
             Button backButton,
             Toggle musicToggle,
             Toggle sfxToggle,
-            Toggle vibrationToggle,
             Toggle damageTextToggle,
             Button resetDataButton,
             GameObject confirmPopup,
@@ -729,7 +719,6 @@ namespace _Project.Editor
             SetReference(serializedObject, "settingsBackButton", backButton);
             SetReference(serializedObject, "musicToggle", musicToggle);
             SetReference(serializedObject, "sfxToggle", sfxToggle);
-            SetReference(serializedObject, "vibrationToggle", vibrationToggle);
             SetReference(serializedObject, "damageTextToggle", damageTextToggle);
             SetReference(serializedObject, "resetDataButton", resetDataButton);
             SetReference(serializedObject, "resetConfirmPopup", confirmPopup);

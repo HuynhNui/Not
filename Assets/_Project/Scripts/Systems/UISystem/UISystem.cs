@@ -68,7 +68,6 @@ namespace _Project.Scripts.Systems.UISystem
         [Header("Settings")]
         [SerializeField] private Toggle musicToggle;
         [SerializeField] private Toggle sfxToggle;
-        [SerializeField] private Toggle vibrationToggle;
         [FormerlySerializedAs("performanceModeToggle")]
         [SerializeField] private Toggle damageTextToggle;
         [SerializeField] private Button settingsBackButton;
@@ -108,7 +107,6 @@ namespace _Project.Scripts.Systems.UISystem
         private const string SfxVolumePrefsKey = "Settings.SfxVolume";
         private const string MusicEnabledPrefsKey = "Settings.MusicEnabled";
         private const string SfxEnabledPrefsKey = "Settings.SfxEnabled";
-        private const string VibrationPrefsKey = "Settings.Vibration";
         private const string DamageTextPrefsKey = "Settings.DamageText";
         private const float MissionCompleteFeedbackSeconds = 1.25f;
 
@@ -331,7 +329,6 @@ namespace _Project.Scripts.Systems.UISystem
         {
             WireSettingToggle(musicToggle, MusicEnabledPrefsKey, true, nameof(musicToggle));
             WireSettingToggle(sfxToggle, SfxEnabledPrefsKey, true, nameof(sfxToggle));
-            WireSettingToggle(vibrationToggle, VibrationPrefsKey, true, nameof(vibrationToggle));
             WireSettingToggle(damageTextToggle, DamageTextPrefsKey, true, nameof(damageTextToggle));
             WireSettingToggle(pauseMusicToggle, MusicEnabledPrefsKey, true, nameof(pauseMusicToggle));
             WireSettingToggle(pauseSfxToggle, SfxEnabledPrefsKey, true, nameof(pauseSfxToggle));
@@ -499,7 +496,6 @@ namespace _Project.Scripts.Systems.UISystem
         {
             RefreshSettingToggle(musicToggle, MusicEnabledPrefsKey, true);
             RefreshSettingToggle(sfxToggle, SfxEnabledPrefsKey, true);
-            RefreshSettingToggle(vibrationToggle, VibrationPrefsKey, true);
             RefreshSettingToggle(damageTextToggle, DamageTextPrefsKey, true);
             RefreshSettingToggle(pauseMusicToggle, MusicEnabledPrefsKey, true);
             RefreshSettingToggle(pauseSfxToggle, SfxEnabledPrefsKey, true);
@@ -546,12 +542,6 @@ namespace _Project.Scripts.Systems.UISystem
             if (!PlayerPrefs.HasKey(SfxEnabledPrefsKey))
             {
                 SetBoolSetting(SfxEnabledPrefsKey, GetEnabledDefaultFromLegacyVolume(SfxVolumePrefsKey));
-                changed = true;
-            }
-
-            if (!PlayerPrefs.HasKey(VibrationPrefsKey))
-            {
-                SetBoolSetting(VibrationPrefsKey, true);
                 changed = true;
             }
 
@@ -790,7 +780,6 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(gameOverPanelUI, nameof(gameOverPanelUI), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
             WarnIfMissing(musicToggle, nameof(musicToggle), "SettingsPanel/MainPanel/RowsContainer/MusicRow/ToggleButton");
             WarnIfMissing(sfxToggle, nameof(sfxToggle), "SettingsPanel/MainPanel/RowsContainer/SfxRow/ToggleButton");
-            WarnIfMissing(vibrationToggle, nameof(vibrationToggle), "SettingsPanel/MainPanel/RowsContainer/VibrationRow/ToggleButton");
             WarnIfMissing(damageTextToggle, nameof(damageTextToggle), "SettingsPanel/MainPanel/RowsContainer/DamageTextRow/ToggleButton");
             WarnIfMissing(settingsBackButton, nameof(settingsBackButton), "SettingsPanel/MainPanel/Header/BackButton");
             WarnIfMissing(resetDataButton, nameof(resetDataButton), "SettingsPanel/MainPanel/ResetButton");

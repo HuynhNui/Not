@@ -232,8 +232,8 @@ namespace _Project.Editor
                 new Vector2(0f, 0.5f),
                 new Vector2(0f, 0.5f),
                 new Vector2(0f, 0.5f),
-                new Vector2(58f, 0f),
-                new Vector2(118f, 104f),
+                new Vector2(58f, -40f),
+                new Vector2(120f, 120f),
                 new Color(0.12f, 0.55f, 0.94f, 1f));
             backButton = back.GetComponent<Button>();
 
