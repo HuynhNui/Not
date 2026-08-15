@@ -70,6 +70,7 @@ namespace _Project.Scripts.Systems.EnemySpawnerSystem
         public float ElapsedTime => _elapsedTime;
         public float GateSpeedMultiplier => _gateSpeedMultiplier;
         public float GatePressureMultiplier => _gatePressureMultiplier;
+        public RunPressureConfig PressureConfig => runPressureConfig;
 
         public void Init()
         {

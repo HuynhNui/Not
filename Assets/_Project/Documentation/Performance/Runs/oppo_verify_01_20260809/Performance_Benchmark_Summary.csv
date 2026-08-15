@@ -1,0 +1,7 @@
+run_id,scenario,duration_sec,frame_count,avg_fps,median_fps,one_percent_low_fps,min_fps,avg_frame_ms,p95_frame_ms,p99_frame_ms,max_frame_ms,peak_total_allocated_mb,peak_total_reserved_mb,avg_gc_alloc_bytes,total_gc_alloc_bytes,gc_collections,avg_main_thread_ms,avg_render_thread_ms,peak_enemy_count,peak_projectile_count,peak_gate_count,peak_pool_count
+oppo_verify_01_20260809,Main Menu Idle,15.033,451,30,29.998,29.753,29.653,33.333,33.473,33.543,33.723,141.52,276.793,85.326,38482,0,33.282,N/A,0,0,0,272
+oppo_verify_01_20260809,Early Run,50,1497,29.94,30,24.869,19.974,33.4,33.529,33.612,50.066,144.99,276.793,2180.933,3264856,6,33.327,N/A,14,74,0,356
+oppo_verify_01_20260809,60-180 Seconds,60,1796,29.933,30.001,24.439,19.96,33.408,33.473,33.563,50.101,145.452,276.793,2425.894,4356906,9,33.337,N/A,18,57,0,356
+oppo_verify_01_20260809,180-300 Seconds,0,0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,0
+oppo_verify_01_20260809,Heavy Combat,0,0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,0
+oppo_verify_01_20260809,Long Run / Stress,0,0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,0

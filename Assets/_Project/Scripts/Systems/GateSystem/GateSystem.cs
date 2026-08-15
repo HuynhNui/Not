@@ -104,6 +104,22 @@ namespace _Project.Scripts.Systems.GateSystem
         public float RunElapsedSeconds => _runElapsedSeconds;
         public int GateSetCount => _gateSetCount;
         public bool IsGateSetActive => _isGateSetActive;
+        public int ActiveGateCount
+        {
+            get
+            {
+                int count = 0;
+                for (int index = 0; index < activeGates.Count; index++)
+                {
+                    if (activeGates[index] != null && activeGates[index].gameObject.activeInHierarchy)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
         public float GateCadenceSeconds => gatePoolConfig != null
             ? gatePoolConfig.GateCadenceSeconds
             : GatePoolConfig.DefaultGateCadenceSeconds;

@@ -1,0 +1,19 @@
+{
+  "compileErrors": 0,
+  "editMode": {
+    "jobId": "a9684ce6df60",
+    "passed": 216,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 49.4
+  },
+  "playMode": {
+    "jobId": "f91c37ca5c26",
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 3.6
+  },
+  "totalPassed": 257,
+  "totalFailed": 0
+}

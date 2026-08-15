@@ -92,6 +92,46 @@ namespace _Project.Scripts.Systems.PoolSystem
             Release(poolable);
         }
 
+        public PoolDiagnostics CaptureDiagnostics()
+        {
+            int activeInstances = 0;
+            int inactiveInstances = 0;
+            int activeProjectiles = 0;
+
+            for (int index = 0; index < transform.childCount; index++)
+            {
+                Transform child = transform.GetChild(index);
+                if (child == null)
+                {
+                    continue;
+                }
+
+                GameObject instance = child.gameObject;
+                PooledObject pooledObject = instance.GetComponent<PooledObject>();
+                if (pooledObject == null)
+                {
+                    continue;
+                }
+
+                if (!instance.activeSelf)
+                {
+                    inactiveInstances++;
+                    continue;
+                }
+
+                activeInstances++;
+                GameObject prefab = pooledObject.Prefab;
+                if (prefab != null
+                    && (prefab.GetComponent<_Project.Scripts.Gameplay.Combat.Bullet>() != null
+                        || prefab.GetComponent<_Project.Scripts.Gameplay.Enemies.EnemyProjectile>() != null))
+                {
+                    activeProjectiles++;
+                }
+            }
+
+            return new PoolDiagnostics(activeInstances, inactiveInstances, activeProjectiles);
+        }
+
         private void EnsurePool(GameObject prefab)
         {
             if (!_poolByPrefab.ContainsKey(prefab))
@@ -114,6 +154,22 @@ namespace _Project.Scripts.Systems.PoolSystem
 
             pooledObject.Configure(this, prefab);
             return instance;
+        }
+    }
+
+    public readonly struct PoolDiagnostics
+    {
+        public readonly int ActiveInstances;
+        public readonly int InactiveInstances;
+        public readonly int ActiveProjectiles;
+
+        public int TotalInstances => ActiveInstances + InactiveInstances;
+
+        public PoolDiagnostics(int activeInstances, int inactiveInstances, int activeProjectiles)
+        {
+            ActiveInstances = Mathf.Max(0, activeInstances);
+            InactiveInstances = Mathf.Max(0, inactiveInstances);
+            ActiveProjectiles = Mathf.Max(0, activeProjectiles);
         }
     }
 

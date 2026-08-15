@@ -1,0 +1,77 @@
+{
+    "schemaVersion": 11,
+    "balanceVersionLastPlayed": "balance-v1.1.1",
+    "revision": 35,
+    "lastUpdatedUnixMs": 1785567388815,
+    "bestSurvivalTime": 39.63336181640625,
+    "bestKillCount": 139,
+    "bestCoinsEarned": 122,
+    "bestScore": 158,
+    "totalEnemyKills": 633,
+    "walletCoins": 2049,
+    "lifetimeCoinsEarned": 5049,
+    "lifetimeCoinsSpent": 3000,
+    "totalRunsCompleted": 5,
+    "storyStage": 3,
+    "gameplayTutorialCompleted": true,
+    "upgradeTutorialCompleted": true,
+    "tutorialFirstRunBonusGranted": false,
+    "tutorialVersion": 1,
+    "activeMissionId": "boot_purchase_upgrade",
+    "activeMissionProgress": 0.0,
+    "activeMissionBaseline": 1.0,
+    "missionProgressEntries": [
+        {
+            "missionId": "boot_purchase_upgrade",
+            "progress": 0.0,
+            "baseline": 1.0
+        }
+    ],
+    "completedMissionIds": [
+        "boot_finish_tutorial",
+        "boot_survive_30",
+        "boot_10_kills_run",
+        "boot_first_loop"
+    ],
+    "grantedMissionRewardIds": [
+        "boot_survive_30",
+        "boot_10_kills_run",
+        "boot_finish_tutorial",
+        "boot_first_loop"
+    ],
+    "lifetimeGatesSelected": 10,
+    "lifetimeMajorGatesSelected": 0,
+    "missionNotificationUnread": false,
+    "finalChoiceResolved": false,
+    "upgradeLevels": [
+        {
+            "upgradeType": "Damage",
+            "level": 0
+        },
+        {
+            "upgradeType": "FireRate",
+            "level": 0
+        },
+        {
+            "upgradeType": "MoveSpeed",
+            "level": 0
+        },
+        {
+            "upgradeType": "MaxHp",
+            "level": 1
+        },
+        {
+            "upgradeType": "ProjectileCount",
+            "level": 0
+        },
+        {
+            "upgradeType": "SquadSize",
+            "level": 0
+        }
+    ],
+    "seenCutsceneIds": [
+        "CS_01_BootSequence",
+        "CS_02_FirstDeathRecovery",
+        "CS_03_EnemyDoesNotCharge"
+    ]
+}

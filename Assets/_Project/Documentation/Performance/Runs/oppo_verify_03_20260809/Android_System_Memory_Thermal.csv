@@ -1,0 +1,27 @@
+elapsed_sec,total_pss_kb,total_rss_kb,battery_temp_c,battery_level,thermal_status,foreground_window
+5,390933,495128,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+11.7,404597,509508,38.5,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+17.3,415601,520448,38.5,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+22.9,427273,532128,38.3,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+28.5,443199,548000,38.4,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+34.1,449160,553964,38.5,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+39.7,449996,554848,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+45.2,451791,556648,38.4,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+50.8,452244,557152,38.5,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+56.3,452727,557640,38.5,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+61.8,453116,558112,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+68.3,453448,558444,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+73.8,454016,559016,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+79.3,454269,559272,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+84.9,455012,560016,38.7,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+90.4,455624,560628,38.7,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+95.9,455716,560720,38.6,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+101.4,455808,560816,38.8,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+106.9,455411,560420,38.9,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+112.4,455596,560604,38.8,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+117.9,455820,560828,38.8,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+123.4,456256,561268,38.9,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+129.9,456604,561616,38.8,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+135.3,457113,562128,38.9,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+140.8,457400,562416,38.9,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}
+146.3,458776,564368,39.0,100,3,mCurrentFocus=Window{749e5c7 u0 com.mimicompany.truegate/com.unity3d.player.UnityPlayerGameActivity}

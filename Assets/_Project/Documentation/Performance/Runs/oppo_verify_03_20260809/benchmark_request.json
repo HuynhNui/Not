@@ -1,0 +1,20 @@
+{
+    "enabled":  true,
+    "runId":  "oppo_verify_03_20260809",
+    "sourceCommit":  "d6954fe04761b6aff959fdd35412ea88478ad776",
+    "benchmarkProfileId":  "performance-baseline-full-meta",
+    "menuWarmupSeconds":  5,
+    "menuMeasurementSeconds":  15,
+    "gameplayWarmupSeconds":  10,
+    "gameplayDurationSeconds":  120,
+    "sampleIntervalSeconds":  1,
+    "noGateBaseline":  true,
+    "invulnerable":  true,
+    "startingDamage":  3,
+    "startingFireRate":  6.4,
+    "startingMaxHp":  20,
+    "startingProjectileCount":  3,
+    "startingSquadSize":  4,
+    "autoconnectProfiler":  false,
+    "deepProfiling":  false
+}

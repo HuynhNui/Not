@@ -1,0 +1,16 @@
+{
+    "runId":  "oppo_full_02_20260809",
+    "completionState":  "TIMEOUT",
+    "elapsedWallSeconds":  824.572,
+    "sourceCommit":  "d6954fe04761b6aff959fdd35412ea88478ad776",
+    "preSaveSha256":  "e8393cf23516c513b79b5ba47021d19c52ef327076a51e8f71037ec64a45bba6",
+    "postSaveSha256":  "e8393cf23516c513b79b5ba47021d19c52ef327076a51e8f71037ec64a45bba6",
+    "preSaveBackupSha256":  "a8c595a931ac805969ffbf257789c8351ffee05849a9a4b3d72257f555c3b829",
+    "postSaveBackupSha256":  "a8c595a931ac805969ffbf257789c8351ffee05849a9a4b3d72257f555c3b829",
+    "savePreserved":  true,
+    "device":  "CPH2059",
+    "androidVersion":  "11",
+    "apiLevel":  "30",
+    "physicalSize":  "Physical size: 1080x2400",
+    "foregroundPreserved":  false
+}

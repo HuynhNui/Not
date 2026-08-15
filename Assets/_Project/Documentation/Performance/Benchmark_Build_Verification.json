@@ -1,0 +1,18 @@
+{
+  "apkPath": "Builds/Android/TrueGate-0.1.1-performance-dev.apk",
+  "sha256": "b73d2308bd17a49f3008c86e5f6bf4793367ede3903c5f0c6cfb8b263df34dd5",
+  "sizeBytes": 109203843,
+  "packageName": "com.mimicompany.truegate",
+  "versionName": "0.1.1",
+  "versionCode": 2,
+  "unityVersion": "6000.4.2f1",
+  "developmentBuild": true,
+  "autoconnectProfiler": false,
+  "deepProfiling": false,
+  "scriptingBackend": "IL2CPP",
+  "abi": "arm64-v8a",
+  "sourceCommit": "d6954fe04761b6aff959fdd35412ea88478ad776",
+  "dirtyWorktree": true,
+  "installOverResult": "Success",
+  "savePreservedAcrossInstall": true
+}

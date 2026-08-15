@@ -322,6 +322,7 @@ namespace TrueGate.PlayModeTests
                 SetField(chomboom, "triggerRadius", 0.45f);
                 SetField(chomboom, "armingDuration", 10f);
                 Invoke(enemy, "Init", playerObject.transform, null, null, null);
+                Invoke(enemy, "SetExternalMoveSpeedMultiplier", 0f);
                 Invoke(enemy, "Spawn");
 
                 yield return null;

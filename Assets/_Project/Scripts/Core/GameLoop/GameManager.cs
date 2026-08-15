@@ -51,6 +51,7 @@ namespace _Project.Scripts.Core.GameLoop
         private bool _isGameOver;
         private bool _isRunActive;
         private bool _isBenchmarkRun;
+        private bool _isPerformanceBenchmarkRun;
         private RuntimeMissionSystem _missionSystem;
         private static bool _startRunAfterReload;
         private static bool _showUpdateOnboardingAfterReload;
@@ -218,6 +219,7 @@ namespace _Project.Scripts.Core.GameLoop
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = false;
+            _isPerformanceBenchmarkRun = false;
             playerController?.SetControlsEnabled(false);
             if (playerController != null)
             {
@@ -352,6 +354,7 @@ namespace _Project.Scripts.Core.GameLoop
             _isGameOver = false;
             _isRunActive = true;
             _isBenchmarkRun = false;
+            _isPerformanceBenchmarkRun = false;
             _missionSystem?.SetProgressionSuppressed(false);
             runStatsTracker?.SetPersistenceSuppressed(false);
 
@@ -390,6 +393,7 @@ namespace _Project.Scripts.Core.GameLoop
             _isGameOver = false;
             _isRunActive = true;
             _isBenchmarkRun = IsBenchmarkProfileActive();
+            _isPerformanceBenchmarkRun = false;
             _missionSystem?.SetProgressionSuppressed(_isBenchmarkRun);
 
             if (playerController != null && !playerController.gameObject.activeSelf)
@@ -408,10 +412,58 @@ namespace _Project.Scripts.Core.GameLoop
 
         private void StartRun()
         {
+            bool isBenchmarkRun = IsBenchmarkProfileActive();
+            PlayerRunStartStats startStats = isBenchmarkRun
+                ? benchmarkProfile.ToRunStartStats()
+                : PlayerMetaUpgradeService.BuildCurrentRunStartStats();
+            string benchmarkProfileId = isBenchmarkRun
+                ? benchmarkProfile.ProfileId
+                : string.Empty;
+            bool suppressPersistence = isBenchmarkRun
+                && (benchmarkProfile.SuppressSaveCommit || benchmarkProfile.SuppressWalletReward);
+
+            StartRunInternal(
+                isBenchmarkRun: isBenchmarkRun,
+                isPerformanceBenchmarkRun: false,
+                startStats: startStats,
+                benchmarkProfileId: benchmarkProfileId,
+                suppressPersistence: suppressPersistence);
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public bool TryStartPerformanceBenchmarkRun(
+            PlayerRunStartStats startStats,
+            string benchmarkProfileId)
+        {
+            if (_isRunActive || _isGameOver)
+            {
+                return false;
+            }
+
+            StartRunInternal(
+                isBenchmarkRun: true,
+                isPerformanceBenchmarkRun: true,
+                startStats: startStats,
+                benchmarkProfileId: string.IsNullOrWhiteSpace(benchmarkProfileId)
+                    ? "performance-baseline"
+                    : benchmarkProfileId.Trim(),
+                suppressPersistence: true);
+            return true;
+        }
+#endif
+
+        private void StartRunInternal(
+            bool isBenchmarkRun,
+            bool isPerformanceBenchmarkRun,
+            PlayerRunStartStats startStats,
+            string benchmarkProfileId,
+            bool suppressPersistence)
+        {
             Time.timeScale = 1f;
             _isGameOver = false;
             _isRunActive = true;
-            _isBenchmarkRun = IsBenchmarkProfileActive();
+            _isBenchmarkRun = isBenchmarkRun;
+            _isPerformanceBenchmarkRun = isPerformanceBenchmarkRun;
             _missionSystem?.SetProgressionSuppressed(_isBenchmarkRun);
 
             if (playerController != null && !playerController.gameObject.activeSelf)
@@ -422,20 +474,15 @@ namespace _Project.Scripts.Core.GameLoop
             if (mainPlayerUnit != null)
             {
                 mainPlayerUnit.Initialize();
-                PlayerRunStartStats startStats = _isBenchmarkRun
-                    ? benchmarkProfile.ToRunStartStats()
-                    : PlayerMetaUpgradeService.BuildCurrentRunStartStats();
                 PlayerMetaUpgradeService.ApplyStatsToPlayer(startStats, mainPlayerUnit, playerController);
                 telemetryService?.SetRunContext(
                     _isBenchmarkRun ? "benchmark" : "standard",
-                    _isBenchmarkRun ? benchmarkProfile.ProfileId : string.Empty,
+                    _isBenchmarkRun ? benchmarkProfileId : string.Empty,
                     startStats);
             }
 
             playerController?.ResetRunPosition();
-            runStatsTracker?.SetPersistenceSuppressed(
-                _isBenchmarkRun
-                && (benchmarkProfile.SuppressSaveCommit || benchmarkProfile.SuppressWalletReward));
+            runStatsTracker?.SetPersistenceSuppressed(suppressPersistence);
             runStatsTracker?.BeginRun();
             playerController?.SetControlsEnabled(true);
             enemySpawnerSystem?.BeginRun();
@@ -695,16 +742,18 @@ namespace _Project.Scripts.Core.GameLoop
 
         private bool ShouldSuppressBenchmarkStory()
         {
-            return _isBenchmarkRun
-                && benchmarkProfile != null
-                && benchmarkProfile.SuppressStoryProgress;
+            return _isPerformanceBenchmarkRun
+                || (_isBenchmarkRun
+                    && benchmarkProfile != null
+                    && benchmarkProfile.SuppressStoryProgress);
         }
 
         private bool ShouldSuppressBenchmarkTutorial()
         {
-            return _isBenchmarkRun
-                && benchmarkProfile != null
-                && benchmarkProfile.SuppressTutorialProgress;
+            return _isPerformanceBenchmarkRun
+                || (_isBenchmarkRun
+                    && benchmarkProfile != null
+                    && benchmarkProfile.SuppressTutorialProgress);
         }
     }
 }
