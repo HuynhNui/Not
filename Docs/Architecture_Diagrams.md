@@ -45,12 +45,16 @@ classDiagram
 
     class UISystem {
         +UIScreen CurrentScreen
+        +bool IsUpgradeInactivityMonitoring
+        +bool IsUpgradeInactivityWarningVisible
         +Init(RunStatsTracker tracker)
         +ShowMainMenu()
         +ShowGameplayHud()
         +ShowPause()
         +ShowSettingsFromMainMenu()
         +ShowSettingsFromPause()
+        +ShowUpgrade()
+        +RegisterUpgradeActivity()
         +ShowMissionLog()
         +ShowGameOver(RunStatsSnapshot snapshot)
         +ShowMissionButtonCompleteFeedback()
@@ -59,6 +63,18 @@ classDiagram
         +event UiCueRequested
         +event MusicSettingChanged
         +event SfxSettingChanged
+    }
+
+    class UIInactivityTimeoutController {
+        +bool IsMonitoring
+        +bool IsWarningVisible
+        +StartMonitoring()
+        +StopMonitoring()
+        +RegisterActivity()
+        +Advance(float unscaledDeltaTime)
+        +event WarningVisibilityChanged
+        +event GraceCountdownChanged
+        +event TimedOut
     }
 
     class RunStatsTracker {
@@ -396,6 +412,7 @@ classDiagram
 
     UISystem --> MissionSystem : mission log
     UISystem --> SaveService : wallet and settings
+    UISystem *-- UIInactivityTimeoutController : upgrade inactivity lifecycle
     TutorialManager --> GameManager : prepares tutorial run
     TutorialManager --> StoryCutsceneRuntimeController : transient tutorial cutscenes
     MissionSystem --> MissionCatalog : reads definitions

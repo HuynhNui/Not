@@ -7,6 +7,7 @@ using _Project.Scripts.Systems.SaveSystem;
 using _Project.Scripts.Systems.AudioSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -65,6 +66,13 @@ namespace _Project.Scripts.Systems.UISystem
         [SerializeField] private List<UpgradeRowBinding> upgradeRows = new List<UpgradeRowBinding>();
         [SerializeField] private Button upgradeBackButton;
 
+        [Header("Upgrade Inactivity")]
+        [SerializeField, Min(0f)] private float warningAfterSeconds = 60f;
+        [SerializeField, Min(0f)] private float autoReturnGraceSeconds = 10f;
+        [SerializeField] private GameObject upgradeInactivityWarningPopup;
+        [SerializeField] private TextMeshProUGUI upgradeInactivityWarningText;
+        [SerializeField] private Button upgradeInactivityStayButton;
+
         [Header("Settings")]
         [SerializeField] private Toggle musicToggle;
         [SerializeField] private Toggle sfxToggle;
@@ -116,6 +124,7 @@ namespace _Project.Scripts.Systems.UISystem
         private readonly HashSet<string> _missingReferenceWarnings = new HashSet<string>();
         private bool _isInitialized;
         private bool _missionButtonCompleteFeedbackPending;
+        private UIInactivityTimeoutController _upgradeInactivityTimeout;
 
         public event Action PlayRequested;
         public event Action PauseRequested;
@@ -136,6 +145,10 @@ namespace _Project.Scripts.Systems.UISystem
             resetDataButton != null && resetDataButton.targetGraphic is Image image
                 ? image.sprite
                 : null;
+        public bool IsUpgradeInactivityMonitoring =>
+            _upgradeInactivityTimeout != null && _upgradeInactivityTimeout.IsMonitoring;
+        public bool IsUpgradeInactivityWarningVisible =>
+            _upgradeInactivityTimeout != null && _upgradeInactivityTimeout.IsWarningVisible;
 
         public void Init(RunStatsTracker runStatsTracker = null)
         {
@@ -146,6 +159,8 @@ namespace _Project.Scripts.Systems.UISystem
 
             ResolveGameOverReferences();
             ResolvePauseSettingsReferences();
+            ResolveUpgradeInactivityReferences();
+            EnsureUpgradeInactivityController();
             ValidateRequiredReferences();
             EnsureSettingsPrefsInitialized();
             WireButtons();
@@ -161,6 +176,7 @@ namespace _Project.Scripts.Systems.UISystem
             }
 
             _isInitialized = true;
+            HideUpgradeInactivityWarning();
             ShowMainMenu();
         }
 
@@ -175,10 +191,38 @@ namespace _Project.Scripts.Systems.UISystem
             {
                 RefreshHud();
             }
+
+            if (_currentScreen != UIScreen.Upgrade || _upgradeInactivityTimeout == null)
+            {
+                return;
+            }
+
+            if (HasUpgradePointerActivityThisFrame())
+            {
+                RegisterUpgradeActivity();
+            }
+
+            _upgradeInactivityTimeout.Advance(Time.unscaledDeltaTime);
+        }
+
+        private void OnEnable()
+        {
+            if (_isInitialized && _currentScreen == UIScreen.Upgrade)
+            {
+                StartUpgradeInactivityMonitoring();
+            }
+        }
+
+        private void OnDisable()
+        {
+            StopUpgradeInactivityMonitoring();
         }
 
         private void OnDestroy()
         {
+            StopUpgradeInactivityMonitoring();
+            UnsubscribeUpgradeInactivityController();
+
             if (SaveService.HasInstance)
             {
                 SaveService.Instance.DataChanged -= HandleSaveDataChanged;
@@ -291,7 +335,16 @@ namespace _Project.Scripts.Systems.UISystem
             WireButton(mainMenuMissionButton, nameof(mainMenuMissionButton), ShowMissionLog, AudioCueId.UiPanelOpen);
             WireButton(missionBackButton, nameof(missionBackButton), ShowMainMenu, AudioCueId.UiPanelClose);
             WireButton(pauseButton, nameof(pauseButton), () => PauseRequested?.Invoke(), AudioCueId.UiPanelOpen);
-            WireButton(upgradeBackButton, nameof(upgradeBackButton), ShowMainMenu, AudioCueId.UiPanelClose);
+            WireButton(upgradeBackButton, nameof(upgradeBackButton), () =>
+            {
+                RegisterUpgradeActivity();
+                ShowMainMenu();
+            }, AudioCueId.UiPanelClose);
+            WireButton(
+                upgradeInactivityStayButton,
+                nameof(upgradeInactivityStayButton),
+                RegisterUpgradeActivity,
+                AudioCueId.UiConfirm);
             WireButton(settingsBackButton, nameof(settingsBackButton), HandleSettingsBack, AudioCueId.UiPanelClose);
             WireButton(resetDataButton, nameof(resetDataButton), ShowResetConfirmPopup, AudioCueId.UiPanelOpen);
             WireButton(resetConfirmCancelButton, nameof(resetConfirmCancelButton), HideResetConfirmPopup, AudioCueId.UiPanelClose);
@@ -435,6 +488,8 @@ namespace _Project.Scripts.Systems.UISystem
 
         private void TryPurchaseUpgrade(PlayerMetaUpgradeType upgradeType)
         {
+            RegisterUpgradeActivity();
+
             if (!PlayerMetaUpgradeService.TryPurchase(upgradeType))
             {
                 RequestUiCue(AudioCueId.UiInvalidLocked);
@@ -739,6 +794,12 @@ namespace _Project.Scripts.Systems.UISystem
         private void SetPrimaryPanel(UIScreen screen)
         {
             bool changed = _currentScreen != screen;
+
+            if (_currentScreen == UIScreen.Upgrade && screen != UIScreen.Upgrade)
+            {
+                StopUpgradeInactivityMonitoring();
+            }
+
             _currentScreen = screen;
 
             SetActive(mainMenuPanel, screen == UIScreen.MainMenu);
@@ -751,6 +812,12 @@ namespace _Project.Scripts.Systems.UISystem
                 || screen == UIScreen.Pause
                 || screen == UIScreen.GameOver
                 || (_settingsReturnScreen == UIScreen.Pause && screen == UIScreen.Settings));
+
+            if (screen == UIScreen.Upgrade
+                && (changed || _upgradeInactivityTimeout == null || !_upgradeInactivityTimeout.IsMonitoring))
+            {
+                StartUpgradeInactivityMonitoring();
+            }
 
             if (changed)
             {
@@ -771,6 +838,18 @@ namespace _Project.Scripts.Systems.UISystem
             WarnIfMissing(mainMenuPanel, nameof(mainMenuPanel), "GameCanvas/UIRoot/SafeAreaRoot/MainMenuPanel");
             WarnIfMissing(gameplayHudPanel, nameof(gameplayHudPanel), "GameCanvas/UIRoot/SafeAreaRoot/GameplayHUDPanel");
             WarnIfMissing(upgradePanel, nameof(upgradePanel), "GameCanvas/UIRoot/SafeAreaRoot/UpgradePanel");
+            WarnIfMissing(
+                upgradeInactivityWarningPopup,
+                nameof(upgradeInactivityWarningPopup),
+                "UpgradePanel/InactivityWarningPopup");
+            WarnIfMissing(
+                upgradeInactivityWarningText,
+                nameof(upgradeInactivityWarningText),
+                "UpgradePanel/InactivityWarningPopup/ConfirmSafeAreaRoot/ConfirmPanel/BodyText");
+            WarnIfMissing(
+                upgradeInactivityStayButton,
+                nameof(upgradeInactivityStayButton),
+                "UpgradePanel/InactivityWarningPopup/ConfirmSafeAreaRoot/ConfirmPanel/ButtonRow/StayButton");
             WarnIfMissing(settingsPanel, nameof(settingsPanel), "GameCanvas/UIRoot/SafeAreaRoot/SettingsPanel");
             WarnIfMissing(pausePanel, nameof(pausePanel), "GameCanvas/UIRoot/SafeAreaRoot/PausePanel");
             WarnIfMissing(gameOverPanel, nameof(gameOverPanel), "GameCanvas/UIRoot/SafeAreaRoot/GameOverPanel");
@@ -846,6 +925,120 @@ namespace _Project.Scripts.Systems.UISystem
             {
                 target.SetActive(active);
             }
+        }
+
+        public void RegisterUpgradeActivity()
+        {
+            if (_currentScreen != UIScreen.Upgrade)
+            {
+                return;
+            }
+
+            _upgradeInactivityTimeout?.RegisterActivity();
+        }
+
+        private void ResolveUpgradeInactivityReferences()
+        {
+            if (upgradePanel == null)
+            {
+                return;
+            }
+
+            Transform popupTransform = upgradePanel.transform.Find("InactivityWarningPopup");
+            upgradeInactivityWarningPopup ??= popupTransform != null ? popupTransform.gameObject : null;
+
+            if (popupTransform == null)
+            {
+                return;
+            }
+
+            upgradeInactivityWarningText ??= popupTransform
+                .Find("ConfirmSafeAreaRoot/ConfirmPanel/BodyText")
+                ?.GetComponent<TextMeshProUGUI>();
+            upgradeInactivityStayButton ??= popupTransform
+                .Find("ConfirmSafeAreaRoot/ConfirmPanel/ButtonRow/StayButton")
+                ?.GetComponent<Button>();
+        }
+
+        private void EnsureUpgradeInactivityController()
+        {
+            if (_upgradeInactivityTimeout != null)
+            {
+                return;
+            }
+
+            _upgradeInactivityTimeout = new UIInactivityTimeoutController(
+                warningAfterSeconds,
+                autoReturnGraceSeconds);
+            _upgradeInactivityTimeout.WarningVisibilityChanged += HandleUpgradeWarningVisibilityChanged;
+            _upgradeInactivityTimeout.GraceCountdownChanged += HandleUpgradeGraceCountdownChanged;
+            _upgradeInactivityTimeout.TimedOut += HandleUpgradeInactivityTimedOut;
+        }
+
+        private void UnsubscribeUpgradeInactivityController()
+        {
+            if (_upgradeInactivityTimeout == null)
+            {
+                return;
+            }
+
+            _upgradeInactivityTimeout.WarningVisibilityChanged -= HandleUpgradeWarningVisibilityChanged;
+            _upgradeInactivityTimeout.GraceCountdownChanged -= HandleUpgradeGraceCountdownChanged;
+            _upgradeInactivityTimeout.TimedOut -= HandleUpgradeInactivityTimedOut;
+        }
+
+        private void StartUpgradeInactivityMonitoring()
+        {
+            EnsureUpgradeInactivityController();
+            HideUpgradeInactivityWarning();
+            _upgradeInactivityTimeout.StartMonitoring();
+        }
+
+        private void StopUpgradeInactivityMonitoring()
+        {
+            _upgradeInactivityTimeout?.StopMonitoring();
+            HideUpgradeInactivityWarning();
+        }
+
+        private void HandleUpgradeWarningVisibilityChanged(bool visible)
+        {
+            SetActive(
+                upgradeInactivityWarningPopup,
+                visible && _currentScreen == UIScreen.Upgrade);
+        }
+
+        private void HandleUpgradeGraceCountdownChanged(int remainingSeconds)
+        {
+            SetText(
+                upgradeInactivityWarningText,
+                $"No activity detected. Returning to Main Menu in {Mathf.Max(0, remainingSeconds)}s.");
+        }
+
+        private void HandleUpgradeInactivityTimedOut()
+        {
+            if (_currentScreen != UIScreen.Upgrade)
+            {
+                return;
+            }
+
+            HideUpgradeInactivityWarning();
+            ShowMainMenu();
+        }
+
+        private void HideUpgradeInactivityWarning()
+        {
+            SetActive(upgradeInactivityWarningPopup, false);
+        }
+
+        private static bool HasUpgradePointerActivityThisFrame()
+        {
+            if (Pointer.current != null && Pointer.current.press.wasPressedThisFrame)
+            {
+                return true;
+            }
+
+            return Touchscreen.current != null
+                && Touchscreen.current.primaryTouch.press.wasPressedThisFrame;
         }
 
         private static string FormatTime(float seconds)
